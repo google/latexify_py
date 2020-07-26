@@ -23,18 +23,41 @@ class LatexifyVisitor(ast.NodeVisitor):
 
   def visit_Call(self, node):
     builtin_callees = {
+        'math.acos': (r'\arccos{\left(', r'\right)}'),
+        'math.acosh': (r'\operatorname{arccosh}{\left(', r'\right)}'),
+        'math.asin': (r'\arcsin{\left(', r'\right)}'),
+        'math.asinh': (r'\operatorname{arcsinh}{\left(', r'\right)}'),
+        'math.atan': (r'\arctan{\left(', r'\right)}'),
+        'math.atanh': (r'\operatorname{arctanh}{\left(', r'\right)}'),
+        'math.ceil': (r'\left\lceil', r'\right\rceil'),
+        'math.cos': (r'\cos{\left(', r'\right)}'),
+        'math.cosh': (r'\cosh{\left(', r'\right)}'),
+        'math.exp': (r'\exp{\left(', r'\right)'),
+        'math.fabs': (r'\left|', r'\right|'),
+        'math.factorial': (r'\left(', r'\right)!'),
+        'math.floor': (r'\left\lfloor', r'\right\rfloor'),
+        'math.fsum': (r'\sum \left(', r'\right)'),
+        'math.gamma': (r'\Gamma \left(', r'\right)'),
+        'math.log': (r'\log{\left(', r'\right)}'),
+        'math.log10': (r'\log_{10}{\left(', r'\right)'),
+        'math.log2': (r'\log_{2}{\left(', r'\right)'),
+        'math.prod': (r'\prod \left(', r'\right)'),
+        'math.sin': (r'\sin{\left(', r'\right)}'),
+        'math.sinh': (r'\sinh{\left(', r'\right)}'),
         'math.sqrt': (r'\sqrt{', '}'),
-        'math.sin': (r'\sin{(', ')}'),
-        'math.cos': (r'\cos{(', ')}'),
-        'math.tan': (r'\tan{(', ')}')
+        'math.tan': (r'\tan{\left(', r'\right)}'),
+        'math.tanh': (r'\tanh{\left(', r'\right)}'),
+        'sum': (r'\sum \left(', r'\right)'),
     }
 
     callee_str = self.visit(node.func)
     if callee_str in builtin_callees:
       lstr, rstr = builtin_callees[callee_str]
     else:
-      lstr = r'\mathrm{' + callee_str + '}('
-      rstr = ')'
+      if callee_str.startswith('math.'):
+        callee_str = callee_str[5:]
+      lstr = r'\operatorname{' + callee_str + '}\left('
+      rstr = r'\right)'
 
     arg_strs = [self.visit(arg) for arg in node.args]
     return lstr + ', '.join(arg_strs) + rstr
