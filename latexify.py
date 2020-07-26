@@ -13,7 +13,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return self.visit(node.body[0])
 
   def visit_FunctionDef(self, node):
-    name_str = r'\mathrm{' + str(node.name) + '}'
+    name_str = r'\operatorname{' + str(node.name) + '}'
     arg_strs = [str(arg.arg) for arg in node.args.args]
     body_str = self.visit(node.body[0])
     return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
@@ -89,7 +89,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\mathrm{unknown_uniop}(' + vstr + ')'
+      return r'\operatorname{unknown\_uniop}(' + vstr + ')'
 
   def visit_BinOp(self, node):
     priority = {
@@ -125,7 +125,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\mathrm{unknown_binop}(' + lstr + ', ' + rstr + ')'
+      return r'\operatorname{unknown\_binop}(' + lstr + ', ' + rstr + ')'
 
   def visit_Compare(self, node):
     lstr = self.visit(node.left)
@@ -134,7 +134,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     if isinstance(node.ops[0], ast.Eq):
       return lstr + '=' + rstr
     else:
-      return r'\mathrm{unknown_compop}(' + lstr + ', ' + rstr + ')'
+      return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
   def visit_If(self, node):
     cond_str = self.visit(node.test)
