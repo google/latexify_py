@@ -143,10 +143,15 @@ class LatexifyVisitor(ast.NodeVisitor):
       return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
   def visit_If(self, node):
-    cond_str = self.visit(node.test)
-    tstr = self.visit(node.body[0])
-    fstr = self.visit(node.orelse[0])
-    return r'\left\{ \begin{array}{ll} ' + tstr + r', & \mathrm{if} \ ' + cond_str + r' \\ ' + fstr + r', & \mathrm{otherwise} \end{array} \right.'
+    latex = r'\left\{ \begin{array}{ll} '
+
+    while isinstance(node, ast.If):
+      cond_latex = self.visit(node.test)
+      true_latex = self.visit(node.body[0])
+      latex += true_latex + r', & \mathrm{if} \ ' + cond_latex + r' \\ '
+      node = node.orelse[0]
+
+    return latex + self.visit(node) + r', & \mathrm{otherwise} \end{array} \right.'
 
 
 def get_latex(fn):
