@@ -53,7 +53,7 @@ class LatexifyVisitor(ast.NodeVisitor):
   def visit_UnaryOp(self, node):
     def _wrap(child):
       latex = self.visit(child)
-      if isinstance(child, ast.BinOp) and child.op in (ast.Add, ast.Sub):
+      if isinstance(child, ast.BinOp) and isinstance(child.op, (ast.Add, ast.Sub)):
         return '(' + latex + ')'
       return latex
 
