@@ -96,7 +96,10 @@ class LatexifyVisitor(ast.NodeVisitor):
         ast.Add: 10,
         ast.Sub: 10,
         ast.Mult: 20,
+        ast.MatMult: 20,
         ast.Div: 20,
+        ast.FloorDiv: 20,
+        ast.Mod: 20,
         ast.Pow: 30,
     }
 
@@ -118,7 +121,10 @@ class LatexifyVisitor(ast.NodeVisitor):
         ast.Add: (lambda: _wrap(l) + ' + ' + _wrap(r)),
         ast.Sub: (lambda: _wrap(l) + ' - ' + _wrap(r)),
         ast.Mult: (lambda: _wrap(l) + _wrap(r)),
+        ast.MatMult: (lambda: _wrap(l) + _wrap(r)),
         ast.Div: (lambda: r'\frac{' + _unwrap(l) + '}{' + _unwrap(r) + '}'),
+        ast.FloorDiv: (lambda: r'\left\lfloor\frac{' + _unwrap(l) + '}{' + _unwrap(r) + r'}\right\rfloor'),
+        ast.Mod: (lambda: _wrap(l) + r' \bmod ' + _wrap(r)),
         ast.Pow: (lambda: _wrap(l) + '^{' + _unwrap(r) + '}'),
     }
 
