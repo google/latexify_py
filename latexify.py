@@ -25,6 +25,8 @@ class LatexifyVisitor(ast.NodeVisitor):
     builtin_callees = {
         'math.sqrt': (r'\sqrt{', '}'),
         'math.sin': (r'\sin{(', ')}'),
+        'math.cos': (r'\cos{(', ')}'),
+        'math.tan': (r'\tan{(', ')}')
     }
 
     callee_str = self.visit(node.func)
@@ -50,10 +52,10 @@ class LatexifyVisitor(ast.NodeVisitor):
 
   def visit_UnaryOp(self, node):
     def _wrap(child):
-      repr = self.visit(child)
+      latex = self.visit(child)
       if isinstance(child, ast.BinOp) and child.op in (ast.Add, ast.Sub):
-        return '(' + repr + ')'
-      return repr
+        return '(' + latex + ')'
+      return latex
 
     reprs = {
         ast.UAdd: (lambda: _wrap(node.operand)),
@@ -78,13 +80,13 @@ class LatexifyVisitor(ast.NodeVisitor):
       return self.visit(child)
 
     def _wrap(child):
-      repr = _unwrap(child)
+      latex = _unwrap(child)
       if isinstance(child, ast.BinOp):
         cp = priority[type(child.op)] if type(child.op) in priority else 100
         pp = priority[type(node.op)] if type(node.op) in priority else 100
         if cp < pp:
-          return '(' + repr + ')'
-      return repr
+          return '(' + latex + ')'
+      return latex
 
     l = node.left
     r = node.right
@@ -122,12 +124,38 @@ def get_latex(fn):
 
 
 def with_latex(fn):
-  class _wrapper:
+
+  class _LatexifiedFunction:
     def __init__(self, fn):
       self._fn = fn
       self._str = get_latex(fn)
+
+    @property
+    def __doc__(self):
+      return self._fn.__doc__
+
+    @__doc__.setter
+    def __doc__(self, val):
+      self._fn.__doc__ = val
+
+    @property
+    def __name__(self):
+      return self._fn.__name__
+
+    @__name__.setter
+    def __name__(self, val):
+      self._fn.__name__ = val
+
     def __call__(self, *args):
       return self._fn(*args)
+
     def __str__(self):
       return self._str
-  return _wrapper(fn)
+
+    def _repr_latex_(self):
+      """
+      Hooks into Jupyter notebook's display system.
+      """
+      return self._str
+
+  return _LatexifiedFunction(fn)
