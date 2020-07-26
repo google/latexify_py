@@ -125,7 +125,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\operatorname{unknown\_binop}(' + lstr + ', ' + rstr + ')'
+      return r'\operatorname{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
 
   def visit_Compare(self, node):
     lstr = self.visit(node.left)
