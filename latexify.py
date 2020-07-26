@@ -52,10 +52,10 @@ class LatexifyVisitor(ast.NodeVisitor):
 
   def visit_UnaryOp(self, node):
     def _wrap(child):
-      repr_ = self.visit(child)
+      latex = self.visit(child)
       if isinstance(child, ast.BinOp) and child.op in (ast.Add, ast.Sub):
-        return '(' + repr_ + ')'
-      return repr_
+        return '(' + latex + ')'
+      return latex
 
     reprs = {
         ast.UAdd: (lambda: _wrap(node.operand)),
@@ -80,13 +80,13 @@ class LatexifyVisitor(ast.NodeVisitor):
       return self.visit(child)
 
     def _wrap(child):
-      repr_ = _unwrap(child)
+      latex = _unwrap(child)
       if isinstance(child, ast.BinOp):
         cp = priority[type(child.op)] if type(child.op) in priority else 100
         pp = priority[type(node.op)] if type(node.op) in priority else 100
         if cp < pp:
-          return '(' + repr_ + ')'
-      return repr_
+          return '(' + latex + ')'
+      return latex
 
     l = node.left
     r = node.right

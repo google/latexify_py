@@ -14,6 +14,6 @@ setup(
   author='Yusuke Oda',
   description='Generates LaTeX math description from Python functions.',
   long_description=readme,
-  python_requires='>=3.6',
+  python_requires='>=3.6, <=3.8',
   tests_require=['pytest']
 )
