@@ -182,7 +182,7 @@ def get_latex(fn, math_symbol=True):
   return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(inspect.getsource(fn)))
 
 
-def with_latex(math_symbol=True):
+def with_latex(*args, math_symbol=True):
 
   class _LatexifiedFunction:
     def __init__(self, fn):
@@ -217,6 +217,7 @@ def with_latex(math_symbol=True):
       """
       return self._str
 
-  def _wrapper(fn):
-    return _LatexifiedFunction(fn)
-  return _wrapper
+  if len(args) == 1 and callable(args[0]):
+    return _LatexifiedFunction(args[0])
+  else:
+    return lambda fn: _LatexifiedFunction(fn)
