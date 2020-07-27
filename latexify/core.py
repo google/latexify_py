@@ -13,6 +13,8 @@ class LatexifyVisitor(ast.NodeVisitor):
     super(ast.NodeVisitor).__init__()
 
   def _parse_math_symbols(self, val: str) -> str:
+    if not self.math_symbol:
+      return val
     greek_and_hebrew = [
         'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
         'delta', 'digamma', 'epsilon', 'eta', 'gamma', 'gimel',
@@ -21,10 +23,10 @@ class LatexifyVisitor(ast.NodeVisitor):
         'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
         'varsigma', 'vartheta', 'xi', 'zeta'
     ]
-    if self.math_symbol and val.lower() in greek_and_hebrew:
+    if val.lower() in greek_and_hebrew:
       return '{\\' + val + '}'
     else:
-      return '{' + val + '}'
+      return val
 
   def generic_visit(self, node):
     return str(node)

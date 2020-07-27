@@ -8,7 +8,7 @@ def solve(a, b, c):
   return (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
 
 
-solve_latex = r'\operatorname{solve}({a}, {b}, {c}) \triangleq \frac{-{b} + \operatorname{{math}.sqrt}\left({b}^{2} - 4{a}{c}\right)}{2{a}}'
+solve_latex = r'\operatorname{solve}(a, b, c) \triangleq \frac{-b + \sqrt{b^{2} - 4ac}}{2a}'
 
 
 def sinc(x):
@@ -19,8 +19,8 @@ def sinc(x):
 
 
 sinc_latex = (
-  r'\operatorname{sinc}({x}) \triangleq \left\{ \begin{array}{ll} 1, & \mathrm{if} \ {x}=0 \\ '
-  r'\frac{\operatorname{{math}.sin}\left({x}\right)}{{x}}, & \mathrm{otherwise} \end{array} \right.'
+  r'\operatorname{sinc}(x) \triangleq \left\{ \begin{array}{ll} 1, & \mathrm{if} \ x=0 \\ '
+  r'\frac{\sin{\left({x}\right)}}{x}, & \mathrm{otherwise} \end{array} \right.'
 )
 
 
@@ -28,8 +28,8 @@ def xtimesbeta(x, beta):
   return x * beta
 
 
-xtimesbeta_latex = r'\operatorname{xtimesbeta}({x}, {\beta}) \triangleq {x}{\beta}'
-xtimesbeta_latex_no_symbols = r'\operatorname{xtimesbeta}({x}, {beta}) \triangleq {x}{beta}'
+xtimesbeta_latex = r'\operatorname{xtimesbeta}(x, {\beta}) \triangleq x{\beta}'
+xtimesbeta_latex_no_symbols = r'\operatorname{xtimesbeta}(x, beta) \triangleq xbeta'
 
 
 func_and_latex_str_list = [
