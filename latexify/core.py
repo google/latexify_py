@@ -6,6 +6,30 @@ import inspect
 
 
 class LatexifyVisitor(ast.NodeVisitor):
+
+  def __init__(self, math_symbol):
+    self.math_symbol = math_symbol
+    super(ast.NodeVisitor).__init__()
+
+  def _parse_math_symbols(self, val: str) -> str:
+    if not self.math_symbol:
+      return val
+    greek_and_hebrew = [
+        'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
+        'delta', 'digamma', 'epsilon', 'eta', 'gimel',
+        'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
+        'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
+        'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
+        'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
+        'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
+        'Upsilon', 'Xi',
+        # 'gamma' <-- might break with `math.gamma`; leaving out for now.
+    ]
+    if val in greek_and_hebrew:
+      return '{\\' + val + '}'
+    else:
+      return val
+
   def generic_visit(self, node):
     return str(node)
 
@@ -14,7 +38,7 @@ class LatexifyVisitor(ast.NodeVisitor):
 
   def visit_FunctionDef(self, node):
     name_str = r'\operatorname{' + str(node.name) + '}'
-    arg_strs = [str(arg.arg) for arg in node.args.args]
+    arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
     return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
 
@@ -69,7 +93,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return vstr + '.' + astr
 
   def visit_Name(self, node):
-    return str(node.id)
+    return self._parse_math_symbols(str(node.id))
 
   def visit_Num(self, node):
     return str(node.n)
@@ -154,16 +178,16 @@ class LatexifyVisitor(ast.NodeVisitor):
     return latex + self.visit(node) + r', & \mathrm{otherwise} \end{array} \right.'
 
 
-def get_latex(fn):
-  return LatexifyVisitor().visit(ast.parse(inspect.getsource(fn)))
+def get_latex(fn, math_symbol=True):
+  return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(inspect.getsource(fn)))
 
 
-def with_latex(fn):
+def with_latex(*args, math_symbol=True):
 
   class _LatexifiedFunction:
     def __init__(self, fn):
       self._fn = fn
-      self._str = get_latex(fn)
+      self._str = get_latex(fn, math_symbol=math_symbol)
 
     @property
     def __doc__(self):
@@ -193,4 +217,7 @@ def with_latex(fn):
       """
       return self._str
 
-  return _LatexifiedFunction(fn)
+  if len(args) == 1 and callable(args[0]):
+    return _LatexifiedFunction(args[0])
+  else:
+    return lambda fn: _LatexifiedFunction(fn)
