@@ -1,6 +1,5 @@
 import io
 from setuptools import setup
-from setuptools import find_packages
 
 
 with io.open('README.md', 'rt', encoding='utf8') as f:
@@ -10,7 +9,7 @@ with io.open('README.md', 'rt', encoding='utf8') as f:
 setup(
   name='Latexify',
   url='https://github.com/odashi/latexify_py',
-  packages=find_packages(),
+  py_modules=['latexify'],
   license='Apache License 2.0',
   author='Yusuke Oda',
   description='Generates LaTeX math description from Python functions.',
