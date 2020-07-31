@@ -6,8 +6,8 @@ def main():
     readme = fp.read()
 
   setuptools.setup(
-    name='latexify',
-    version='0.0.4',
+    name='latexify-py',
+    version='0.0.5',
     description='Generates LaTeX source from Python functions.',
     long_description=readme,
     long_description_type='text/markdown',
@@ -28,7 +28,9 @@ def main():
     ],
     keywords='equation latex math mathematics',
     packages=['latexify'],
-    install_requires=['dill'],
+    install_requires=[
+        'dill>=0.3.2',
+    ],
     python_requires='>=3.6, <3.9',
   )
 
