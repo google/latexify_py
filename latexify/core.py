@@ -4,6 +4,8 @@ import ast
 import math
 import inspect
 
+import dill
+
 _MATH_SYMBOLS = {
     'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
     'delta', 'digamma', 'epsilon', 'eta', 'gamma', 'gimel',
@@ -61,7 +63,7 @@ class LatexifyVisitor(ast.NodeVisitor):
         'math.factorial': (r'\left({', r'}\right)!'),
         'math.floor': (r'\left\lfloor{', r'}\right\rfloor'),
         'math.fsum': (r'\sum\left({', r'}\right)'),
-        r'{\math.gamma}': (r'\Gamma\left({', r'}\right)'),
+        'math.gamma': (r'\Gamma\left({', r'}\right)'),
         'math.log': (r'\log{\left({', r'}\right)}'),
         'math.log10': (r'\log_{10}{\left({', r'}\right)}'),
         'math.log2': (r'\log_{2}{\left({', r'}\right)}'),
@@ -178,7 +180,13 @@ class LatexifyVisitor(ast.NodeVisitor):
 
 
 def get_latex(fn, math_symbol=True):
-  return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(inspect.getsource(fn)))
+  try:
+    source = inspect.getsource(fn)
+  except Exception:
+    # Maybe running on console.
+    source = dill.source.getsource(fn)
+
+  return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(source))
 
 
 def with_latex(*args, math_symbol=True):
