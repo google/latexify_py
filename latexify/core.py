@@ -4,6 +4,16 @@ import ast
 import math
 import inspect
 
+_MATH_SYMBOLS = {
+    'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
+    'delta', 'digamma', 'epsilon', 'eta', 'gamma', 'gimel',
+    'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
+    'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
+    'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
+    'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
+    'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
+    'Upsilon', 'Xi',
+}
 
 class LatexifyVisitor(ast.NodeVisitor):
 
@@ -14,18 +24,7 @@ class LatexifyVisitor(ast.NodeVisitor):
   def _parse_math_symbols(self, val: str) -> str:
     if not self.math_symbol:
       return val
-    greek_and_hebrew = [
-        'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
-        'delta', 'digamma', 'epsilon', 'eta', 'gimel',
-        'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
-        'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
-        'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
-        'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
-        'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
-        'Upsilon', 'Xi',
-        # 'gamma' <-- might break with `math.gamma`; leaving out for now.
-    ]
-    if val in greek_and_hebrew:
+    if val in _MATH_SYMBOLS:
       return '{\\' + val + '}'
     else:
       return val
@@ -62,7 +61,7 @@ class LatexifyVisitor(ast.NodeVisitor):
         'math.factorial': (r'\left({', r'}\right)!'),
         'math.floor': (r'\left\lfloor{', r'}\right\rfloor'),
         'math.fsum': (r'\sum\left({', r'}\right)'),
-        'math.gamma': (r'\Gamma\left({', r'}\right)'),
+        r'{\math.gamma}': (r'\Gamma\left({', r'}\right)'),
         'math.log': (r'\log{\left({', r'}\right)}'),
         'math.log10': (r'\log_{10}{\left({', r'}\right)}'),
         'math.log2': (r'\log_{2}{\left({', r'}\right)}'),
