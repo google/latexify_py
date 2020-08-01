@@ -4,6 +4,18 @@ import ast
 import math
 import inspect
 
+import dill
+
+_MATH_SYMBOLS = {
+    'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
+    'delta', 'digamma', 'epsilon', 'eta', 'gamma', 'gimel',
+    'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
+    'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
+    'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
+    'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
+    'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
+    'Upsilon', 'Xi',
+}
 
 class LatexifyVisitor(ast.NodeVisitor):
 
@@ -14,18 +26,7 @@ class LatexifyVisitor(ast.NodeVisitor):
   def _parse_math_symbols(self, val: str) -> str:
     if not self.math_symbol:
       return val
-    greek_and_hebrew = [
-        'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
-        'delta', 'digamma', 'epsilon', 'eta', 'gimel',
-        'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
-        'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
-        'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
-        'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
-        'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
-        'Upsilon', 'Xi',
-        # 'gamma' <-- might break with `math.gamma`; leaving out for now.
-    ]
-    if val in greek_and_hebrew:
+    if val in _MATH_SYMBOLS:
       return '{\\' + val + '}'
     else:
       return val
@@ -218,7 +219,13 @@ class LatexifyVisitor(ast.NodeVisitor):
 
 
 def get_latex(fn, math_symbol=True):
-  return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(inspect.getsource(fn)))
+  try:
+    source = inspect.getsource(fn)
+  except Exception:
+    # Maybe running on console.
+    source = dill.source.getsource(fn)
+
+  return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(source))
 
 
 def with_latex(*args, math_symbol=True):
