@@ -36,11 +36,15 @@ class LatexifyVisitor(ast.NodeVisitor):
   def visit_Module(self, node):
     return self.visit(node.body[0])
 
-  def visit_FunctionDef(self, node):
+  def visit_FunctionDef(self, node, equal:str=r'\triangleq'):
     name_str = r'\operatorname{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
-    return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
+    # CHANGE:(20200801@1MLightyears)
+    # use r"\triangleq" as default is fine but maybe it is more user-friendly
+    # to leave an interface for users to choose what equal mark they want to.
+    # I leave it here as-is and may implement this in future.
+    return name_str + '(' + ', '.join(arg_strs) + r') ' + equal + ' ' + body_str
 
   def visit_Return(self, node):
     return self.visit(node.value)
@@ -81,7 +85,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     else:
       if callee_str.startswith('math.'):
         callee_str = callee_str[5:]
-      lstr = r'\operatorname{' + callee_str + '}\left('
+      lstr = r'\operatorname{' + callee_str + r'}\left('
       rstr = r'\right)'
 
     arg_strs = [self.visit(arg) for arg in node.args]
@@ -163,8 +167,43 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     if isinstance(node.ops[0], ast.Eq):
       return lstr + '=' + rstr
+    # CHANGE:(20200801@1MLightyears) Add support for conditions for <,>,\ge,\le,\ne,is
+    elif isinstance(node.ops[0], ast.Gt):
+      return lstr + '>' + rstr
+    elif isinstance(node.ops[0], ast.Lt):
+      return lstr + '<' + rstr
+    elif isinstance(node.ops[0], ast.GtE):
+      return lstr + r'\ge ' + rstr
+    elif isinstance(node.ops[0], ast.LtE):
+      return lstr + r'\le ' + rstr
+    elif isinstance(node.ops[0], ast.NotEq):
+      return lstr + r'\ne ' + rstr
+    elif isinstance(node.ops[0], ast.Is):
+      return lstr + r'\space is\space ' + rstr
+    elif isinstance(node.ops[0], ast.IsNot):
+      return lstr + r'\space is\space not\space ' + rstr
+
     else:
       return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
+
+  # CHANGE:(20200801@1MLightyears) Add support for BoolOp, which allow Latexify to
+  # deal with more complex boolean statements.
+  # The structure is weak, for I seldom use very complex boolean statements and
+  # currently have no idea how to simply implement a result like "x=0,1" instead of
+  # "x=0 Or x=1" as it is now XD
+  def visit_BoolOp(self, node):
+    '''
+    When node is an instance of ast.BoolOp, it has:
+    node.op(ast.And, ast.Or, ast.Not): type of the boolean operator.
+    node.values(list of ast.Compare, ast.BoolOp): a list of boolean sub-clause.
+    '''
+    logic_operator = r' \operatorname{unknown\_comparator} '
+    if isinstance(node.op, ast.Or):
+      logic_operator = r'\\&\mathrm{Or}\space '
+    elif isinstance(node.op, ast.And):
+      logic_operator = r'\\&\mathrm{And}\space '
+    # visit all the elements in the ast.If node recursively
+    return logic_operator.join([self.visit(subnode) for subnode in node.values])
 
   def visit_If(self, node):
     latex = r'\left\{ \begin{array}{ll} '
