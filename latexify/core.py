@@ -37,15 +37,11 @@ class LatexifyVisitor(ast.NodeVisitor):
   def visit_Module(self, node):
     return self.visit(node.body[0])
 
-  def visit_FunctionDef(self, node, equal:str=r'\triangleq'):
+  def visit_FunctionDef(self, node):
     name_str = r'\operatorname{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
-    # CHANGE:(20200801@1MLightyears)
-    # use r"\triangleq" as default is fine but maybe it is more user-friendly
-    # to leave an interface for users to choose what equal mark they want to.
-    # I leave it here as-is and may implement this in future.
-    return name_str + '(' + ', '.join(arg_strs) + r') ' + equal + ' ' + body_str
+    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + body_str
 
   def visit_Return(self, node):
     return self.visit(node.value)
@@ -107,18 +103,19 @@ class LatexifyVisitor(ast.NodeVisitor):
     def _wrap(child):
       latex = self.visit(child)
       if isinstance(child, ast.BinOp) and isinstance(child.op, (ast.Add, ast.Sub)):
-        return '(' + latex + ')'
+        return r'\left(' + latex + r'\right)'
       return latex
 
     reprs = {
         ast.UAdd: (lambda: _wrap(node.operand)),
         ast.USub: (lambda: '-' + _wrap(node.operand)),
+        ast.Not: (lambda: r'\lnot\left(' + _wrap(node.operand)+r'\right)')
     }
 
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\operatorname{unknown\_uniop}(' + vstr + ')'
+      return r'\operatorname{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
   def visit_BinOp(self, node):
     priority = {
@@ -168,7 +165,6 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     if isinstance(node.ops[0], ast.Eq):
       return lstr + '=' + rstr
-    # CHANGE:(20200801@1MLightyears) Add support for conditions for <,>,\ge,\le,\ne,is
     elif isinstance(node.ops[0], ast.Gt):
       return lstr + '>' + rstr
     elif isinstance(node.ops[0], ast.Lt):
@@ -179,6 +175,7 @@ class LatexifyVisitor(ast.NodeVisitor):
       return lstr + r'\le ' + rstr
     elif isinstance(node.ops[0], ast.NotEq):
       return lstr + r'\ne ' + rstr
+    #TODO: Needs further discussion for is,isnot & \in,\notin
     elif isinstance(node.ops[0], ast.Is):
       return lstr + r'\space is\space ' + rstr
     elif isinstance(node.ops[0], ast.IsNot):
@@ -187,24 +184,12 @@ class LatexifyVisitor(ast.NodeVisitor):
     else:
       return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
-  # CHANGE:(20200801@1MLightyears) Add support for BoolOp, which allow Latexify to
-  # deal with more complex boolean statements.
-  # The structure is weak, for I seldom use very complex boolean statements and
-  # currently have no idea how to simply implement a result like "x=0,1" instead of
-  # "x=0 Or x=1" as it is now XD
   def visit_BoolOp(self, node):
-    '''
-    When node is an instance of ast.BoolOp, it has:
-    node.op(ast.And, ast.Or, ast.Not): type of the boolean operator.
-    node.values(list of ast.Compare, ast.BoolOp): a list of boolean sub-clause.
-    '''
-    logic_operator = r' \operatorname{unknown\_comparator} '
-    if isinstance(node.op, ast.Or):
-      logic_operator = r'\\&\mathrm{Or}\space '
-    elif isinstance(node.op, ast.And):
-      logic_operator = r'\\&\mathrm{And}\space '
+    logic_operator = r'\lor ' if isinstance(node.op, ast.Or) \
+                else r'\land ' if isinstance(node.op, ast.And) \
+                else r' \operatorname{unknown\_operator} '
     # visit all the elements in the ast.If node recursively
-    return logic_operator.join([self.visit(subnode) for subnode in node.values])
+    return r'\left('+self.visit(node.values[0])+r'\right)'+logic_operator+r'\left('+self.visit(node.values[1])+r'\right)'
 
   def visit_If(self, node):
     latex = r'\left\{ \begin{array}{ll} '
