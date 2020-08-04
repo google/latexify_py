@@ -175,11 +175,8 @@ class LatexifyVisitor(ast.NodeVisitor):
       return lstr + r'\le ' + rstr
     elif isinstance(node.ops[0], ast.NotEq):
       return lstr + r'\ne ' + rstr
-    #TODO: Needs further discussion for is,isnot & \in,\notin
     elif isinstance(node.ops[0], ast.Is):
-      return lstr + r'\space is\space ' + rstr
-    elif isinstance(node.ops[0], ast.IsNot):
-      return lstr + r'\space is\space not\space ' + rstr
+      return lstr + r'\equiv' + rstr
 
     else:
       return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
