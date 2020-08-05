@@ -41,7 +41,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     name_str = r'\operatorname{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
-    return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
+    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + body_str
 
   def visit_Return(self, node):
     return self.visit(node.value)
@@ -82,7 +82,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     else:
       if callee_str.startswith('math.'):
         callee_str = callee_str[5:]
-      lstr = r'\operatorname{' + callee_str + '}\left('
+      lstr = r'\operatorname{' + callee_str + r'}\left('
       rstr = r'\right)'
 
     arg_strs = [self.visit(arg) for arg in node.args]
@@ -103,18 +103,19 @@ class LatexifyVisitor(ast.NodeVisitor):
     def _wrap(child):
       latex = self.visit(child)
       if isinstance(child, ast.BinOp) and isinstance(child.op, (ast.Add, ast.Sub)):
-        return '(' + latex + ')'
+        return r'\left(' + latex + r'\right)'
       return latex
 
     reprs = {
         ast.UAdd: (lambda: _wrap(node.operand)),
         ast.USub: (lambda: '-' + _wrap(node.operand)),
+        ast.Not: (lambda: r'\lnot\left(' + _wrap(node.operand)+r'\right)')
     }
 
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\operatorname{unknown\_uniop}(' + vstr + ')'
+      return r'\operatorname{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
   def visit_BinOp(self, node):
     priority = {
@@ -164,8 +165,28 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     if isinstance(node.ops[0], ast.Eq):
       return lstr + '=' + rstr
+    elif isinstance(node.ops[0], ast.Gt):
+      return lstr + '>' + rstr
+    elif isinstance(node.ops[0], ast.Lt):
+      return lstr + '<' + rstr
+    elif isinstance(node.ops[0], ast.GtE):
+      return lstr + r'\ge ' + rstr
+    elif isinstance(node.ops[0], ast.LtE):
+      return lstr + r'\le ' + rstr
+    elif isinstance(node.ops[0], ast.NotEq):
+      return lstr + r'\ne ' + rstr
+    elif isinstance(node.ops[0], ast.Is):
+      return lstr + r'\equiv' + rstr
+
     else:
       return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
+
+  def visit_BoolOp(self, node):
+    logic_operator = r'\lor ' if isinstance(node.op, ast.Or) \
+                else r'\land ' if isinstance(node.op, ast.And) \
+                else r' \operatorname{unknown\_operator} '
+    # visit all the elements in the ast.If node recursively
+    return r'\left('+self.visit(node.values[0])+r'\right)'+logic_operator+r'\left('+self.visit(node.values[1])+r'\right)'
 
   def visit_If(self, node):
     latex = r'\left\{ \begin{array}{ll} '
