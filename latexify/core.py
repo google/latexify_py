@@ -46,6 +46,15 @@ class LatexifyVisitor(ast.NodeVisitor):
   def visit_Return(self, node):
     return self.visit(node.value)
 
+  def visit_Tuple(self, node):
+    return r'\left( ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right) '
+
+  def visit_List(self, node):
+    return r'\left[ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right] '
+
+  def visit_Set(self, node):
+    return r'\left\{ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right\} '
+
   def visit_Call(self, node):
     builtin_callees = {
         'abs': (r'\left|{', r'}\right|'),
