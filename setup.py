@@ -21,13 +21,13 @@ def main():
 
   setuptools.setup(
     name='latexify-py',
-    version='0.0.5',
+    version='0.0.6',
     description='Generates LaTeX source from Python functions.',
     long_description=readme,
     long_description_type='text/markdown',
-    url='https://github.com/odashi/latexify_py',
+    url='https://github.com/google/latexify_py',
     author='Yusuke Oda',
-    author_email='yus.takara@gmail.com',
+    author_email='oday@google.com',
     license='Apache Software License 2.0',
     classifiers=[
         'Framework :: IPython',
