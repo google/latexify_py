@@ -21,7 +21,7 @@ def main():
 
   setuptools.setup(
     name='latexify-py',
-    version='0.0.6',
+    version='0.0.7',
     description='Generates LaTeX source from Python functions.',
     long_description=readme,
     long_description_type='text/markdown',
