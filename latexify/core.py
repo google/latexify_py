@@ -266,7 +266,7 @@ def with_latex(*args, math_symbol=True):
       """
       Hooks into Jupyter notebook's display system.
       """
-      return self._str
+      return r'$$ \displaystyle ' + self._str + ' $$'
 
   if len(args) == 1 and callable(args[0]):
     return _LatexifiedFunction(args[0])
