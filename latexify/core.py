@@ -52,7 +52,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return self.visit(node.body[0])
 
   def visit_FunctionDef(self, node):
-    name_str = r'\operatorname{' + str(node.name) + '}'
+    name_str = r'\mathrm{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
     return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + body_str
@@ -73,11 +73,11 @@ class LatexifyVisitor(ast.NodeVisitor):
     builtin_callees = {
         'abs': (r'\left|{', r'}\right|'),
         'math.acos': (r'\arccos{\left({', r'}\right)}'),
-        'math.acosh': (r'\operatorname{arccosh}{\left({', r'}\right)}'),
+        'math.acosh': (r'\mathrm{arccosh}{\left({', r'}\right)}'),
         'math.asin': (r'\arcsin{\left({', r'}\right)}'),
-        'math.asinh': (r'\operatorname{arcsinh}{\left({', r'}\right)}'),
+        'math.asinh': (r'\mathrm{arcsinh}{\left({', r'}\right)}'),
         'math.atan': (r'\arctan{\left({', r'}\right)}'),
-        'math.atanh': (r'\operatorname{arctanh}{\left({', r'}\right)}'),
+        'math.atanh': (r'\mathrm{arctanh}{\left({', r'}\right)}'),
         'math.ceil': (r'\left\lceil{', r'}\right\rceil'),
         'math.cos': (r'\cos{\left({', r'}\right)}'),
         'math.cosh': (r'\cosh{\left({', r'}\right)}'),
@@ -105,7 +105,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     else:
       if callee_str.startswith('math.'):
         callee_str = callee_str[5:]
-      lstr = r'\operatorname{' + callee_str + r'}\left('
+      lstr = r'\mathrm{' + callee_str + r'}\left('
       rstr = r'\right)'
 
     arg_strs = [self.visit(arg) for arg in node.args]
@@ -138,7 +138,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\operatorname{unknown\_uniop}(' + self.visit(node.operand) + ')'
+      return r'\mathrm{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
   def visit_BinOp(self, node):
     priority = {
@@ -180,7 +180,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
     else:
-      return r'\operatorname{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
+      return r'\mathrm{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
 
   def visit_Compare(self, node):
     lstr = self.visit(node.left)
@@ -202,12 +202,12 @@ class LatexifyVisitor(ast.NodeVisitor):
       return lstr + r'\equiv' + rstr
 
     else:
-      return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
+      return r'\mathrm{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
   def visit_BoolOp(self, node):
     logic_operator = r'\lor ' if isinstance(node.op, ast.Or) \
                 else r'\land ' if isinstance(node.op, ast.And) \
-                else r' \operatorname{unknown\_operator} '
+                else r' \mathrm{unknown\_operator} '
     # visit all the elements in the ast.If node recursively
     return r'\left('+self.visit(node.values[0])+r'\right)'+logic_operator+r'\left('+self.visit(node.values[1])+r'\right)'
 
@@ -266,7 +266,7 @@ def with_latex(*args, math_symbol=True):
       """
       Hooks into Jupyter notebook's display system.
       """
-      return self._str
+      return r'$$ \displaystyle ' + self._str + ' $$'
 
   if len(args) == 1 and callable(args[0]):
     return _LatexifiedFunction(args[0])
