@@ -58,7 +58,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     for body_item in node.body[:-1]:
       self.visit(body_item)
     return_str = self.visit(node.body[-1])
-    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + return_str
+    return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + return_str
 
   def visit_Return(self, node):
     return self.visit(node.value)
