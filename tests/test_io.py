@@ -19,10 +19,16 @@ from latexify import with_latex
 
 
 def solve(a, b, c):
-  return (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
-
+  return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
 solve_latex = r'\mathrm{solve}(a, b, c) \triangleq \frac{-b + \sqrt{b^{2} - 4ac}}{2a}'
+
+def solve_with_assign(a, b, c):
+  numerator = (-b + math.sqrt(b ** 2 - 4 * a * c))
+  denominator = 2 * a
+  return numerator / denominator
+
+solve_with_assign_latex = r'\mathrm{solve_with_assign}(a, b, c) \triangleq \frac{-b + \sqrt{b^{2} - 4ac}}{2a}'
 
 
 def sinc(x):
@@ -48,6 +54,7 @@ xtimesbeta_latex_no_symbols = r'\mathrm{xtimesbeta}(x, beta) \triangleq xbeta'
 
 func_and_latex_str_list = [
   (solve, solve_latex, None),
+  (solve_with_assign, solve_with_assign_latex, None),
   (sinc, sinc_latex, None),
   (xtimesbeta, xtimesbeta_latex, True),
   (xtimesbeta, xtimesbeta_latex_no_symbols, False),
@@ -63,5 +70,6 @@ def test_with_latex_to_str(func, expected_latex, math_symbol):
     latexified_function = with_latex(func)
   else:
     latexified_function = with_latex(math_symbol=math_symbol)(func)
+  print(str(latexified_function))
   assert str(latexified_function) == expected_latex
   assert expected_latex in latexified_function._repr_latex_()
