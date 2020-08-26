@@ -35,6 +35,7 @@ class LatexifyVisitor(ast.NodeVisitor):
 
   def __init__(self, math_symbol):
     self.math_symbol = math_symbol
+    self.assigned_values = {}
     super(ast.NodeVisitor).__init__()
 
   def _parse_math_symbols(self, val: str) -> str:
@@ -54,8 +55,10 @@ class LatexifyVisitor(ast.NodeVisitor):
   def visit_FunctionDef(self, node):
     name_str = r'\mathrm{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
-    body_str = self.visit(node.body[0])
-    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + body_str
+    for body_item in node.body[:-1]:
+      self.visit(body_item)
+    return_str = self.visit(node.body[-1])
+    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + return_str
 
   def visit_Return(self, node):
     return self.visit(node.value)
@@ -68,6 +71,16 @@ class LatexifyVisitor(ast.NodeVisitor):
 
   def visit_Set(self, node):
     return r'\left\{ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right\} '
+
+  def visit_Assign(self, node):
+    assign_value = self.visit(node.value)
+    for target in node.targets:
+      if target.id in self.assigned_values:
+        raise ValueError('Currently not supporting functions that assign any '
+                         'variables more than once. However, {} is assigned '
+                         'twice.'.format(target.id))
+      self.assigned_values[target.id] = assign_value
+    return ''
 
   def visit_Call(self, node):
     builtin_callees = {
@@ -117,6 +130,8 @@ class LatexifyVisitor(ast.NodeVisitor):
     return vstr + '.' + astr
 
   def visit_Name(self, node):
+    if node.id in self.assigned_values:
+      return self.assigned_values[node.id]
     return self._parse_math_symbols(str(node.id))
 
   def visit_Num(self, node):
@@ -228,8 +243,7 @@ def get_latex(fn, math_symbol=True):
     source = inspect.getsource(fn)
   except Exception:
     # Maybe running on console.
-    source = dill.source.getsource(fn)
-
+    source = dill.source.getsource(fn, enclosing=True)
   return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(source))
 
 
