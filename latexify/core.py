@@ -243,7 +243,7 @@ def get_latex(fn, math_symbol=True):
     source = inspect.getsource(fn)
   except Exception:
     # Maybe running on console.
-    source = dill.source.getsource(fn, enclosing=True)
+    source = dill.source.getsource(fn)
   return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(source))
 
 
