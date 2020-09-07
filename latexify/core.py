@@ -55,7 +55,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     name_str = r'\mathrm{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
-    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + body_str
+    return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
 
   def visit_Return(self, node):
     return self.visit(node.value)
@@ -119,7 +119,12 @@ class LatexifyVisitor(ast.NodeVisitor):
   def visit_Name(self, node):
     return self._parse_math_symbols(str(node.id))
 
+  def visit_Constant(self, node):
+    # for python >= 3.8
+    return str(node.n)
+
   def visit_Num(self, node):
+    # for python < 3.8
     return str(node.n)
 
   def visit_UnaryOp(self, node):
