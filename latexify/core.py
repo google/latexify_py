@@ -52,7 +52,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return self.visit(node.body[0])
 
   def visit_FunctionDef(self, node):
-    name_str = r'\operatorname{' + str(node.name) + '}'
+    name_str = r'\mathrm{' + str(node.name) + '}'
     arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
     return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
