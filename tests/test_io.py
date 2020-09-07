@@ -64,4 +64,4 @@ def test_with_latex_to_str(func, expected_latex, math_symbol):
   else:
     latexified_function = with_latex(math_symbol=math_symbol)(func)
   assert str(latexified_function) == expected_latex
-  assert latexified_function._repr_latex_() == expected_latex
+  assert latexified_function._repr_latex_() == r'$$ \displaystyle %s $$' % expected_latex
