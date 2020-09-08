@@ -22,8 +22,6 @@ import dill
 
 from latexify import constants
 
-_MATH_SYMBOLS = constants.get_math_symbols()
-
 class LatexifyVisitor(ast.NodeVisitor):
 
   def __init__(self, math_symbol):
@@ -33,7 +31,7 @@ class LatexifyVisitor(ast.NodeVisitor):
   def _parse_math_symbols(self, val: str) -> str:
     if not self.math_symbol:
       return val
-    if val in _MATH_SYMBOLS:
+    if val in constants.MATH_SYMBOLS:
       return '{\\' + val + '}'
     else:
       return val
@@ -63,7 +61,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return r'\left\{ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right\} '
 
   def visit_Call(self, node):
-    builtin_callees = constants.get_builtin_callees()
+    builtin_callees = constants.BUILTIN_CALLEES
 
     callee_str = self.visit(node.func)
     if callee_str in builtin_callees:
@@ -112,7 +110,7 @@ class LatexifyVisitor(ast.NodeVisitor):
       return r'\mathrm{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
   def visit_BinOp(self, node):
-    priority = constants.get_BinOp_priority()
+    priority = constants.BIN_OP_PRIORITY
 
     def _unwrap(child):
       return self.visit(child)
