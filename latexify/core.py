@@ -48,33 +48,32 @@ class LatexifyVisitor(ast.NodeVisitor):
   def generic_visit(self, node):
     return str(node)
 
-  # pylint: disable=invalid-name
-  def visit_Module(self, node):
+  def visit_Module(self, node):  # pylint: disable=invalid-name
     return self.visit(node.body[0])
 
-  def visit_FunctionDef(self, node):
+  def visit_FunctionDef(self, node):  # pylint: disable=invalid-name
     name_str = r'\mathrm{' + str(node.name) + '}'
     arg_strs = [
         self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
     return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
 
-  def visit_Return(self, node):
+  def visit_Return(self, node):  # pylint: disable=invalid-name
     return self.visit(node.value)
 
-  def visit_Tuple(self, node):
+  def visit_Tuple(self, node):  # pylint: disable=invalid-name
     elts = [self.visit(i) for i in node.elts]
     return r'\left( ' + r'\space,\space '.join(elts) + r'\right) '
 
-  def visit_List(self, node):
+  def visit_List(self, node):  # pylint: disable=invalid-name
     elts = [self.visit(i) for i in node.elts]
     return r'\left[ ' + r'\space,\space '.join(elts) + r'\right] '
 
-  def visit_Set(self, node):
+  def visit_Set(self, node):  # pylint: disable=invalid-name
     elts = [self.visit(i) for i in node.elts]
     return r'\left\{ ' + r'\space,\space '.join(elts) + r'\right\} '
 
-  def visit_Call(self, node):
+  def visit_Call(self, node):  # pylint: disable=invalid-name
     """Visit a call node."""
     builtin_callees = {
         'abs': (r'\left|{', r'}\right|'),
@@ -117,23 +116,23 @@ class LatexifyVisitor(ast.NodeVisitor):
     arg_strs = [self.visit(arg) for arg in node.args]
     return lstr + ', '.join(arg_strs) + rstr
 
-  def visit_Attribute(self, node):
+  def visit_Attribute(self, node):  # pylint: disable=invalid-name
     vstr = self.visit(node.value)
     astr = str(node.attr)
     return vstr + '.' + astr
 
-  def visit_Name(self, node):
+  def visit_Name(self, node):  # pylint: disable=invalid-name
     return self._parse_math_symbols(str(node.id))
 
-  def visit_Constant(self, node):
+  def visit_Constant(self, node):  # pylint: disable=invalid-name
     # for python >= 3.8
     return str(node.n)
 
-  def visit_Num(self, node):
+  def visit_Num(self, node):  # pylint: disable=invalid-name
     # for python < 3.8
     return str(node.n)
 
-  def visit_UnaryOp(self, node):
+  def visit_UnaryOp(self, node):  # pylint: disable=invalid-name
     """Visit a unary op node."""
     def _wrap(child):
       latex = self.visit(child)
@@ -152,7 +151,7 @@ class LatexifyVisitor(ast.NodeVisitor):
       return reprs[type(node.op)]()
     return r'\mathrm{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
-  def visit_BinOp(self, node):
+  def visit_BinOp(self, node):  # pylint: disable=invalid-name
     """Visit a binary op node."""
     priority = {
         ast.Add: 10,
@@ -194,7 +193,7 @@ class LatexifyVisitor(ast.NodeVisitor):
       return reprs[type(node.op)]()
     return r'\mathrm{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
 
-  def visit_Compare(self, node):
+  def visit_Compare(self, node):  # pylint: disable=invalid-name
     """Visit a compare node."""
     lstr = self.visit(node.left)
     rstr = self.visit(node.comparators[0])
@@ -216,7 +215,7 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     return r'\mathrm{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
-  def visit_BoolOp(self, node):
+  def visit_BoolOp(self, node):  # pylint: disable=invalid-name
     logic_operator = r'\lor ' if isinstance(node.op, ast.Or) \
                 else r'\land ' if isinstance(node.op, ast.And) \
                 else r' \mathrm{unknown\_operator} '
@@ -224,7 +223,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return (r'\left(' + self.visit(node.values[0]) + r'\right)' + logic_operator
             + r'\left(' + self.visit(node.values[1]) + r'\right)')
 
-  def visit_If(self, node):
+  def visit_If(self, node):  # pylint: disable=invalid-name
     """Visit an if node."""
     latex = r'\left\{ \begin{array}{ll} '
 
