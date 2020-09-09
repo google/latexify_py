@@ -61,12 +61,9 @@ class LatexifyVisitor(ast.NodeVisitor):
     return r'\left\{ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right\} '
 
   def visit_Call(self, node):
-    builtin_callees = constants.BUILTIN_CALLEES
-
     callee_str = self.visit(node.func)
-    if callee_str in builtin_callees:
-      lstr, rstr = builtin_callees[callee_str]
-    else:
+    lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
+    if lstr is None:
       if callee_str.startswith('math.'):
         callee_str = callee_str[5:]
       lstr = r'\mathrm{' + callee_str + r'}\left('
