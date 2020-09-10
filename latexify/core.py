@@ -64,7 +64,8 @@ class LatexifyVisitor(ast.NodeVisitor):
     elts = [self.visit(i) for i in node.elts]
     return r'\left\{ ' + r'\space,\space '.join(elts) + r'\right\} '
 
-  def visit_Call(self, node):
+  def visit_Call(self, node):  # pylint: disable=invalid-name
+    """Visit a call node."""
     callee_str = self.visit(node.func)
     lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
     if lstr is None:
@@ -111,7 +112,8 @@ class LatexifyVisitor(ast.NodeVisitor):
       return reprs[type(node.op)]()
     return r'\mathrm{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
-  def visit_BinOp(self, node):
+  def visit_BinOp(self, node):  # pylint: disable=invalid-name
+    """Visit a binary op node."""
     priority = constants.BIN_OP_PRIORITY
 
     def _unwrap(child):
