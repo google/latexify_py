@@ -27,3 +27,8 @@ information on using pull requests.
 
 This project follows
 [Google's Open Source Community Guidelines](https://opensource.google/conduct/).
+
+## Coding style
+
+This project follows
+[Tensorflow's style](https://www.tensorflow.org/community/contribute/code_style).
