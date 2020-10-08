@@ -65,6 +65,10 @@ class LatexifyVisitor(ast.NodeVisitor):
     return r'\left\{ ' + r'\space,\space '.join(elts) + r'\right\} '
 
   def visit_Call(self, node):  # pylint: disable=invalid-name
+    def _get_summation_lstr(node):
+
+      return r'\sum_{i=a}^n \left({'
+
     """Visit a call node."""
     callee_str = self.visit(node.func)
     lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
@@ -75,7 +79,36 @@ class LatexifyVisitor(ast.NodeVisitor):
       rstr = r'\right)'
 
     arg_strs = [self.visit(arg) for arg in node.args]
+
+    if callee_str == 'sum' and isinstance(node.args[0], ast.GeneratorExp):
+      limit_str, formula_str = self.visit(node.args[0])
+      lstr =  r'\sum' + limit_str + r' \left({'
+      return lstr + formula_str + rstr
+    elif callee_str == 'range':
+      return arg_strs
+
     return lstr + ', '.join(arg_strs) + rstr
+
+  def visit_GeneratorExp(self, node):  # pylint: disable=invalid-name
+    limit_str = self.visit(node.generators[0])
+    formula_str = self.visit(node.elt)
+    return limit_str, formula_str
+
+  def visit_comprehension(self, node):  # pylint: disable=invalid-name
+    var = self.visit(node.target)
+    limits = self.visit(node.iter)
+    try:
+      if isinstance(limits, list):
+        if len(limits) == 1:
+          lower_limit, upper_limit = '0', limits[0]
+        elif len(limits) == 2:
+          lower_limit, upper_limit = limits
+      else:
+        raise ValueError
+    except ValueError as e:
+      print(e, 'Maybe function other than "range" is used is comprehension')
+    return fr'_{{{var}={lower_limit}}}^{{{upper_limit}}}'
+
 
   def visit_Attribute(self, node):  # pylint: disable=invalid-name
     vstr = self.visit(node.value)
