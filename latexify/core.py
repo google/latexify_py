@@ -91,6 +91,7 @@ class LatexifyVisitor(ast.NodeVisitor):
     return limit_str, formula_str
 
   def visit_comprehension(self, node):  # pylint: disable=invalid-name
+    """Visit a comprehension node (for clause)."""
     var = self.visit(node.target)
     limits = self.visit(node.iter)
     try:
