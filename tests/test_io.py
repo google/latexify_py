@@ -54,14 +54,19 @@ def sum_with_limit(n):
   return sum(i**2 for i in range(n))
 
 
-sum_with_limit_latex = r'\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n} \left({i^{2}}\right)'
+sum_with_limit_latex = (
+  r'\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n} \left({i^{2}}\right)'
+)
 
 
 def sum_with_limit_two_args(a, n):
   return sum(i**2 for i in range(a, n))
 
 
-sum_with_limit_two_args_latex = r'\mathrm{sum_with_limit_two_args}(a, n) \triangleq \sum_{i=a}^{n} \left({i^{2}}\right)'
+sum_with_limit_two_args_latex = (
+  r'\mathrm{sum_with_limit_two_args}(a, n) '
+  r'\triangleq \sum_{i=a}^{n} \left({i^{2}}\right)'
+)
 
 
 func_and_latex_str_list = [

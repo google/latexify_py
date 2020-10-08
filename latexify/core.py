@@ -65,10 +65,6 @@ class LatexifyVisitor(ast.NodeVisitor):
     return r'\left\{ ' + r'\space,\space '.join(elts) + r'\right\} '
 
   def visit_Call(self, node):  # pylint: disable=invalid-name
-    def _get_summation_lstr(node):
-
-      return r'\sum_{i=a}^n \left({'
-
     """Visit a call node."""
     callee_str = self.visit(node.func)
     lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
@@ -84,7 +80,7 @@ class LatexifyVisitor(ast.NodeVisitor):
       limit_str, formula_str = self.visit(node.args[0])
       lstr =  r'\sum' + limit_str + r' \left({'
       return lstr + formula_str + rstr
-    elif callee_str == 'range':
+    if callee_str == 'range':
       return arg_strs
 
     return lstr + ', '.join(arg_strs) + rstr
