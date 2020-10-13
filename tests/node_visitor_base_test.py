@@ -13,23 +13,25 @@
 # limitations under the License.
 """Tests for node_visitor_base."""
 
-import pytest
-
 from latexify import node_visitor_base
 
 
 class MockVisitor(node_visitor_base.NodeVisitorBase):
+  """Mock visitor class."""
 
   def generic_visit(self, node, action):
     return 'generic_visit: {}, {}'.format(node.__class__.__name__, action)
 
-  def visit_Foo(self, node, action):
+  def visit_Foo(self, node, action):  # pylint: disable=invalid-name
+    del node
     return 'visit_Foo: {}'.format(action)
 
-  def visit_Foo_abc(self, node):
+  def visit_Foo_abc(self, node):  # pylint: disable=invalid-name
+    del node
     return 'visit_Foo_abc'
 
-  def visit_Foo_xyz(self, node):
+  def visit_Foo_xyz(self, node):  # pylint: disable=invalid-name
+    del node
     return 'visit_Foo_xyz'
 
 

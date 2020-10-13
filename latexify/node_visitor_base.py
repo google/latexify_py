@@ -59,7 +59,7 @@ class NodeVisitorBase:
     if action is not None:
       method = 'visit_{}_{}'.format(node.__class__.__name__, action)
       visitor = getattr(self, method, None)
-      if visitor is not None:
+      if callable(visitor):
         return visitor(node)
 
     method = 'visit_{}'.format(node.__class__.__name__)
