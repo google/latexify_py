@@ -60,12 +60,12 @@ class NodeVisitorBase:
       method = 'visit_{}_{}'.format(node.__class__.__name__, action)
       visitor = getattr(self, method, None)
       if callable(visitor):
-        return visitor(node)
+        return visitor(node)  # pylint: disable=not-callable
 
     method = 'visit_{}'.format(node.__class__.__name__)
     visitor = getattr(self, method, self.generic_visit)
     if callable(visitor):
-      return visitor(node, action)
+      return visitor(node, action)  # pylint: disable=not-callable
 
     raise AttributeError('{} is not callable.'.format(method))
 

@@ -23,7 +23,7 @@ class MockVisitor(node_visitor_base.NodeVisitorBase):
 
   def __init__(self):
     # Dummy member to fail visitor invocation.
-    self.visit_Baz = None
+    self.visit_Baz = None  # pylint: disable=invalid-name
 
   def generic_visit(self, node, action):
     return 'generic_visit: {}, {}'.format(node.__class__.__name__, action)
