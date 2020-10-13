@@ -21,8 +21,10 @@ import inspect
 import dill
 
 from latexify import constants
+from latexify import node_visitor_base
 
-class LatexifyVisitor(ast.NodeVisitor):
+
+class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
   """Latexify AST visitor."""
 
   def __init__(self, math_symbol):
@@ -36,36 +38,52 @@ class LatexifyVisitor(ast.NodeVisitor):
       return '{\\' + val + '}'
     return val
 
-  def generic_visit(self, node):
+  def generic_visit(self, node, action):
+    del action
+
     return str(node)
 
-  def visit_Module(self, node):  # pylint: disable=invalid-name
+  def visit_Module(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     return self.visit(node.body[0])
 
-  def visit_FunctionDef(self, node):  # pylint: disable=invalid-name
+  def visit_FunctionDef(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     name_str = r'\mathrm{' + str(node.name) + '}'
     arg_strs = [
         self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
     return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
 
-  def visit_Return(self, node):  # pylint: disable=invalid-name
+  def visit_Return(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     return self.visit(node.value)
 
-  def visit_Tuple(self, node):  # pylint: disable=invalid-name
+  def visit_Tuple(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     elts = [self.visit(i) for i in node.elts]
     return r'\left( ' + r'\space,\space '.join(elts) + r'\right) '
 
-  def visit_List(self, node):  # pylint: disable=invalid-name
+  def visit_List(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     elts = [self.visit(i) for i in node.elts]
     return r'\left[ ' + r'\space,\space '.join(elts) + r'\right] '
 
-  def visit_Set(self, node):  # pylint: disable=invalid-name
+  def visit_Set(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     elts = [self.visit(i) for i in node.elts]
     return r'\left\{ ' + r'\space,\space '.join(elts) + r'\right\} '
 
-  def visit_Call(self, node):  # pylint: disable=invalid-name
+  def visit_Call(self, node, action):  # pylint: disable=invalid-name
     """Visit a call node."""
+    del action
+
     callee_str = self.visit(node.func)
     lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
     if lstr is None:
@@ -77,24 +95,34 @@ class LatexifyVisitor(ast.NodeVisitor):
     arg_strs = [self.visit(arg) for arg in node.args]
     return lstr + ', '.join(arg_strs) + rstr
 
-  def visit_Attribute(self, node):  # pylint: disable=invalid-name
+  def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     vstr = self.visit(node.value)
     astr = str(node.attr)
     return vstr + '.' + astr
 
-  def visit_Name(self, node):  # pylint: disable=invalid-name
+  def visit_Name(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     return self._parse_math_symbols(str(node.id))
 
-  def visit_Constant(self, node):  # pylint: disable=invalid-name
+  def visit_Constant(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     # for python >= 3.8
     return str(node.n)
 
-  def visit_Num(self, node):  # pylint: disable=invalid-name
+  def visit_Num(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     # for python < 3.8
     return str(node.n)
 
-  def visit_UnaryOp(self, node):  # pylint: disable=invalid-name
+  def visit_UnaryOp(self, node, action):  # pylint: disable=invalid-name
     """Visit a unary op node."""
+    del action
+
     def _wrap(child):
       latex = self.visit(child)
       if (isinstance(child, ast.BinOp) and
@@ -112,8 +140,10 @@ class LatexifyVisitor(ast.NodeVisitor):
       return reprs[type(node.op)]()
     return r'\mathrm{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
-  def visit_BinOp(self, node):  # pylint: disable=invalid-name
+  def visit_BinOp(self, node, action):  # pylint: disable=invalid-name
     """Visit a binary op node."""
+    del action
+
     priority = constants.BIN_OP_PRIORITY
 
     def _unwrap(child):
@@ -145,8 +175,10 @@ class LatexifyVisitor(ast.NodeVisitor):
       return reprs[type(node.op)]()
     return r'\mathrm{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
 
-  def visit_Compare(self, node):  # pylint: disable=invalid-name
+  def visit_Compare(self, node, action):  # pylint: disable=invalid-name
     """Visit a compare node."""
+    del action
+
     lstr = self.visit(node.left)
     rstr = self.visit(node.comparators[0])
 
@@ -167,7 +199,9 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     return r'\mathrm{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
-  def visit_BoolOp(self, node):  # pylint: disable=invalid-name
+  def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     logic_operator = r'\lor ' if isinstance(node.op, ast.Or) \
                 else r'\land ' if isinstance(node.op, ast.And) \
                 else r' \mathrm{unknown\_operator} '
@@ -175,8 +209,10 @@ class LatexifyVisitor(ast.NodeVisitor):
     return (r'\left(' + self.visit(node.values[0]) + r'\right)' + logic_operator
             + r'\left(' + self.visit(node.values[1]) + r'\right)')
 
-  def visit_If(self, node):  # pylint: disable=invalid-name
+  def visit_If(self, node, action):  # pylint: disable=invalid-name
     """Visit an if node."""
+    del action
+
     latex = r'\left\{ \begin{array}{ll} '
 
     while isinstance(node, ast.If):
