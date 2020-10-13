@@ -64,7 +64,10 @@ class NodeVisitorBase:
 
     method = 'visit_{}'.format(node.__class__.__name__)
     visitor = getattr(self, method, self.generic_visit)
-    return visitor(node, action)
+    if callable(visitor):
+      return visitor(node, action)
+
+    raise AttributeError('{} is not callable.'.format(method))
 
   def generic_visit(self, node, action):
     """Visitor method for all nodes without specific visitors."""

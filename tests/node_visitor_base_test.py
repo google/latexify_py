@@ -13,11 +13,17 @@
 # limitations under the License.
 """Tests for node_visitor_base."""
 
+import pytest
+
 from latexify import node_visitor_base
 
 
 class MockVisitor(node_visitor_base.NodeVisitorBase):
   """Mock visitor class."""
+
+  def __init__(self):
+    # Dummy member to fail visitor invocation.
+    self.visit_Baz = None
 
   def generic_visit(self, node, action):
     return 'generic_visit: {}, {}'.format(node.__class__.__name__, action)
@@ -43,6 +49,10 @@ class Bar:
   pass
 
 
+class Baz:
+  pass
+
+
 def test_generic_visit():
   visitor = MockVisitor()
   assert visitor.visit(Bar()) == 'generic_visit: Bar, None'
@@ -61,3 +71,9 @@ def test_visit_node_action():
   visitor = MockVisitor()
   assert visitor.visit(Foo(), 'abc') == 'visit_Foo_abc'
   assert visitor.visit(Foo(), 'xyz') == 'visit_Foo_xyz'
+
+
+def test_invalid_visit():
+  visitor = MockVisitor()
+  with pytest.raises(AttributeError, match='visit_Baz is not callable'):
+    visitor.visit(Baz())
