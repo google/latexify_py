@@ -247,7 +247,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
   def visit_GeneratorExp_sum(self, node):  # pylint: disable=invalid-name
     action = 'sum'
     output = self.visit(node.elt)
-    comprehensions = [self.visit(generator, action) for generator in node.generators]
+    comprehensions = [self.visit(generator, action)
+                      for generator in node.generators]
     if len(comprehensions) == 1:
       return output, comprehensions[0]
     raise TypeError('visit_GeneratorExp_sum() supports a single for clause'
