@@ -82,6 +82,26 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
   def visit_Call(self, node, action):  # pylint: disable=invalid-name
     """Visit a call node."""
+
+    def _decorated_lstr_and_arg(node, callee_str, lstr):
+      """Decorate lstr and get its associated arguments"""
+      if callee_str == 'sum' and isinstance(node.args[0], ast.GeneratorExp):
+        generator_info = self.visit(node.args[0], callee_str)
+        arg_str, comprehension = generator_info
+        var_comp, args_comp = comprehension
+        if len(args_comp) == 1:
+          arg1, arg2 = '0', args_comp[0]
+        else:
+          arg1, arg2 = args_comp
+        decorator = r'_{{{}={}}}^{{{}}}'.format(var_comp, arg1, arg2)
+        lstr = r'\sum' + decorator + r' \left({'
+
+      else:
+        arg_strs = [self.visit(arg) for arg in node.args]
+        arg_str = ', '.join(arg_strs)
+
+      return lstr, arg_str
+
     del action
 
     callee_str = self.visit(node.func)
@@ -92,41 +112,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
       lstr = r'\mathrm{' + callee_str + r'}\left('
       rstr = r'\right)'
 
-    # TODO refactor, maybe split out as a function
-    if callee_str == 'sum' and isinstance(node.args[0], ast.GeneratorExp):
-      generator_info = self.visit(node.args[0])
-      expression, comprehensions = generator_info
-      variable, args = comprehensions[0]
-      if len(args) == 1:
-        arg1, arg2 = '0', args[0]
-      else:
-        arg1, arg2 = args
-      lstr = r'\sum' + r'_{{{}={}}}^{{{}}}'.format(variable, arg1, arg2) + ' \left({'
-      return lstr + expression + rstr
-    else:
-      arg_strs = [self.visit(arg) for arg in node.args]
-      return lstr + ', '.join(arg_strs) + rstr
-
-  def visit_GeneratorExp(self, node, action):
-    # TODO refactor
-    del action
-
-    expression = self.visit(node.elt)
-    comprehensions = [self.visit(generator) for generator in node.generators]
-    return expression, comprehensions
-
-  def visit_comprehension(self, node, action):
-    # TODO refactor
-    """Visit a comprehension node, which represents a for clause"""
-    del action
-
-    variable = self.visit(node.target)
-    if isinstance(node.iter, ast.Call):
-      callee_str = self.visit(node.iter.func)
-    if callee_str == 'range':
-      args = [self.visit(arg) for arg in node.iter.args]
-      return variable, args
-    raise NotImplementedError('Comprehension only supports range func')
+    lstr, arg_str = _decorated_lstr_and_arg(node, callee_str, lstr)
+    return lstr + arg_str + rstr
 
   def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
     del action
@@ -257,6 +244,26 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     latex += self.visit(node)
     return latex + r', & \mathrm{otherwise} \end{array} \right.'
 
+  def visit_GeneratorExp_sum(self, node):  # pylint: disable=invalid-name
+    action = 'sum'
+    output = self.visit(node.elt)
+    comprehensions = [self.visit(generator, action) for generator in node.generators]
+    if len(comprehensions) == 1:
+      return output, comprehensions[0]
+    raise TypeError('visit_GeneratorExp_sum() supports a single for clause'
+                    'but {} were given'.format(len(comprehensions)))
+
+  def visit_comprehension_sum(self, node):  # pylint: disable=invalid-name
+    """Visit a comprehension node, which represents a for clause"""
+    var = self.visit(node.target)
+    if isinstance(node.iter, ast.Call):
+      callee_str = self.visit(node.iter.func)
+    if callee_str == 'range':
+      args = [self.visit(arg) for arg in node.iter.args]
+      if len(args) in (1, 2):
+        return var, args
+    raise TypeError('Comprehension for sum only supports range func '
+                    'with 1 or 2 args')
 
 def get_latex(fn, math_symbol=True):
   try:
