@@ -23,7 +23,6 @@ import dill
 from latexify import constants
 from latexify import node_visitor_base
 
-
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
   """Latexify AST visitor."""
 
@@ -84,15 +83,22 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Visit a call node."""
 
     def _decorated_lstr_and_arg(node, callee_str, lstr):
-      """Decorate lstr and get its associated arguments"""
+      """Decorates lstr and get its associated arguments"""
       if callee_str == 'sum' and isinstance(node.args[0], ast.GeneratorExp):
-        generator_info = self.visit(node.args[0], callee_str)
+        generator_info = self.visit(node.args[0], constants.actions.SET_BOUNDS)
         arg_str, comprehension = generator_info
         var_comp, args_comp = comprehension
         if len(args_comp) == 1:
           arg1, arg2 = '0', args_comp[0]
         else:
           arg1, arg2 = args_comp
+        # the second arg in range func is exclusive
+        try:
+          arg2 = str(int(arg2) - 1)
+        except ValueError:
+          arg2 += '-1'
+
+
         decorator = r'_{{{}={}}}^{{{}}}'.format(var_comp, arg1, arg2)
         lstr = r'\sum' + decorator + r' \left({'
 
@@ -244,8 +250,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     latex += self.visit(node)
     return latex + r', & \mathrm{otherwise} \end{array} \right.'
 
-  def visit_GeneratorExp_sum(self, node):  # pylint: disable=invalid-name
-    action = 'sum'
+  def visit_GeneratorExp_set_bounds(self, node):  # pylint: disable=invalid-name
+    action = constants.actions.SET_BOUNDS
     output = self.visit(node.elt)
     comprehensions = [self.visit(generator, action)
                       for generator in node.generators]
@@ -254,7 +260,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     raise TypeError('visit_GeneratorExp_sum() supports a single for clause'
                     'but {} were given'.format(len(comprehensions)))
 
-  def visit_comprehension_sum(self, node):  # pylint: disable=invalid-name
+  def visit_comprehension_set_bounds(self, node):  # pylint: disable=invalid-name
     """Visit a comprehension node, which represents a for clause"""
     var = self.visit(node.target)
     if isinstance(node.iter, ast.Call):

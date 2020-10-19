@@ -55,7 +55,7 @@ def sum_with_limit(n):
 
 
 sum_with_limit_latex = (
-  r'\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n} \left({i^{2}}\right)'
+  r'\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n-1} \left({i^{2}}\right)'
 )
 
 
@@ -65,7 +65,7 @@ def sum_with_limit_two_args(a, n):
 
 sum_with_limit_two_args_latex = (
   r'\mathrm{sum_with_limit_two_args}(a, n) '
-  r'\triangleq \sum_{i=a}^{n} \left({i^{2}}\right)'
+  r'\triangleq \sum_{i=a}^{n-1} \left({i^{2}}\right)'
 )
 
 
