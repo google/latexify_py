@@ -1,117 +1,132 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # This is very scratchy and supports only limited portion of Python functions.
+"""Latexify core module."""
 
 import ast
-import math
 import inspect
 
 import dill
 
-_MATH_SYMBOLS = {
-    'aleph', 'alpha', 'beta', 'beth', 'chi', 'daleth',
-    'delta', 'digamma', 'epsilon', 'eta', 'gamma', 'gimel',
-    'iota', 'kappa', 'lambda', 'mu', 'nu', 'omega', 'omega',
-    'phi', 'pi', 'psi', 'rho', 'sigma', 'tau', 'theta',
-    'upsilon', 'varepsilon', 'varkappa', 'varphi', 'varpi', 'varrho',
-    'varsigma', 'vartheta', 'xi', 'zeta', 'Delta', 'Gamma',
-    'Lambda', 'Omega', 'Phi', 'Pi', 'Sigma', 'Theta',
-    'Upsilon', 'Xi',
-}
+from latexify import constants
+from latexify import node_visitor_base
 
-class LatexifyVisitor(ast.NodeVisitor):
+
+class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
+  """Latexify AST visitor."""
 
   def __init__(self, math_symbol):
     self.math_symbol = math_symbol
-    super(ast.NodeVisitor).__init__()
+    super().__init__()
 
   def _parse_math_symbols(self, val: str) -> str:
     if not self.math_symbol:
       return val
-    if val in _MATH_SYMBOLS:
+    if val in constants.MATH_SYMBOLS:
       return '{\\' + val + '}'
-    else:
-      return val
+    return val
 
-  def generic_visit(self, node):
+  def generic_visit(self, node, action):
+    del action
+
     return str(node)
 
-  def visit_Module(self, node):
+  def visit_Module(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     return self.visit(node.body[0])
 
-  def visit_FunctionDef(self, node):
-    name_str = r'\operatorname{' + str(node.name) + '}'
-    arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
-    body_str = self.visit(node.body[0])
-    return name_str + '(' + ', '.join(arg_strs) + r')\triangleq ' + body_str
+  def visit_FunctionDef(self, node, action):  # pylint: disable=invalid-name
+    del action
 
-  def visit_Return(self, node):
+    name_str = r'\mathrm{' + str(node.name) + '}'
+    arg_strs = [
+        self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
+    body_str = self.visit(node.body[0])
+    return name_str + '(' + ', '.join(arg_strs) + r') \triangleq ' + body_str
+
+  def visit_Return(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     return self.visit(node.value)
 
-  def visit_Tuple(self, node):
-    return r'\left( ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right) '
+  def visit_Tuple(self, node, action):  # pylint: disable=invalid-name
+    del action
 
-  def visit_List(self, node):
-    return r'\left[ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right] '
+    elts = [self.visit(i) for i in node.elts]
+    return r'\left( ' + r'\space,\space '.join(elts) + r'\right) '
 
-  def visit_Set(self, node):
-    return r'\left\{ ' + r'\space,\space '.join([self.visit(i) for i in node.elts]) + r'\right\} '
+  def visit_List(self, node, action):  # pylint: disable=invalid-name
+    del action
 
-  def visit_Call(self, node):
-    builtin_callees = {
-        'abs': (r'\left|{', r'}\right|'),
-        'math.acos': (r'\arccos{\left({', r'}\right)}'),
-        'math.acosh': (r'\operatorname{arccosh}{\left({', r'}\right)}'),
-        'math.asin': (r'\arcsin{\left({', r'}\right)}'),
-        'math.asinh': (r'\operatorname{arcsinh}{\left({', r'}\right)}'),
-        'math.atan': (r'\arctan{\left({', r'}\right)}'),
-        'math.atanh': (r'\operatorname{arctanh}{\left({', r'}\right)}'),
-        'math.ceil': (r'\left\lceil{', r'}\right\rceil'),
-        'math.cos': (r'\cos{\left({', r'}\right)}'),
-        'math.cosh': (r'\cosh{\left({', r'}\right)}'),
-        'math.exp': (r'\exp{\left({', r'}\right)}'),
-        'math.fabs': (r'\left|{', r'}\right|'),
-        'math.factorial': (r'\left({', r'}\right)!'),
-        'math.floor': (r'\left\lfloor{', r'}\right\rfloor'),
-        'math.fsum': (r'\sum\left({', r'}\right)'),
-        'math.gamma': (r'\Gamma\left({', r'}\right)'),
-        'math.log': (r'\log{\left({', r'}\right)}'),
-        'math.log10': (r'\log_{10}{\left({', r'}\right)}'),
-        'math.log2': (r'\log_{2}{\left({', r'}\right)}'),
-        'math.prod': (r'\prod \left({', r'}\right)'),
-        'math.sin': (r'\sin{\left({', r'}\right)}'),
-        'math.sinh': (r'\sinh{\left({', r'}\right)}'),
-        'math.sqrt': (r'\sqrt{', '}'),
-        'math.tan': (r'\tan{\left({', r'}\right)}'),
-        'math.tanh': (r'\tanh{\left({', r'}\right)}'),
-        'sum': (r'\sum \left({', r'}\right)'),
-    }
+    elts = [self.visit(i) for i in node.elts]
+    return r'\left[ ' + r'\space,\space '.join(elts) + r'\right] '
+
+  def visit_Set(self, node, action):  # pylint: disable=invalid-name
+    del action
+
+    elts = [self.visit(i) for i in node.elts]
+    return r'\left\{ ' + r'\space,\space '.join(elts) + r'\right\} '
+
+  def visit_Call(self, node, action):  # pylint: disable=invalid-name
+    """Visit a call node."""
+    del action
 
     callee_str = self.visit(node.func)
-    if callee_str in builtin_callees:
-      lstr, rstr = builtin_callees[callee_str]
-    else:
+    lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
+    if lstr is None:
       if callee_str.startswith('math.'):
         callee_str = callee_str[5:]
-      lstr = r'\operatorname{' + callee_str + r'}\left('
+      lstr = r'\mathrm{' + callee_str + r'}\left('
       rstr = r'\right)'
 
     arg_strs = [self.visit(arg) for arg in node.args]
     return lstr + ', '.join(arg_strs) + rstr
 
-  def visit_Attribute(self, node):
+  def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     vstr = self.visit(node.value)
     astr = str(node.attr)
     return vstr + '.' + astr
 
-  def visit_Name(self, node):
+  def visit_Name(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     return self._parse_math_symbols(str(node.id))
 
-  def visit_Num(self, node):
+  def visit_Constant(self, node, action):  # pylint: disable=invalid-name
+    del action
+
+    # for python >= 3.8
     return str(node.n)
 
-  def visit_UnaryOp(self, node):
+  def visit_Num(self, node, action):  # pylint: disable=invalid-name
+    del action
+
+    # for python < 3.8
+    return str(node.n)
+
+  def visit_UnaryOp(self, node, action):  # pylint: disable=invalid-name
+    """Visit a unary op node."""
+    del action
+
     def _wrap(child):
       latex = self.visit(child)
-      if isinstance(child, ast.BinOp) and isinstance(child.op, (ast.Add, ast.Sub)):
+      if (isinstance(child, ast.BinOp) and
+          isinstance(child.op, (ast.Add, ast.Sub))):
         return r'\left(' + latex + r'\right)'
       return latex
 
@@ -123,20 +138,13 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
-    else:
-      return r'\operatorname{unknown\_uniop}(' + self.visit(node.operand) + ')'
+    return r'\mathrm{unknown\_uniop}(' + self.visit(node.operand) + ')'
 
-  def visit_BinOp(self, node):
-    priority = {
-        ast.Add: 10,
-        ast.Sub: 10,
-        ast.Mult: 20,
-        ast.MatMult: 20,
-        ast.Div: 20,
-        ast.FloorDiv: 20,
-        ast.Mod: 20,
-        ast.Pow: 30,
-    }
+  def visit_BinOp(self, node, action):  # pylint: disable=invalid-name
+    """Visit a binary op node."""
+    del action
+
+    priority = constants.BIN_OP_PRIORITY
 
     def _unwrap(child):
       return self.visit(child)
@@ -165,39 +173,46 @@ class LatexifyVisitor(ast.NodeVisitor):
 
     if type(node.op) in reprs:
       return reprs[type(node.op)]()
-    else:
-      return r'\operatorname{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
+    return r'\mathrm{unknown\_binop}(' + _unwrap(l) + ', ' + _unwrap(r) + ')'
 
-  def visit_Compare(self, node):
+  def visit_Compare(self, node, action):  # pylint: disable=invalid-name
+    """Visit a compare node."""
+    del action
+
     lstr = self.visit(node.left)
     rstr = self.visit(node.comparators[0])
 
     if isinstance(node.ops[0], ast.Eq):
       return lstr + '=' + rstr
-    elif isinstance(node.ops[0], ast.Gt):
+    if isinstance(node.ops[0], ast.Gt):
       return lstr + '>' + rstr
-    elif isinstance(node.ops[0], ast.Lt):
+    if isinstance(node.ops[0], ast.Lt):
       return lstr + '<' + rstr
-    elif isinstance(node.ops[0], ast.GtE):
+    if isinstance(node.ops[0], ast.GtE):
       return lstr + r'\ge ' + rstr
-    elif isinstance(node.ops[0], ast.LtE):
+    if isinstance(node.ops[0], ast.LtE):
       return lstr + r'\le ' + rstr
-    elif isinstance(node.ops[0], ast.NotEq):
+    if isinstance(node.ops[0], ast.NotEq):
       return lstr + r'\ne ' + rstr
-    elif isinstance(node.ops[0], ast.Is):
+    if isinstance(node.ops[0], ast.Is):
       return lstr + r'\equiv' + rstr
 
-    else:
-      return r'\operatorname{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
+    return r'\mathrm{unknown\_comparator}(' + lstr + ', ' + rstr + ')'
 
-  def visit_BoolOp(self, node):
+  def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
+    del action
+
     logic_operator = r'\lor ' if isinstance(node.op, ast.Or) \
                 else r'\land ' if isinstance(node.op, ast.And) \
-                else r' \operatorname{unknown\_operator} '
+                else r' \mathrm{unknown\_operator} '
     # visit all the elements in the ast.If node recursively
-    return r'\left('+self.visit(node.values[0])+r'\right)'+logic_operator+r'\left('+self.visit(node.values[1])+r'\right)'
+    return (r'\left(' + self.visit(node.values[0]) + r'\right)' + logic_operator
+            + r'\left(' + self.visit(node.values[1]) + r'\right)')
 
-  def visit_If(self, node):
+  def visit_If(self, node, action):  # pylint: disable=invalid-name
+    """Visit an if node."""
+    del action
+
     latex = r'\left\{ \begin{array}{ll} '
 
     while isinstance(node, ast.If):
@@ -206,12 +221,14 @@ class LatexifyVisitor(ast.NodeVisitor):
       latex += true_latex + r', & \mathrm{if} \ ' + cond_latex + r' \\ '
       node = node.orelse[0]
 
-    return latex + self.visit(node) + r', & \mathrm{otherwise} \end{array} \right.'
+    latex += self.visit(node)
+    return latex + r', & \mathrm{otherwise} \end{array} \right.'
 
 
 def get_latex(fn, math_symbol=True):
   try:
     source = inspect.getsource(fn)
+  # pylint: disable=broad-except
   except Exception:
     # Maybe running on console.
     source = dill.source.getsource(fn)
@@ -220,8 +237,11 @@ def get_latex(fn, math_symbol=True):
 
 
 def with_latex(*args, math_symbol=True):
+  """Translate a function with latex representation."""
 
   class _LatexifiedFunction:
+    """Function with latex representation."""
+
     def __init__(self, fn):
       self._fn = fn
       self._str = get_latex(fn, math_symbol=math_symbol)
@@ -252,9 +272,11 @@ def with_latex(*args, math_symbol=True):
       """
       Hooks into Jupyter notebook's display system.
       """
-      return self._str
+      return r'$$ \displaystyle ' + self._str + ' $$'
 
   if len(args) == 1 and callable(args[0]):
     return _LatexifiedFunction(args[0])
-  else:
-    return lambda fn: _LatexifiedFunction(fn)
+
+  def ret(fn):
+    return _LatexifiedFunction(fn)
+  return ret
