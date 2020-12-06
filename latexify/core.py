@@ -27,8 +27,9 @@ from latexify import node_visitor_base
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
   """Latexify AST visitor."""
 
-  def __init__(self, math_symbol):
+  def __init__(self, math_symbol=False, raw_func_name=False):
     self.math_symbol = math_symbol
+    self.raw_func_name = raw_func_name  # True:do not treat underline as label of subscript(#31)
     super().__init__()
 
   def _parse_math_symbols(self, val: str) -> str:
@@ -52,6 +53,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     del action
 
     name_str = r'\mathrm{' + str(node.name) + '}'
+    if self.raw_func_name:
+      name_str = name_str.replace(r"_", r"\_")  # fix #31
     arg_strs = [
         self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
     body_str = self.visit(node.body[0])
@@ -225,7 +228,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     return latex + r', & \mathrm{otherwise} \end{array} \right.'
 
 
-def get_latex(fn, math_symbol=True):
+def get_latex(fn, *args, **kwargs):
   try:
     source = inspect.getsource(fn)
   # pylint: disable=broad-except
@@ -233,10 +236,10 @@ def get_latex(fn, math_symbol=True):
     # Maybe running on console.
     source = dill.source.getsource(fn)
 
-  return LatexifyVisitor(math_symbol=math_symbol).visit(ast.parse(source))
+  return LatexifyVisitor(*args, **kwargs).visit(ast.parse(source))
 
 
-def with_latex(*args, math_symbol=True):
+def with_latex(*args, **kwargs):
   """Translate a function with latex representation."""
 
   class _LatexifiedFunction:
@@ -244,7 +247,7 @@ def with_latex(*args, math_symbol=True):
 
     def __init__(self, fn):
       self._fn = fn
-      self._str = get_latex(fn, math_symbol=math_symbol)
+      self._str = get_latex(fn, *args,**kwargs)
 
     @property
     def __doc__(self):
