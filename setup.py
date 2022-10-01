@@ -38,6 +38,7 @@ def main():
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Code Generators',
         'Topic :: Text Processing :: Markup :: LaTeX',
@@ -47,7 +48,7 @@ def main():
     install_requires=[
         'dill>=0.3.2',
     ],
-    python_requires='>=3.6, <=3.10',
+    python_requires='>=3.6, <=3.11',
   )
 
 
