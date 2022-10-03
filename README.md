@@ -1,11 +1,12 @@
 # latexify_py
-A Python package that generates LaTeX math description from Python 🐍 functions.
+A Python package that generates LaTeX math description from Python functions.
 
 ## FAQs
 1. Which Python version? ... Using 3.6 AST.
 2. GPT-3? ... No, rule-based.
 
-## Installation 
+## Installation
+
 ``shell
 pip install latexify-py
 ``
@@ -16,11 +17,6 @@ Follow provided example on [Google Colaboratory](https://colab.research.google.c
 
 ## How to Contribute 
 To contribute to this Project refer [CONTRIBUTING.md](https://github.com/google/latexify_py/blob/develop/CONTRIBUTING.md) file.
-
-## Current Contributors 
-![](https://contributors-img.web.app/image?repo=google/latexify_py)
-
-Refer Contributors list [here](https://github.com/google/latexify_py/graphs/contributors).
 
 ## Disclaimer
 
