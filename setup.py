@@ -48,7 +48,7 @@ def main():
     install_requires=[
         'dill>=0.3.2',
     ],
-    python_requires='>=3.6, <=3.11',
+    python_requires='>=3.6, <3.11',
   )
 
 
