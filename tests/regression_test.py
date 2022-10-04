@@ -50,11 +50,32 @@ xtimesbeta_latex = r'\mathrm{xtimesbeta}(x, {\beta}) \triangleq x{\beta}'
 xtimesbeta_latex_no_symbols = r'\mathrm{xtimesbeta}(x, beta) \triangleq xbeta'
 
 
+def sum_with_limit(n):
+  return sum(i**2 for i in range(n))
+
+
+sum_with_limit_latex = (
+  r'\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n-1} \left({i^{2}}\right)'
+)
+
+
+def sum_with_limit_two_args(a, n):
+  return sum(i**2 for i in range(a, n))
+
+
+sum_with_limit_two_args_latex = (
+  r'\mathrm{sum_with_limit_two_args}(a, n) '
+  r'\triangleq \sum_{i=a}^{n-1} \left({i^{2}}\right)'
+)
+
+
 func_and_latex_str_list = [
   (solve, solve_latex, None),
   (sinc, sinc_latex, None),
   (xtimesbeta, xtimesbeta_latex, True),
   (xtimesbeta, xtimesbeta_latex_no_symbols, False),
+  (sum_with_limit, sum_with_limit_latex, None),
+  (sum_with_limit_two_args, sum_with_limit_two_args_latex, None),
 ]
 
 

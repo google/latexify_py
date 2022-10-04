@@ -23,7 +23,6 @@ import dill
 from latexify import constants
 from latexify import node_visitor_base
 
-
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
   """Latexify AST visitor."""
 
@@ -85,6 +84,33 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
   def visit_Call(self, node, action):  # pylint: disable=invalid-name
     """Visit a call node."""
+
+    def _decorated_lstr_and_arg(node, callee_str, lstr):
+      """Decorates lstr and get its associated arguments"""
+      if callee_str == 'sum' and isinstance(node.args[0], ast.GeneratorExp):
+        generator_info = self.visit(node.args[0], constants.actions.SET_BOUNDS)
+        arg_str, comprehension = generator_info
+        var_comp, args_comp = comprehension
+        if len(args_comp) == 1:
+          arg1, arg2 = '0', args_comp[0]
+        else:
+          arg1, arg2 = args_comp
+        # the second arg in range func is exclusive
+        try:
+          arg2 = str(int(arg2) - 1)
+        except ValueError:
+          arg2 += '-1'
+
+
+        decorator = r'_{{{}={}}}^{{{}}}'.format(var_comp, arg1, arg2)
+        lstr = r'\sum' + decorator + r' \left({'
+
+      else:
+        arg_strs = [self.visit(arg) for arg in node.args]
+        arg_str = ', '.join(arg_strs)
+
+      return lstr, arg_str
+
     del action
 
     callee_str = self.visit(node.func)
@@ -95,8 +121,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
       lstr = r'\mathrm{' + callee_str + r'}\left('
       rstr = r'\right)'
 
-    arg_strs = [self.visit(arg) for arg in node.args]
-    return lstr + ', '.join(arg_strs) + rstr
+    lstr, arg_str = _decorated_lstr_and_arg(node, callee_str, lstr)
+    return lstr + arg_str + rstr
 
   def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
     del action
@@ -227,6 +253,27 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     latex += self.visit(node)
     return latex + r', & \mathrm{otherwise} \end{array} \right.'
 
+  def visit_GeneratorExp_set_bounds(self, node):  # pylint: disable=invalid-name
+    action = constants.actions.SET_BOUNDS
+    output = self.visit(node.elt)
+    comprehensions = [self.visit(generator, action)
+                      for generator in node.generators]
+    if len(comprehensions) == 1:
+      return output, comprehensions[0]
+    raise TypeError('visit_GeneratorExp_sum() supports a single for clause'
+                    'but {} were given'.format(len(comprehensions)))
+
+  def visit_comprehension_set_bounds(self, node):  # pylint: disable=invalid-name
+    """Visit a comprehension node, which represents a for clause"""
+    var = self.visit(node.target)
+    if isinstance(node.iter, ast.Call):
+      callee_str = self.visit(node.iter.func)
+    if callee_str == 'range':
+      args = [self.visit(arg) for arg in node.iter.args]
+      if len(args) in (1, 2):
+        return var, args
+    raise TypeError('Comprehension for sum only supports range func '
+                    'with 1 or 2 args')
 
 def get_latex(fn, *args, **kwargs):
   try:
