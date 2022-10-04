@@ -2,7 +2,7 @@
 A Python package that generates LaTeX math description from Python functions.
 
 ## FAQs
-1. Which Python version? ... Using 3.6 AST.
+1. Which Python version? ... Using 3.10 AST.
 2. GPT-3? ... No, rule-based.
 
 ## Installation
