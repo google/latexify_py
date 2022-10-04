@@ -7,9 +7,9 @@ A Python package that generates LaTeX math description from Python functions.
 
 ## Installation
 
-``shell
+```shell
 pip install latexify-py
-``
+```
 
 ## Example
 
