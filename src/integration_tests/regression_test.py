@@ -16,7 +16,7 @@
 import math
 import pytest
 
-from latexify import with_latex
+from latexify import get_latex, with_latex
 
 
 def solve(a, b, c):
@@ -91,3 +91,20 @@ def test_with_latex_to_str(func, expected_latex, math_symbol):
     assert str(latexified_function) == expected_latex
     expected_repr = r"$$ \displaystyle %s $$" % expected_latex
     assert latexified_function._repr_latex_() == expected_repr
+
+
+def test_nested_function():
+    def nested(x):
+        return 3 * x
+
+    assert get_latex(nested) == r"\mathrm{nested}(x) \triangleq 3x"
+
+
+def test_double_nested_function():
+    def nested(x):
+        def inner(y):
+            return x * y
+
+        return inner
+
+    assert get_latex(nested(3)) == r"\mathrm{inner}(y) \triangleq xy"
