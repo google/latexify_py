@@ -40,6 +40,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black>=22.10",
+    "flake8>=5.0",
+    "pyproject-flake8>=5.0",
     "pytest>=7.1",
 ]
 
@@ -49,3 +51,6 @@ Homepage = "https://github.com/google/latexify_py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/latexify"]
+
+[tool.flake8]
+max-line-length = 88

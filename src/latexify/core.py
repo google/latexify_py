@@ -189,28 +189,28 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
                     return "(" + latex + ")"
             return latex
 
-        l = node.left
-        r = node.right
+        lhs = node.left
+        rhs = node.right
         reprs = {
-            ast.Add: (lambda: _wrap(l) + " + " + _wrap(r)),
-            ast.Sub: (lambda: _wrap(l) + " - " + _wrap(r)),
-            ast.Mult: (lambda: _wrap(l) + _wrap(r)),
-            ast.MatMult: (lambda: _wrap(l) + _wrap(r)),
-            ast.Div: (lambda: r"\frac{" + _unwrap(l) + "}{" + _unwrap(r) + "}"),
+            ast.Add: (lambda: _wrap(lhs) + " + " + _wrap(rhs)),
+            ast.Sub: (lambda: _wrap(lhs) + " - " + _wrap(rhs)),
+            ast.Mult: (lambda: _wrap(lhs) + _wrap(rhs)),
+            ast.MatMult: (lambda: _wrap(lhs) + _wrap(rhs)),
+            ast.Div: (lambda: r"\frac{" + _unwrap(lhs) + "}{" + _unwrap(rhs) + "}"),
             ast.FloorDiv: (
                 lambda: r"\left\lfloor\frac{"
-                + _unwrap(l)
+                + _unwrap(lhs)
                 + "}{"
-                + _unwrap(r)
+                + _unwrap(rhs)
                 + r"}\right\rfloor"
             ),
-            ast.Mod: (lambda: _wrap(l) + r" \bmod " + _wrap(r)),
-            ast.Pow: (lambda: _wrap(l) + "^{" + _unwrap(r) + "}"),
+            ast.Mod: (lambda: _wrap(lhs) + r" \bmod " + _wrap(rhs)),
+            ast.Pow: (lambda: _wrap(lhs) + "^{" + _unwrap(rhs) + "}"),
         }
 
         if type(node.op) in reprs:
             return reprs[type(node.op)]()
-        return r"\mathrm{unknown\_binop}(" + _unwrap(l) + ", " + _unwrap(r) + ")"
+        return r"\mathrm{unknown\_binop}(" + _unwrap(lhs) + ", " + _unwrap(rhs) + ")"
 
     def visit_Compare(self, node, action):  # pylint: disable=invalid-name
         """Visit a compare node."""
