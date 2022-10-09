@@ -39,7 +39,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.1"
+    "black>=22.10",
+    "pytest>=7.1",
 ]
 
 [project.urls]

@@ -19,61 +19,61 @@ from latexify import node_visitor_base
 
 
 class MockVisitor(node_visitor_base.NodeVisitorBase):
-  """Mock visitor class."""
+    """Mock visitor class."""
 
-  def __init__(self):
-    # Dummy member to fail visitor invocation.
-    self.visit_Baz = None  # pylint: disable=invalid-name
+    def __init__(self):
+        # Dummy member to fail visitor invocation.
+        self.visit_Baz = None  # pylint: disable=invalid-name
 
-  def generic_visit(self, node, action):
-    return 'generic_visit: {}, {}'.format(node.__class__.__name__, action)
+    def generic_visit(self, node, action):
+        return "generic_visit: {}, {}".format(node.__class__.__name__, action)
 
-  def visit_Foo(self, node, action):  # pylint: disable=invalid-name
-    del node
-    return 'visit_Foo: {}'.format(action)
+    def visit_Foo(self, node, action):  # pylint: disable=invalid-name
+        del node
+        return "visit_Foo: {}".format(action)
 
-  def visit_Foo_abc(self, node):  # pylint: disable=invalid-name
-    del node
-    return 'visit_Foo_abc'
+    def visit_Foo_abc(self, node):  # pylint: disable=invalid-name
+        del node
+        return "visit_Foo_abc"
 
-  def visit_Foo_xyz(self, node):  # pylint: disable=invalid-name
-    del node
-    return 'visit_Foo_xyz'
+    def visit_Foo_xyz(self, node):  # pylint: disable=invalid-name
+        del node
+        return "visit_Foo_xyz"
 
 
 class Foo:
-  pass
+    pass
 
 
 class Bar:
-  pass
+    pass
 
 
 class Baz:
-  pass
+    pass
 
 
 def test_generic_visit():
-  visitor = MockVisitor()
-  assert visitor.visit(Bar()) == 'generic_visit: Bar, None'
-  assert visitor.visit(Bar(), 'unknown') == 'generic_visit: Bar, unknown'
-  assert visitor.visit(Bar(), '123') == 'generic_visit: Bar, 123'
+    visitor = MockVisitor()
+    assert visitor.visit(Bar()) == "generic_visit: Bar, None"
+    assert visitor.visit(Bar(), "unknown") == "generic_visit: Bar, unknown"
+    assert visitor.visit(Bar(), "123") == "generic_visit: Bar, 123"
 
 
 def test_visit_node():
-  visitor = MockVisitor()
-  assert visitor.visit(Foo()) == 'visit_Foo: None'
-  assert visitor.visit(Foo(), 'unknown') == 'visit_Foo: unknown'
-  assert visitor.visit(Foo(), '123') == 'visit_Foo: 123'
+    visitor = MockVisitor()
+    assert visitor.visit(Foo()) == "visit_Foo: None"
+    assert visitor.visit(Foo(), "unknown") == "visit_Foo: unknown"
+    assert visitor.visit(Foo(), "123") == "visit_Foo: 123"
 
 
 def test_visit_node_action():
-  visitor = MockVisitor()
-  assert visitor.visit(Foo(), 'abc') == 'visit_Foo_abc'
-  assert visitor.visit(Foo(), 'xyz') == 'visit_Foo_xyz'
+    visitor = MockVisitor()
+    assert visitor.visit(Foo(), "abc") == "visit_Foo_abc"
+    assert visitor.visit(Foo(), "xyz") == "visit_Foo_xyz"
 
 
 def test_invalid_visit():
-  visitor = MockVisitor()
-  with pytest.raises(AttributeError, match='visit_Baz is not callable'):
-    visitor.visit(Baz())
+    visitor = MockVisitor()
+    with pytest.raises(AttributeError, match="visit_Baz is not callable"):
+        visitor.visit(Baz())
