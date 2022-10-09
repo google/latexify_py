@@ -39,15 +39,26 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "build>=0.8",
     "black>=22.10",
     "flake8>=5.0",
     "pyproject-flake8>=5.0",
     "pytest>=7.1",
+    "twine>=4.0",
 ]
 
 [project.urls]
 Homepage = "https://github.com/google/latexify_py"
 "Bug Tracker" = "https://github.com/google/latexify_py/issues"
+
+[tool.hatch.build]
+include = [
+    "*.py",
+]
+exclude = [
+    "*_test.py",
+]
+only-packages = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/latexify"]
