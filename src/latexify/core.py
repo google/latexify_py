@@ -17,6 +17,7 @@
 
 import ast
 import inspect
+import textwrap
 
 import dill
 
@@ -306,6 +307,8 @@ def get_latex(fn, *args, **kwargs):
     except Exception:
         # Maybe running on console.
         source = dill.source.getsource(fn)
+
+    source = textwrap.dedent(source)
 
     return LatexifyVisitor(*args, **kwargs).visit(ast.parse(source))
 
