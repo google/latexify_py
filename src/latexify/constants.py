@@ -84,7 +84,7 @@ BUILTIN_CALLEES = {
     "acos": (r"\arccos{\left({", r"}\right)}"),
     "acosh": (r"\mathrm{arccosh}{\left({", r"}\right)}"),
     "arccos": (r"\arccos{\left({", r"}\right)}"),
-    "arccosh": (r"\arccos{\left({", r"}\right)}"),
+    "arccosh": (r"\mathrm{arccosh}{\left({", r"}\right)}"),
     "arcsin": (r"\arcsin{\left({", r"}\right)}"),
     "arcsinh": (r"\mathrm{arcsinh}{\left({", r"}\right)}"),
     "arctan": (r"\arctan{\left({", r"}\right)}"),
