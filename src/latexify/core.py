@@ -36,6 +36,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         self.raw_func_name = (
             raw_func_name  # True:do not treat underline as label of subscript(#31)
         )
+        self.assign_var = {}
         super().__init__()
 
     def _parse_math_symbols(self, val: str) -> str:
@@ -62,8 +63,22 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         if self.raw_func_name:
             name_str = name_str.replace(r"_", r"\_")  # fix #31
         arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
-        body_str = self.visit(node.body[0])
+
+        body_str = ''
+        for el in node.body:
+            # el: ast.Assign | ast.Return
+            body_str = self.visit(el)
+            if isinstance(el, ast.Return):
+                break
+        if body_str == '':
+            raise ValueError('Error `return` missing.')
+
         return f"{name_str}({', '.join(arg_strs)}) {self.equality_sign} {body_str}"
+
+    def visit_Assign(self, node, action):
+        del action
+
+        self.assign_var[node.targets[0].id] = self.visit(node.value)
 
     def visit_Return(self, node, action):  # pylint: disable=invalid-name
         del action
@@ -140,6 +155,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
     def visit_Name(self, node, action):  # pylint: disable=invalid-name
         del action
+        if node.id in self.assign_var.keys():
+            return self.assign_var[node.id]
 
         return self._parse_math_symbols(str(node.id))
 
