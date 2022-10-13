@@ -28,6 +28,9 @@ from latexify import node_visitor_base
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Latexify AST visitor."""
 
+    # Default config
+    equality_sign = r"\triangleq"
+
     def __init__(self, math_symbol=False, raw_func_name=False):
         self.math_symbol = math_symbol
         self.raw_func_name = (
@@ -60,7 +63,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             name_str = name_str.replace(r"_", r"\_")  # fix #31
         arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
         body_str = self.visit(node.body[0])
-        return name_str + "(" + ", ".join(arg_strs) + r") \triangleq " + body_str
+        return name_str + "(" + ", ".join(arg_strs) + r") " + self.equality_sign + body_str
 
     def visit_Return(self, node, action):  # pylint: disable=invalid-name
         del action
@@ -362,3 +365,12 @@ def with_latex(*args, **kwargs):
         return _LatexifiedFunction(fn)
 
     return ret
+
+
+def set_config(**kwargs):
+    """
+    Parameters :
+    * `equality_sign`
+    """
+    for key, value in kwargs.items():
+        setattr(LatexifyVisitor, key, value)
