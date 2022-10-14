@@ -57,17 +57,17 @@ class NodeVisitorBase:
           Implementation depended.
         """
         if action is not None:
-            method = f"visit_{node.__class__.__name__}_{action}"
+            method = "visit_{}_{}".format(node.__class__.__name__, action)
             visitor = getattr(self, method, None)
             if callable(visitor):
                 return visitor(node)  # pylint: disable=not-callable
 
-        method = f"visit_{node.__class__.__name__}"
+        method = "visit_{}".format(node.__class__.__name__)
         visitor = getattr(self, method, self.generic_visit)
         if callable(visitor):
             return visitor(node, action)  # pylint: disable=not-callable
 
-        raise AttributeError(f"{method} is not callable.")
+        raise AttributeError("{} is not callable.".format(method))
 
     def generic_visit(self, node, action):
         """Visitor method for all nodes without specific visitors."""

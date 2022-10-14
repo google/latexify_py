@@ -28,22 +28,18 @@ from latexify import node_visitor_base
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Latexify AST visitor."""
 
-    # Default config
-    equality_sign = r"\triangleq"
-
     def __init__(self, math_symbol=False, raw_func_name=False):
         self.math_symbol = math_symbol
         self.raw_func_name = (
             raw_func_name  # True:do not treat underline as label of subscript(#31)
         )
-        self.assign_var = {}
         super().__init__()
 
     def _parse_math_symbols(self, val: str) -> str:
         if not self.math_symbol:
             return val
         if val in constants.MATH_SYMBOLS:
-            return rf"{{\{val}}}"
+            return "{\\" + val + "}"
         return val
 
     def generic_visit(self, node, action):
@@ -59,26 +55,12 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     def visit_FunctionDef(self, node, action):  # pylint: disable=invalid-name
         del action
 
-        name_str = rf"\mathrm{{{node.name}}}"
+        name_str = r"\mathrm{" + str(node.name) + "}"
         if self.raw_func_name:
             name_str = name_str.replace(r"_", r"\_")  # fix #31
         arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
-
-        body_str = ''
-        for el in node.body:
-            # el: ast.Assign | ast.Return
-            body_str = self.visit(el)
-            if isinstance(el, ast.Return):
-                break
-        if body_str == '':
-            raise ValueError('Error `return` missing.')
-
-        return f"{name_str}({', '.join(arg_strs)}) {self.equality_sign} {body_str}"
-
-    def visit_Assign(self, node, action):
-        del action
-
-        self.assign_var[node.targets[0].id] = self.visit(node.value)
+        body_str = self.visit(node.body[0])
+        return name_str + "(" + ", ".join(arg_strs) + r") \triangleq " + body_str
 
     def visit_Return(self, node, action):  # pylint: disable=invalid-name
         del action
@@ -122,8 +104,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
                 except ValueError:
                     arg2 += "-1"
 
-                decorator = rf"_{{{var_comp}={arg1}}}^{{{arg2}}}"
-                lstr = rf"\sum{decorator} \left({{"
+                decorator = r"_{{{}={}}}^{{{}}}".format(var_comp, arg1, arg2)
+                lstr = r"\sum" + decorator + r" \left({"
 
             else:
                 arg_strs = [self.visit(arg) for arg in node.args]
@@ -142,7 +124,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
         if lstr is None:
-            lstr = rf"\mathrm{{{callee_str}}}\left("
+            lstr = r"\mathrm{" + callee_str + r"}\left("
             rstr = r"\right)"
 
         lstr, arg_str = _decorated_lstr_and_arg(node, callee_str, lstr)
@@ -151,12 +133,12 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
         del action
 
-        return f"{self.visit(node.value)}.{node.attr}"
+        vstr = self.visit(node.value)
+        astr = str(node.attr)
+        return vstr + "." + astr
 
     def visit_Name(self, node, action):  # pylint: disable=invalid-name
         del action
-        if node.id in self.assign_var.keys():
-            return self.assign_var[node.id]
 
         return self._parse_math_symbols(str(node.id))
 
@@ -181,7 +163,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             if isinstance(child, ast.BinOp) and isinstance(
                 child.op, (ast.Add, ast.Sub)
             ):
-                return rf"\left({latex}\right)"
+                return r"\left(" + latex + r"\right)"
             return latex
 
         reprs = {
@@ -192,7 +174,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         if type(node.op) in reprs:
             return reprs[type(node.op)]()
-        return rf"\mathrm{{unknown\_uniop}}({self.visit(node.operand)})"
+        return r"\mathrm{unknown\_uniop}(" + self.visit(node.operand) + ")"
 
     def visit_BinOp(self, node, action):  # pylint: disable=invalid-name
         """Visit a binary op node."""
@@ -209,7 +191,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
                 cp = priority[type(child.op)] if type(child.op) in priority else 100
                 pp = priority[type(node.op)] if type(node.op) in priority else 100
                 if cp < pp:
-                    return f"({latex})"
+                    return "(" + latex + ")"
             return latex
 
         lhs = node.left
@@ -289,11 +271,11 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         while isinstance(node, ast.If):
             cond_latex = self.visit(node.test)
             true_latex = self.visit(node.body[0])
-            latex += rf"{true_latex}, & \mathrm{{if}} \ {cond_latex} \\ "
+            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
             node = node.orelse[0]
 
         latex += self.visit(node)
-        return rf"{latex}, & \mathrm{{otherwise}} \end{{array}} \right."
+        return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_GeneratorExp_set_bounds(self, node):  # pylint: disable=invalid-name
         action = constants.actions.SET_BOUNDS
@@ -304,8 +286,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         if len(comprehensions) == 1:
             return output, comprehensions[0]
         raise TypeError(
-            f"visit_GeneratorExp_sum() supports a single for clause"
-            f"but {len(comprehensions)} were given"
+            "visit_GeneratorExp_sum() supports a single for clause"
+            "but {} were given".format(len(comprehensions))
         )
 
     def visit_comprehension_set_bounds(self, node):  # pylint: disable=invalid-name
@@ -371,7 +353,7 @@ def with_latex(*args, **kwargs):
             """
             Hooks into Jupyter notebook's display system.
             """
-            return rf"$$ \displaystyle {self._str} $$"
+            return r"$$ \displaystyle " + self._str + " $$"
 
     if len(args) == 1 and callable(args[0]):
         return _LatexifiedFunction(args[0])
@@ -380,12 +362,3 @@ def with_latex(*args, **kwargs):
         return _LatexifiedFunction(fn)
 
     return ret
-
-
-def set_config(**kwargs):
-    """
-    Parameters :
-    * `equality_sign`
-    """
-    for key, value in kwargs.items():
-        setattr(LatexifyVisitor, key, value)
