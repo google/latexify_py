@@ -82,7 +82,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         var = self.visit(node.value)
         if self.assign_mode:
-            self.assign_var[node.targets[0].id] = var
+            self.assign_var[node.targets[0].id] = rf'\left( {var} \right)'
             return None
         else:
             return rf"{node.targets[0].id} = {var} \\ "
