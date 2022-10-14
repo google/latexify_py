@@ -121,7 +121,7 @@ def test_assign_feature():
         b = math.exp(math.sqrt(x))
         return a * b
 
-    @with_latex(assign_mode=False)
+    @with_latex(reduce_assignments=False)
     def h(x):
         a = abs(x)
         b = math.exp(math.sqrt(x))

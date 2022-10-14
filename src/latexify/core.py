@@ -28,12 +28,13 @@ from latexify import node_visitor_base
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Latexify AST visitor."""
 
-    def __init__(self, math_symbol=False, raw_func_name=False, assign_mode=True):
+    def __init__(self, math_symbol=False, raw_func_name=False,
+                 reduce_assignments=True):
         self.math_symbol = math_symbol
         self.raw_func_name = (
             raw_func_name  # True:do not treat underline as label of subscript(#31)
         )
-        self.assign_mode = assign_mode
+        self.reduce_assignments = reduce_assignments
         self.assign_var = {}
         super().__init__()
 
@@ -67,7 +68,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         for el in node.body:
             # el: ast.Assign | ast.Return
             body_str = self.visit(el)
-            if not self.assign_mode and isinstance(el, ast.Assign):
+            if not self.reduce_assignments and isinstance(el, ast.Assign):
                 assign_vars.append(body_str)
 
             elif isinstance(el, ast.Return):
@@ -81,7 +82,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         del action
 
         var = self.visit(node.value)
-        if self.assign_mode:
+        if self.reduce_assignments:
             self.assign_var[node.targets[0].id] = rf'\left( {var} \right)'
             return None
         else:
@@ -165,7 +166,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     def visit_Name(self, node, action):  # pylint: disable=invalid-name
         del action
 
-        if self.assign_mode and node.id in self.assign_var.keys():
+        if self.reduce_assignments and node.id in self.assign_var.keys():
             return self.assign_var[node.id]
 
         return self._parse_math_symbols(str(node.id))
