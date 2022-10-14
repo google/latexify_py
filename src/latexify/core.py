@@ -116,10 +116,14 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         del action
 
         callee_str = self.visit(node.func)
+
+        for prefix in constants.PREFIXES:
+            if callee_str.startswith(f"{prefix}."):
+                callee_str = callee_str[len(prefix) + 1:]
+                break
+
         lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
         if lstr is None:
-            if callee_str.startswith("math."):
-                callee_str = callee_str[5:]
             lstr = r"\mathrm{" + callee_str + r"}\left("
             rstr = r"\right)"
 
