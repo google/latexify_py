@@ -127,6 +127,6 @@ def test_assign_feature():
         b = math.exp(math.sqrt(x))
         return a * b
 
-    assert f == r"\mathrm{f}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
-    assert g == r"\mathrm{g}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
-    assert h == r"a = \left|{x}\right| \\ b = \exp{\left({\sqrt{x}}\right)} \\ \mathrm{h}(x) \triangleq ab"
+    assert str(f) == r"\mathrm{f}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
+    assert str(g) == r"\mathrm{g}(x) \triangleq \left( \left|{x}\right| \right)\left( \exp{\left({\sqrt{x}}\right)} \right)"
+    assert str(h) == r"a = \left|{x}\right| \\ b = \exp{\left({\sqrt{x}}\right)} \\ \mathrm{h}(x) \triangleq ab"
