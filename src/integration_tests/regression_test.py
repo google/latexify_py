@@ -108,3 +108,25 @@ def test_double_nested_function():
         return inner
 
     assert get_latex(nested(3)) == r"\mathrm{inner}(y) \triangleq xy"
+
+
+def test_assign_feature():
+    @with_latex
+    def f(x):
+        return abs(x) * math.exp(math.sqrt(x))
+
+    @with_latex
+    def g(x):
+        a = abs(x)
+        b = math.exp(math.sqrt(x))
+        return a * b
+
+    @with_latex(assign_mode=False)
+    def h(x):
+        a = abs(x)
+        b = math.exp(math.sqrt(x))
+        return a * b
+
+    assert f == r"\mathrm{f}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
+    assert g == r"\mathrm{g}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
+    assert h == r"a = \left|{x}\right| \\ b = \exp{\left({\sqrt{x}}\right)} \\ \mathrm{h}(x) \triangleq ab"
