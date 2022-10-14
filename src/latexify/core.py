@@ -73,7 +73,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             elif isinstance(el, ast.Return):
                 break
         if body_str == '':
-            raise ValueError('Error `return` missing')
+            raise ValueError('`return` missing')
 
         return "".join(assign_vars) + name_str + "(" + ", ".join(arg_strs) + r") \triangleq " + body_str
 
