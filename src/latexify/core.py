@@ -66,22 +66,19 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         body_str = ''
         assign_vars = []
         for el in node.body:
-            if isinstance(el, ast.Assign):
-                body_str = self.visit(el)
-                if not self.reduce_assignments:
-                    assign_vars.append(body_str)
-            elif isinstance(el, ast.FunctionDef):
+            if isinstance(el, ast.FunctionDef):
                 if self.reduce_assignments:
                     body_str = self.visit(el, 'in_line')
                     self.assign_var[el.name] = rf'\left( {body_str} \right)'
                 else:
                     body_str = self.visit(el, 'multi_lines')
                     assign_vars.append(body_str + r' \\ ')
-            elif isinstance(el, ast.Return):
-                body_str = self.visit(el)
-                break
             else:
                 body_str = self.visit(el)
+                if not self.reduce_assignments and isinstance(el, ast.Assign):
+                    assign_vars.append(body_str)
+                elif isinstance(el, ast.Return):
+                    break
         if body_str == '':
             raise ValueError('`return` missing')
 
