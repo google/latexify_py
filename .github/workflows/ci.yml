@@ -39,7 +39,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -e ".[dev]"
     - name: Check
-      run: python -m black src
+      run: python -m black --check src
 
   flake8:
     runs-on: ubuntu-latest

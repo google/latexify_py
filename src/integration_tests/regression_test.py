@@ -127,20 +127,40 @@ def test_assign_feature():
         b = math.exp(math.sqrt(x))
         return a * b
 
-    assert str(f) == r"\mathrm{f}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
-    assert str(g) == r"\mathrm{g}(x) \triangleq \left( \left|{x}\right| \right)\left( \exp{\left({\sqrt{x}}\right)} \right)"
-    assert str(h) == r"a \triangleq \left|{x}\right| \\ b \triangleq \exp{\left({\sqrt{x}}\right)} \\ \mathrm{h}(x) \triangleq ab"
+    assert str(f) == (
+        r"\mathrm{f}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
+    )
+    assert str(g) == (
+        r"\mathrm{g}(x) \triangleq "
+        r"\left( "
+        r"\left|{x}\right| \right)\left( \exp{\left({\sqrt{x}}\right)} "
+        r"\right)"
+    )
+    assert str(h) == (
+        r"a \triangleq "
+        r"\left|{x}\right| \\ "
+        r"b \triangleq \exp{\left({\sqrt{x}}\right)} \\ "
+        r"\mathrm{h}(x) \triangleq ab"
+    )
 
     @with_latex(reduce_assignments=True)
     def f(x):
         a = math.sqrt(math.exp(x))
         return abs(x) * math.log10(a)
 
-    assert str(f) == r"\mathrm{f}(x) \triangleq \left|{x}\right|\log_{10}{\left({\left( \sqrt{\exp{\left({x}\right)}} \right)}\right)}"
+    assert str(f) == (
+        r"\mathrm{f}(x) \triangleq "
+        r"\left|{x}\right|"
+        r"\log_{10}{\left({\left( \sqrt{\exp{\left({x}\right)}} \right)}\right)}"
+    )
 
     @with_latex(reduce_assignments=False)
     def f(x):
         a = math.sqrt(math.exp(x))
         return abs(x) * math.log10(a)
 
-    assert str(f) == r"a \triangleq \sqrt{\exp{\left({x}\right)}} \\ \mathrm{f}(x) \triangleq \left|{x}\right|\log_{10}{\left({a}\right)}"
+    assert str(f) == (
+        r"a \triangleq "
+        r"\sqrt{\exp{\left({x}\right)}} \\ "
+        r"\mathrm{f}(x) \triangleq \left|{x}\right|\log_{10}{\left({a}\right)}"
+    )
