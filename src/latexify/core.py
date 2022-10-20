@@ -28,11 +28,14 @@ from latexify import node_visitor_base
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Latexify AST visitor."""
 
-    def __init__(self, math_symbol=False, raw_func_name=False):
+    def __init__(self, math_symbol=False, raw_func_name=False,
+                 reduce_assignments=True):
         self.math_symbol = math_symbol
         self.raw_func_name = (
             raw_func_name  # True:do not treat underline as label of subscript(#31)
         )
+        self.reduce_assignments = reduce_assignments
+        self.assign_var = {}
         super().__init__()
 
     def _parse_math_symbols(self, val: str) -> str:
@@ -50,7 +53,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     def visit_Module(self, node, action):  # pylint: disable=invalid-name
         del action
 
-        return self.visit(node.body[0])
+        return self.visit(node.body[0], 'multi_lines')
 
     def visit_FunctionDef(self, node, action):  # pylint: disable=invalid-name
         del action
@@ -59,8 +62,46 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         if self.raw_func_name:
             name_str = name_str.replace(r"_", r"\_")  # fix #31
         arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
-        body_str = self.visit(node.body[0])
-        return name_str + "(" + ", ".join(arg_strs) + r") \triangleq " + body_str
+
+        body_str = ''
+        assign_vars = []
+        for el in node.body:
+            if isinstance(el, ast.FunctionDef):
+                if self.reduce_assignments:
+                    body_str = self.visit(el, 'in_line')
+                    self.assign_var[el.name] = rf'\left( {body_str} \right)'
+                else:
+                    body_str = self.visit(el, 'multi_lines')
+                    assign_vars.append(body_str + r' \\ ')
+            else:
+                body_str = self.visit(el)
+                if not self.reduce_assignments and isinstance(el, ast.Assign):
+                    assign_vars.append(body_str)
+                elif isinstance(el, ast.Return):
+                    break
+        if body_str == '':
+            raise ValueError('`return` missing')
+
+        return name_str, arg_strs, assign_vars, body_str
+
+    def visit_FunctionDef_multi_lines(self, node):
+        name_str, arg_strs, assign_vars, body_str = self.visit_FunctionDef(node, None)
+        print(name_str, arg_strs, assign_vars, body_str)
+        return "".join(assign_vars) + name_str + "(" + ", ".join(arg_strs) + r") \triangleq " + body_str
+
+    def visit_FunctionDef_in_line(self, node):
+        name_str, arg_strs, assign_vars, body_str = self.visit_FunctionDef(node, None)
+        return "".join(assign_vars) + body_str
+
+    def visit_Assign(self, node, action):
+        del action
+
+        var = self.visit(node.value)
+        if self.reduce_assignments:
+            self.assign_var[node.targets[0].id] = rf'\left( {var} \right)'
+            return None
+        else:
+            return rf"{node.targets[0].id} \triangleq {var} \\ "
 
     def visit_Return(self, node, action):  # pylint: disable=invalid-name
         del action
@@ -116,19 +157,23 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         del action
 
         callee_str = self.visit(node.func)
+        if self.reduce_assignments \
+                and (getattr(node.func, 'id', None) in self.assign_var.keys()
+                     or getattr(node.func, 'attr', None) in self.assign_var.keys()):
+            return callee_str
+        else:
+            for prefix in constants.PREFIXES:
+                if callee_str.startswith(f"{prefix}."):
+                    callee_str = callee_str[len(prefix) + 1:]
+                    break
 
-        for prefix in constants.PREFIXES:
-            if callee_str.startswith(f"{prefix}."):
-                callee_str = callee_str[len(prefix) + 1:]
-                break
+            lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
+            if lstr is None:
+                lstr = r"\mathrm{" + callee_str + r"}\left("
+                rstr = r"\right)"
 
-        lstr, rstr = constants.BUILTIN_CALLEES.get(callee_str, (None, None))
-        if lstr is None:
-            lstr = r"\mathrm{" + callee_str + r"}\left("
-            rstr = r"\right)"
-
-        lstr, arg_str = _decorated_lstr_and_arg(node, callee_str, lstr)
-        return lstr + arg_str + rstr
+            lstr, arg_str = _decorated_lstr_and_arg(node, callee_str, lstr)
+            return lstr + arg_str + rstr
 
     def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
         del action
@@ -139,6 +184,9 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
     def visit_Name(self, node, action):  # pylint: disable=invalid-name
         del action
+
+        if self.reduce_assignments and node.id in self.assign_var.keys():
+            return self.assign_var[node.id]
 
         return self._parse_math_symbols(str(node.id))
 
