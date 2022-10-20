@@ -73,11 +73,7 @@ MATH_SYMBOLS = {
     "Xi",
 }
 
-PREFIXES = [
-    'math',
-    'numpy',
-    'np'
-]
+PREFIXES = ["math", "numpy", "np"]
 
 BUILTIN_CALLEES = {
     "abs": (r"\left|{", r"}\right|"),
