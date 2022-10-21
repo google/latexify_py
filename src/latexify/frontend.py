@@ -10,7 +10,7 @@ from typing import Any
 
 import dill
 
-from latexify import core
+from latexify import latexify_visitor
 
 
 def get_latex(
@@ -45,7 +45,7 @@ def get_latex(
 
     tree = ast.parse(source)
 
-    visitor = core.LatexifyVisitor(
+    visitor = latexify_visitor.LatexifyVisitor(
         use_math_symbols=use_math_symbols,
         use_raw_function_name=use_raw_function_name,
         reduce_assignments=reduce_assignments,
