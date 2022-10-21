@@ -1,72 +1,70 @@
-# Copyright 2020 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+"""Latexify core AST visitor."""
 
-# This is very scratchy and supports only limited portion of Python functions.
-"""Latexify core module."""
+from __future__ import annotations
 
 import ast
-import inspect
-import textwrap
-
-import dill
 
 from latexify import constants
+from latexify import math_symbols
 from latexify import node_visitor_base
 
 
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Latexify AST visitor."""
 
-    def __init__(self, math_symbol=False, raw_func_name=False, reduce_assignments=True):
-        self.math_symbol = math_symbol
-        self.raw_func_name = (
-            raw_func_name  # True:do not treat underline as label of subscript(#31)
-        )
-        self.reduce_assignments = reduce_assignments
-        self.assign_var = {}
-        super().__init__()
+    _math_symbol_converter: math_symbols.MathSymbolConverter
+    _use_raw_function_name: bool
+    _reduce_assignments: bool
 
-    def _parse_math_symbols(self, val: str) -> str:
-        if not self.math_symbol:
-            return val
-        if val in constants.MATH_SYMBOLS:
-            return "{\\" + val + "}"
-        return val
+    # TODO(odashi): This variable can be function-level. Remove it from the object.
+    _assign_var: dict[str, str]
+
+    def __init__(
+        self,
+        *,
+        use_math_symbols: bool = False,
+        use_raw_function_name: bool = False,
+        reduce_assignments: bool = True,
+    ):
+        """Initializer.
+
+        Args:
+            use_math_symbols: Whether to convert identifiers with a math symbol surface
+                (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
+            use_raw_function_name: Whether to keep underscores "_" in the function name,
+                or convert it to subscript.
+            reduce_assignments: If True, assignment statements are used to synthesize
+                the final expression.
+        """
+        self._math_symbol_converter = math_symbols.MathSymbolConverter(
+            enabled=use_math_symbols
+        )
+        self._use_raw_function_name = use_raw_function_name
+        self._reduce_assignments = reduce_assignments
+
+        self.assign_var = {}
 
     def generic_visit(self, node, action):
-        del action
-
         return str(node)
 
     def visit_Module(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         return self.visit(node.body[0], "multi_lines")
 
     def visit_FunctionDef(self, node, action):  # pylint: disable=invalid-name
-        del action
+        name_str = str(node.name)
+        if self._use_raw_function_name:
+            name_str = name_str.replace(r"_", r"\_")
+        name_str = r"\mathrm{" + name_str + "}"
 
-        name_str = r"\mathrm{" + str(node.name) + "}"
-        if self.raw_func_name:
-            name_str = name_str.replace(r"_", r"\_")  # fix #31
-        arg_strs = [self._parse_math_symbols(str(arg.arg)) for arg in node.args.args]
+        arg_strs = [
+            self._math_symbol_converter.convert(str(arg.arg)) for arg in node.args.args
+        ]
 
         body_str = ""
         assign_vars = []
         for el in node.body:
             if isinstance(el, ast.FunctionDef):
-                if self.reduce_assignments:
+                if self._reduce_assignments:
                     body_str = self.visit(el, "in_line")
                     self.assign_var[el.name] = rf"\left( {body_str} \right)"
                 else:
@@ -74,7 +72,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
                     assign_vars.append(body_str + r" \\ ")
             else:
                 body_str = self.visit(el)
-                if not self.reduce_assignments and isinstance(el, ast.Assign):
+                if not self._reduce_assignments and isinstance(el, ast.Assign):
                     assign_vars.append(body_str)
                 elif isinstance(el, ast.Return):
                     break
@@ -85,7 +83,6 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
     def visit_FunctionDef_multi_lines(self, node):
         name_str, arg_strs, assign_vars, body_str = self.visit_FunctionDef(node, None)
-        print(name_str, arg_strs, assign_vars, body_str)
         return (
             "".join(assign_vars)
             + name_str
@@ -100,35 +97,25 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         return "".join(assign_vars) + body_str
 
     def visit_Assign(self, node, action):
-        del action
-
         var = self.visit(node.value)
-        if self.reduce_assignments:
+        if self._reduce_assignments:
             self.assign_var[node.targets[0].id] = rf"\left( {var} \right)"
             return None
         else:
             return rf"{node.targets[0].id} \triangleq {var} \\ "
 
     def visit_Return(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         return self.visit(node.value)
 
     def visit_Tuple(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         elts = [self.visit(i) for i in node.elts]
         return r"\left( " + r"\space,\space ".join(elts) + r"\right) "
 
     def visit_List(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         elts = [self.visit(i) for i in node.elts]
         return r"\left[ " + r"\space,\space ".join(elts) + r"\right] "
 
     def visit_Set(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         elts = [self.visit(i) for i in node.elts]
         return r"\left\{ " + r"\space,\space ".join(elts) + r"\right\} "
 
@@ -160,10 +147,8 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
             return lstr, arg_str
 
-        del action
-
         callee_str = self.visit(node.func)
-        if self.reduce_assignments and (
+        if self._reduce_assignments and (
             getattr(node.func, "id", None) in self.assign_var.keys()
             or getattr(node.func, "attr", None) in self.assign_var.keys()
         ):
@@ -183,35 +168,26 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             return lstr + arg_str + rstr
 
     def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         vstr = self.visit(node.value)
         astr = str(node.attr)
         return vstr + "." + astr
 
     def visit_Name(self, node, action):  # pylint: disable=invalid-name
-        del action
-
-        if self.reduce_assignments and node.id in self.assign_var.keys():
+        if self._reduce_assignments and node.id in self.assign_var.keys():
             return self.assign_var[node.id]
 
-        return self._parse_math_symbols(str(node.id))
+        return self._math_symbol_converter.convert(str(node.id))
 
     def visit_Constant(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         # for python >= 3.8
         return str(node.n)
 
     def visit_Num(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         # for python < 3.8
         return str(node.n)
 
     def visit_UnaryOp(self, node, action):  # pylint: disable=invalid-name
         """Visit a unary op node."""
-        del action
 
         def _wrap(child):
             latex = self.visit(child)
@@ -233,8 +209,6 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
     def visit_BinOp(self, node, action):  # pylint: disable=invalid-name
         """Visit a binary op node."""
-        del action
-
         priority = constants.BIN_OP_PRIORITY
 
         def _unwrap(child):
@@ -274,8 +248,6 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
     def visit_Compare(self, node, action):  # pylint: disable=invalid-name
         """Visit a compare node."""
-        del action
-
         lstr = self.visit(node.left)
         rstr = self.visit(node.comparators[0])
 
@@ -297,8 +269,6 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         return r"\mathrm{unknown\_comparator}(" + lstr + ", " + rstr + ")"
 
     def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
-        del action
-
         logic_operator = (
             r"\lor "
             if isinstance(node.op, ast.Or)
@@ -319,8 +289,6 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
     def visit_If(self, node, action):  # pylint: disable=invalid-name
         """Visit an if node."""
-        del action
-
         latex = r"\left\{ \begin{array}{ll} "
 
         while isinstance(node, ast.If):
@@ -357,63 +325,3 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         raise TypeError(
             "Comprehension for sum only supports range func " "with 1 or 2 args"
         )
-
-
-def get_latex(fn, *args, **kwargs):
-    try:
-        source = inspect.getsource(fn)
-    # pylint: disable=broad-except
-    except Exception:
-        # Maybe running on console.
-        source = dill.source.getsource(fn)
-
-    source = textwrap.dedent(source)
-
-    return LatexifyVisitor(*args, **kwargs).visit(ast.parse(source))
-
-
-def with_latex(*args, **kwargs):
-    """Translate a function with latex representation."""
-
-    class _LatexifiedFunction:
-        """Function with latex representation."""
-
-        def __init__(self, fn):
-            self._fn = fn
-            self._str = get_latex(fn, *args, **kwargs)
-
-        @property
-        def __doc__(self):
-            return self._fn.__doc__
-
-        @__doc__.setter
-        def __doc__(self, val):
-            self._fn.__doc__ = val
-
-        @property
-        def __name__(self):
-            return self._fn.__name__
-
-        @__name__.setter
-        def __name__(self, val):
-            self._fn.__name__ = val
-
-        def __call__(self, *args):
-            return self._fn(*args)
-
-        def __str__(self):
-            return self._str
-
-        def _repr_latex_(self):
-            """
-            Hooks into Jupyter notebook's display system.
-            """
-            return r"$$ \displaystyle " + self._str + " $$"
-
-    if len(args) == 1 and callable(args[0]):
-        return _LatexifiedFunction(args[0])
-
-    def ret(fn):
-        return _LatexifiedFunction(fn)
-
-    return ret

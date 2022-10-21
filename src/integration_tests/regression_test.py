@@ -70,24 +70,23 @@ sum_with_limit_two_args_latex = (
 )
 
 
-func_and_latex_str_list = [
-    (solve, solve_latex, None),
-    (sinc, sinc_latex, None),
-    (xtimesbeta, xtimesbeta_latex, True),
-    (xtimesbeta, xtimesbeta_latex_no_symbols, False),
-    (sum_with_limit, sum_with_limit_latex, None),
-    (sum_with_limit_two_args, sum_with_limit_two_args_latex, None),
-]
-
-
-@pytest.mark.parametrize("func, expected_latex, math_symbol", func_and_latex_str_list)
-def test_with_latex_to_str(func, expected_latex, math_symbol):
+@pytest.mark.parametrize(
+    "func, expected_latex, use_math_symbols",
+    [
+        (solve, solve_latex, None),
+        (sinc, sinc_latex, None),
+        (xtimesbeta, xtimesbeta_latex, True),
+        (xtimesbeta, xtimesbeta_latex_no_symbols, False),
+        (sum_with_limit, sum_with_limit_latex, None),
+        (sum_with_limit_two_args, sum_with_limit_two_args_latex, None),
+    ],
+)
+def test_with_latex_to_str(func, expected_latex, use_math_symbols):
     """Test with_latex to str."""
-    # pylint: disable=protected-access
-    if math_symbol is None:
+    if use_math_symbols is None:
         latexified_function = with_latex(func)
     else:
-        latexified_function = with_latex(math_symbol=math_symbol)(func)
+        latexified_function = with_latex(use_math_symbols=use_math_symbols)(func)
     assert str(latexified_function) == expected_latex
     expected_repr = r"$$ \displaystyle %s $$" % expected_latex
     assert latexified_function._repr_latex_() == expected_repr
@@ -110,57 +109,46 @@ def test_double_nested_function():
     assert get_latex(nested(3)) == r"\mathrm{inner}(y) \triangleq xy"
 
 
-def test_assign_feature():
-    @with_latex
+def test_use_raw_function_name():
+    def foo_bar():
+        return 42
+
+    assert str(with_latex(foo_bar)) == r"\mathrm{foo_bar}() \triangleq 42"
+    assert (
+        str(with_latex(foo_bar, use_raw_function_name=True))
+        == r"\mathrm{foo\_bar}() \triangleq 42"
+    )
+    assert (
+        str(with_latex(use_raw_function_name=True)(foo_bar))
+        == r"\mathrm{foo\_bar}() \triangleq 42"
+    )
+
+
+def test_reduce_assignments():
     def f(x):
-        return abs(x) * math.exp(math.sqrt(x))
+        a = x + x
+        return 3 * a
 
-    @with_latex
-    def g(x):
-        a = abs(x)
-        b = math.exp(math.sqrt(x))
-        return a * b
+    assert str(with_latex(f)) == r"a \triangleq x + x \\ \mathrm{f}(x) \triangleq 3a"
 
-    @with_latex(reduce_assignments=False)
-    def h(x):
-        a = abs(x)
-        b = math.exp(math.sqrt(x))
-        return a * b
+    latex_with_option = r"\mathrm{f}(x) \triangleq 3\left( x + x \right)"
+    assert str(with_latex(f, reduce_assignments=True)) == latex_with_option
+    assert str(with_latex(reduce_assignments=True)(f)) == latex_with_option
 
-    assert str(f) == (
-        r"\mathrm{f}(x) \triangleq \left|{x}\right|\exp{\left({\sqrt{x}}\right)}"
-    )
-    assert str(g) == (
-        r"\mathrm{g}(x) \triangleq "
-        r"\left( "
-        r"\left|{x}\right| \right)\left( \exp{\left({\sqrt{x}}\right)} "
-        r"\right)"
-    )
-    assert str(h) == (
-        r"a \triangleq "
-        r"\left|{x}\right| \\ "
-        r"b \triangleq \exp{\left({\sqrt{x}}\right)} \\ "
-        r"\mathrm{h}(x) \triangleq ab"
-    )
 
-    @with_latex(reduce_assignments=True)
+def test_reduce_assignments_double():
     def f(x):
-        a = math.sqrt(math.exp(x))
-        return abs(x) * math.log10(a)
+        a = x**2
+        b = a + a
+        return 3 * b
 
-    assert str(f) == (
+    assert str(with_latex(f)) == (
+        r"a \triangleq x^{2} \\ b \triangleq a + a \\ \mathrm{f}(x) \triangleq 3b"
+    )
+
+    latex_with_option = (
         r"\mathrm{f}(x) \triangleq "
-        r"\left|{x}\right|"
-        r"\log_{10}{\left({\left( \sqrt{\exp{\left({x}\right)}} \right)}\right)}"
+        r"3\left( \left( x^{2} \right) + \left( x^{2} \right) \right)"
     )
-
-    @with_latex(reduce_assignments=False)
-    def f(x):
-        a = math.sqrt(math.exp(x))
-        return abs(x) * math.log10(a)
-
-    assert str(f) == (
-        r"a \triangleq "
-        r"\sqrt{\exp{\left({x}\right)}} \\ "
-        r"\mathrm{f}(x) \triangleq \left|{x}\right|\log_{10}{\left({a}\right)}"
-    )
+    assert str(with_latex(f, reduce_assignments=True)) == latex_with_option
+    assert str(with_latex(reduce_assignments=True)(f)) == latex_with_option
