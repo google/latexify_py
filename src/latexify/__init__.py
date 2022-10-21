@@ -13,7 +13,7 @@
 # limitations under the License.
 """Latexify toplevel module."""
 
-from latexify import core
+from latexify import frontend
 
-get_latex = core.get_latex
-with_latex = core.with_latex
+get_latex = frontend.get_latex
+with_latex = frontend.with_latex
