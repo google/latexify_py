@@ -15,7 +15,6 @@
 # This is very scratchy and supports only limited portion of Python functions.
 """Definition of NodeVisitorBase class."""
 
-
 class NodeVisitorBase:
     """Base class of LaTeXify's AST visitor.
 
@@ -46,7 +45,7 @@ class NodeVisitorBase:
     visitor.visit(node, '123abc')
     """
 
-    def visit(self, node, action: str = None):
+    def visit(self, node, action: str | None = None):
         """Visits a node with specified action.
 
         Args:
@@ -69,6 +68,6 @@ class NodeVisitorBase:
 
         raise AttributeError("{} is not callable.".format(method))
 
-    def generic_visit(self, node, action):
+    def generic_visit(self, *_):
         """Visitor method for all nodes without specific visitors."""
         raise NotImplementedError("LatexifyVisitorBase.generic_visit")

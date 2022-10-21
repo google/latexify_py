@@ -8,7 +8,6 @@ from latexify import constants
 from latexify import math_symbols
 from latexify import node_visitor_base
 
-
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     """Latexify AST visitor."""
 
@@ -44,13 +43,13 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         self.assign_var = {}
 
-    def generic_visit(self, node, action):
+    def generic_visit(self, node, _):
         return str(node)
 
-    def visit_Module(self, node, action):  # pylint: disable=invalid-name
+    def visit_Module(self, node, _):  # pylint: disable=invalid-name
         return self.visit(node.body[0], "multi_lines")
 
-    def visit_FunctionDef(self, node, action):  # pylint: disable=invalid-name
+    def visit_FunctionDef(self, node, _):  # pylint: disable=invalid-name
         name_str = str(node.name)
         if self._use_raw_function_name:
             name_str = name_str.replace(r"_", r"\_")
@@ -93,10 +92,10 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         )
 
     def visit_FunctionDef_in_line(self, node):
-        name_str, arg_strs, assign_vars, body_str = self.visit_FunctionDef(node, None)
+        _, _, assign_vars, body_str = self.visit_FunctionDef(node, None)
         return "".join(assign_vars) + body_str
 
-    def visit_Assign(self, node, action):
+    def visit_Assign(self, node, _):
         var = self.visit(node.value)
         if self._reduce_assignments:
             self.assign_var[node.targets[0].id] = rf"\left( {var} \right)"
@@ -104,22 +103,22 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         else:
             return rf"{node.targets[0].id} \triangleq {var} \\ "
 
-    def visit_Return(self, node, action):  # pylint: disable=invalid-name
+    def visit_Return(self, node, _):  # pylint: disable=invalid-name
         return self.visit(node.value)
 
-    def visit_Tuple(self, node, action):  # pylint: disable=invalid-name
+    def visit_Tuple(self, node, _):  # pylint: disable=invalid-name
         elts = [self.visit(i) for i in node.elts]
         return r"\left( " + r"\space,\space ".join(elts) + r"\right) "
 
-    def visit_List(self, node, action):  # pylint: disable=invalid-name
+    def visit_List(self, node, _):  # pylint: disable=invalid-name
         elts = [self.visit(i) for i in node.elts]
         return r"\left[ " + r"\space,\space ".join(elts) + r"\right] "
 
-    def visit_Set(self, node, action):  # pylint: disable=invalid-name
+    def visit_Set(self, node, _):  # pylint: disable=invalid-name
         elts = [self.visit(i) for i in node.elts]
         return r"\left\{ " + r"\space,\space ".join(elts) + r"\right\} "
 
-    def visit_Call(self, node, action):  # pylint: disable=invalid-name
+    def visit_Call(self, node, _):  # pylint: disable=invalid-name
         """Visit a call node."""
 
         def _decorated_lstr_and_arg(node, callee_str, lstr):
@@ -167,26 +166,26 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             lstr, arg_str = _decorated_lstr_and_arg(node, callee_str, lstr)
             return lstr + arg_str + rstr
 
-    def visit_Attribute(self, node, action):  # pylint: disable=invalid-name
+    def visit_Attribute(self, node, _):  # pylint: disable=invalid-name
         vstr = self.visit(node.value)
         astr = str(node.attr)
         return vstr + "." + astr
 
-    def visit_Name(self, node, action):  # pylint: disable=invalid-name
+    def visit_Name(self, node, _):  # pylint: disable=invalid-name
         if self._reduce_assignments and node.id in self.assign_var.keys():
             return self.assign_var[node.id]
 
         return self._math_symbol_converter.convert(str(node.id))
 
-    def visit_Constant(self, node, action):  # pylint: disable=invalid-name
+    def visit_Constant(self, node, _):  # pylint: disable=invalid-name
         # for python >= 3.8
         return str(node.n)
 
-    def visit_Num(self, node, action):  # pylint: disable=invalid-name
+    def visit_Num(self, node, _):  # pylint: disable=invalid-name
         # for python < 3.8
         return str(node.n)
 
-    def visit_UnaryOp(self, node, action):  # pylint: disable=invalid-name
+    def visit_UnaryOp(self, node, _):  # pylint: disable=invalid-name
         """Visit a unary op node."""
 
         def _wrap(child):
@@ -207,7 +206,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             return reprs[type(node.op)]()
         return r"\mathrm{unknown\_uniop}(" + self.visit(node.operand) + ")"
 
-    def visit_BinOp(self, node, action):  # pylint: disable=invalid-name
+    def visit_BinOp(self, node, _):  # pylint: disable=invalid-name
         """Visit a binary op node."""
         priority = constants.BIN_OP_PRIORITY
 
@@ -225,6 +224,18 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         lhs = node.left
         rhs = node.right
+
+        left_type, right_type = type(node.left), type(node.right)
+        if left_type == right_type == ast.Set:
+            set_reprs = {
+                ast.BitOr: (lambda: _unwrap(lhs) + r" \cup " + _unwrap(rhs)),
+                ast.BitAnd: (lambda: _unwrap(lhs) + r" \cap " + _unwrap(rhs)),
+                ast.Sub: (lambda: _unwrap(lhs) + r" \setminus " + _unwrap(rhs)),
+                ast.BitXor: (lambda: _unwrap(lhs) + r" \triangle " + _unwrap(rhs)),
+            }
+            if type(node.op) in set_reprs:
+                return set_reprs[type(node.op)]()
+
         reprs = {
             ast.Add: (lambda: _wrap(lhs) + " + " + _wrap(rhs)),
             ast.Sub: (lambda: _wrap(lhs) + " - " + _wrap(rhs)),
@@ -246,7 +257,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             return reprs[type(node.op)]()
         return r"\mathrm{unknown\_binop}(" + _unwrap(lhs) + ", " + _unwrap(rhs) + ")"
 
-    def visit_Compare(self, node, action):  # pylint: disable=invalid-name
+    def visit_Compare(self, node, _):  # pylint: disable=invalid-name
         """Visit a compare node."""
         lstr = self.visit(node.left)
         rstr = self.visit(node.comparators[0])
@@ -265,10 +276,14 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             return lstr + r"\ne " + rstr
         if isinstance(node.ops[0], ast.Is):
             return lstr + r"\equiv" + rstr
+        if isinstance(node.ops[0], ast.In):
+            return lstr + r"\in " + rstr
+        if isinstance(node.ops[0], ast.NotIn):
+            return lstr + r"\notin " + rstr
 
         return r"\mathrm{unknown\_comparator}(" + lstr + ", " + rstr + ")"
 
-    def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
+    def visit_BoolOp(self, node, _):  # pylint: disable=invalid-name
         logic_operator = (
             r"\lor "
             if isinstance(node.op, ast.Or)
@@ -287,7 +302,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             + r"\right)"
         )
 
-    def visit_If(self, node, action):  # pylint: disable=invalid-name
+    def visit_If(self, node, _):  # pylint: disable=invalid-name
         """Visit an if node."""
         latex = r"\left\{ \begin{array}{ll} "
 
@@ -300,6 +315,25 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
+    def visit_SetComp(self, node, _): # pylint: disable=invalid-name
+        result = eval(compile(ast.Expression(node), '', 'eval'))
+
+        sorted_result = sorted(list(result))
+
+        return f"{{{str(sorted_result)[1:-1]}}}"
+
+    def visit_ListComp(self, node, _): # pylint: disable=invalid-name
+        result = eval(compile(ast.Expression(node), '', 'eval'))
+
+        sorted_result = sorted(result)
+
+        return str(sorted_result)
+
+    def visit_DictComp(self, node, _): # pylint: disable=invalid-name
+        result = eval(compile(ast.Expression(node), '', 'eval'))
+
+        return str(result)
+
     def visit_GeneratorExp_set_bounds(self, node):  # pylint: disable=invalid-name
         action = constants.actions.SET_BOUNDS
         output = self.visit(node.elt)
@@ -309,7 +343,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         if len(comprehensions) == 1:
             return output, comprehensions[0]
         raise TypeError(
-            "visit_GeneratorExp_sum() supports a single for clause"
+            "visit_GeneratorExp_set_bounds() supports a single for clause"
             "but {} were given".format(len(comprehensions))
         )
 
