@@ -44,6 +44,7 @@ _MATH_SYMBOLS = {
     "Omega",
     "Phi",
     "Pi",
+    "Psi",
     "Sigma",
     "Theta",
     "Upsilon",
