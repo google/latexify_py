@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+from typing import ClassVar
 
 from latexify import constants
 from latexify import math_symbols
@@ -246,27 +247,27 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             return reprs[type(node.op)]()
         return r"\mathrm{unknown\_binop}(" + _unwrap(lhs) + ", " + _unwrap(rhs) + ")"
 
+    _compare_ops: ClassVar[dict[type[ast.cmpop], str]] = {
+        ast.Eq: "=",
+        ast.Gt: ">",
+        ast.GtE: r"\ge",
+        ast.In: r"\in",
+        ast.Is: r"\equiv",
+        ast.IsNot: r"\not\equiv",
+        ast.Lt: "<",
+        ast.LtE: r"\le",
+        ast.NotEq: r"\ne",
+        ast.NotIn: r"\notin",
+    }
+
     def visit_Compare(self, node, action):  # pylint: disable=invalid-name
         """Visit a compare node."""
-        lstr = self.visit(node.left)
-        rstr = self.visit(node.comparators[0])
+        if len(node.ops) != 1:
+            raise SyntaxError("Multiple compares are not supported.")
 
-        if isinstance(node.ops[0], ast.Eq):
-            return lstr + "=" + rstr
-        if isinstance(node.ops[0], ast.Gt):
-            return lstr + ">" + rstr
-        if isinstance(node.ops[0], ast.Lt):
-            return lstr + "<" + rstr
-        if isinstance(node.ops[0], ast.GtE):
-            return lstr + r"\ge " + rstr
-        if isinstance(node.ops[0], ast.LtE):
-            return lstr + r"\le " + rstr
-        if isinstance(node.ops[0], ast.NotEq):
-            return lstr + r"\ne " + rstr
-        if isinstance(node.ops[0], ast.Is):
-            return lstr + r"\equiv" + rstr
-
-        return r"\mathrm{unknown\_comparator}(" + lstr + ", " + rstr + ")"
+        lhs = self.visit(node.left)
+        rhs = self.visit(node.comparators[0])
+        return f"{{{lhs} {self._compare_ops[type(node.ops[0])]} {rhs}}}"
 
     def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
         logic_operator = (
