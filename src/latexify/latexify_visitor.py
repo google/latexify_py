@@ -260,14 +260,13 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         ast.NotIn: r"\notin",
     }
 
-    def visit_Compare(self, node, action):  # pylint: disable=invalid-name
+    def visit_Compare(self, node: ast.Compare, action):  # pylint: disable=invalid-name
         """Visit a compare node."""
-        if len(node.ops) != 1:
-            raise SyntaxError("Multiple compares are not supported.")
-
         lhs = self.visit(node.left)
-        rhs = self.visit(node.comparators[0])
-        return f"{{{lhs} {self._compare_ops[type(node.ops[0])]} {rhs}}}"
+        ops = [self._compare_ops[type(x)] for x in node.ops]
+        rhs = [self.visit(x) for x in node.comparators]
+        ops_rhs = [f" {o} {r}" for o, r in zip(ops, rhs)]
+        return "{" + lhs + "".join(ops_rhs) + "}"
 
     def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
         logic_operator = (
