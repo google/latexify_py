@@ -1,5 +1,7 @@
 """Transformer to replace user symbols."""
 
+from __future__ import annotations
+
 import ast
 import re
 from typing import ClassVar
