@@ -52,7 +52,7 @@ class IdentifierReplacer(ast.NodeTransformer):
         return [self.visit(child) for child in children]
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
-        """Visitor of FunctionNode."""
+        """Visitor of FunctionDef."""
         if sys.version_info.minor < 8:
             args = ast.arguments(
                 args=self._replace_args(node.args.args),
