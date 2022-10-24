@@ -44,3 +44,24 @@ def test_visit_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
     assert LatexifyVisitor().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("a and b", r"{\left( a \right) \land \left( b \right)}"),
+        (
+            "a and b and c",
+            r"{\left( a \right) \land \left( b \right) \land \left( c \right)}",
+        ),
+        ("a or b", r"{\left( a \right) \lor \left( b \right)}"),
+        (
+            "a or b or c",
+            r"{\left( a \right) \lor \left( b \right) \lor \left( c \right)}",
+        ),
+    ],
+)
+def test_visit_boolop(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.BoolOp)
+    assert LatexifyVisitor().visit(tree) == latex

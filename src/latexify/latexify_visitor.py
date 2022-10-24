@@ -268,24 +268,16 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         ops_rhs = [f" {o} {r}" for o, r in zip(ops, rhs)]
         return "{" + lhs + "".join(ops_rhs) + "}"
 
-    def visit_BoolOp(self, node, action):  # pylint: disable=invalid-name
-        logic_operator = (
-            r"\lor "
-            if isinstance(node.op, ast.Or)
-            else r"\land "
-            if isinstance(node.op, ast.And)
-            else r" \mathrm{unknown\_operator} "
-        )
-        # visit all the elements in the ast.If node recursively
-        return (
-            r"\left("
-            + self.visit(node.values[0])
-            + r"\right)"
-            + logic_operator
-            + r"\left("
-            + self.visit(node.values[1])
-            + r"\right)"
-        )
+    _bool_ops: ClassVar[dict[type[ast.boolop], str]] = {
+        ast.And: r"\land",
+        ast.Or: r"\lor",
+    }
+
+    def visit_BoolOp(self, node: ast.BoolOp, action):  # pylint: disable=invalid-name
+        """Visit a BoolOp node."""
+        values = [rf"\left( {self.visit(x)} \right)" for x in node.values]
+        op = f" {self._bool_ops[type(node.op)]} "
+        return "{" + op.join(values) + "}"
 
     def visit_If(self, node, action):  # pylint: disable=invalid-name
         """Visit an if node."""
