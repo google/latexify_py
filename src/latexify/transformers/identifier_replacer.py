@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import re
+import sys
 from typing import ClassVar
 
 
@@ -52,15 +53,25 @@ class IdentifierReplacer(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
         """Visitor of FunctionNode."""
-        return ast.FunctionDef(
-            name=self._mapping.get(node.name, node.name),
-            args=ast.arguments(
-                posonlyargs=self._replace_args(node.args.posonlyargs),
+        if sys.version_info.minor < 8:
+            args = ast.arguments(
                 args=self._replace_args(node.args.args),
                 kwonlyargs=self._replace_args(node.args.kwonlyargs),
                 kw_defaults=self._visit_children(node.args.kw_defaults),
                 defaults=self._visit_children(node.args.defaults),
-            ),
+            )
+        else:
+            args = ast.arguments(
+                posonlyargs=self._replace_args(node.args.posonlyargs),  # from 3.8
+                args=self._replace_args(node.args.args),
+                kwonlyargs=self._replace_args(node.args.kwonlyargs),
+                kw_defaults=self._visit_children(node.args.kw_defaults),
+                defaults=self._visit_children(node.args.defaults),
+            )
+
+        return ast.FunctionDef(
+            name=self._mapping.get(node.name, node.name),
+            args=args,
             body=self._visit_children(node.body),
             decorator_list=self._visit_children(node.decorator_list),
         )
