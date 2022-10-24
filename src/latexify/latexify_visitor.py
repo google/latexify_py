@@ -23,19 +23,19 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
     def __init__(
         self,
         *,
+        reduce_assignments: bool = True,
         use_math_symbols: bool = False,
         use_raw_function_name: bool = False,
-        reduce_assignments: bool = True,
     ):
         """Initializer.
 
         Args:
+            reduce_assignments: If True, assignment statements are used to synthesize
+                the final expression.
             use_math_symbols: Whether to convert identifiers with a math symbol surface
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
             use_raw_function_name: Whether to keep underscores "_" in the function name,
                 or convert it to subscript.
-            reduce_assignments: If True, assignment statements are used to synthesize
-                the final expression.
         """
         self._math_symbol_converter = math_symbols.MathSymbolConverter(
             enabled=use_math_symbols
