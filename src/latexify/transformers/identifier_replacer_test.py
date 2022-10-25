@@ -25,6 +25,8 @@ def test_name_replaced() -> None:
 def test_name_not_replaced() -> None:
     source = ast.Name(id="foo", ctx=ast.Load())
     expected = ast.Name(id="foo", ctx=ast.Load())
+    transformed = IdentifierReplacer({"fo": "bar"}).visit(source)
+    test_utils.assert_ast_equal(transformed, expected)
     transformed = IdentifierReplacer({"fooo": "bar"}).visit(source)
     test_utils.assert_ast_equal(transformed, expected)
 
