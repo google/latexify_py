@@ -27,7 +27,7 @@ def get_latex(
     Args:
         fn: Reference to a function to analyze.
         identifiers: If set, the mapping to replace identifier names in the function.
-            Keys are the original names of the identifiers, and dorresponding values are
+            Keys are the original names of the identifiers, and corresponding values are
             the replacements.
             Both keys and values have to represent valid Python identifiers:
             ^[A-Za-z_][A-Za-z0-9_]*$
