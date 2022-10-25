@@ -11,25 +11,32 @@ from typing import Any
 import dill
 
 from latexify import latexify_visitor
+from latexify.transformers.identifier_replacer import IdentifierReplacer
 
 
 def get_latex(
     fn: Callable[..., Any],
     *,
+    identifiers: dict[str, str] | None = None,
+    reduce_assignments: bool = False,
     use_math_symbols: bool = False,
     use_raw_function_name: bool = False,
-    reduce_assignments: bool = False,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
     Args:
         fn: Reference to a function to analyze.
+        identifiers: If set, the mapping to replace identifier names in the function.
+            Keys are the original names of the identifiers, and corresponding values are
+            the replacements.
+            Both keys and values have to represent valid Python identifiers:
+            ^[A-Za-z_][A-Za-z0-9_]*$
+        reduce_assignments: If True, assignment statements are used to synthesize
+            the final expression.
         use_math_symbols: Whether to convert identifiers with a math symbol surface
             (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
         use_raw_function_name: Whether to keep underscores "_" in the function name,
             or convert it to subscript.
-        reduce_assignments: If True, assignment statements are used to synthesize
-            the final expression.
 
     Returns:
         Generatee LaTeX description.
@@ -44,6 +51,9 @@ def get_latex(
     source = textwrap.dedent(source)
 
     tree = ast.parse(source)
+
+    if identifiers is not None:
+        tree = IdentifierReplacer(identifiers).visit(tree)
 
     visitor = latexify_visitor.LatexifyVisitor(
         use_math_symbols=use_math_symbols,
