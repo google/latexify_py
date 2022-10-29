@@ -105,6 +105,14 @@ class LatexifiedFunction:
     def __str__(self):
         return self._latex if self._latex is not None else self._error
 
+    def _repr_html_(self):
+        """IPython hook to display HTML visualization."""
+        return (
+            '<font color="red">' + self._error + "</font>"
+            if self._error is not None
+            else None
+        )
+
     def _repr_latex_(self):
         """IPython hook to display LaTeX visualization."""
         return (
