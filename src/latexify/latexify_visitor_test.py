@@ -65,3 +65,19 @@ def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.BoolOp)
     assert LatexifyVisitor().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("x[0]", "{x_{0}}"),
+        ("x[0][1]", "{x_{0, 1}}"),
+        ("x[0][1][2]", "{x_{0, 1, 2}}"),
+        ("x[foo]", "{x_{foo}}"),
+        ("x[math.floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
+    ],
+)
+def test_visit_subscript(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.Subscript)
+    assert LatexifyVisitor().visit(tree) == latex
