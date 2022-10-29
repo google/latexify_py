@@ -305,6 +305,11 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             "but {} were given".format(len(comprehensions))
         )
 
+    # Until 3.8
+    def visit_Index(self, node: ast.Index, action) -> str:
+        """Visitor for the Index nodes."""
+        return self.visit(node.value)
+
     def convert_nested_subscripts(self, node: ast.Subscript) -> tuple[str, list[str]]:
         """Helper function to convert nested subscription.
 
