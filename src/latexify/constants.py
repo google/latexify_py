@@ -14,16 +14,7 @@
 """Latexify module-level constants"""
 
 import ast
-from typing import NamedTuple
 
-
-class Actions(NamedTuple):
-    """A class which holds supported actions as constants"""
-
-    SET_BOUNDS = "set_bounds"
-
-
-actions = Actions()
 
 PREFIXES = ["math", "numpy", "np"]
 

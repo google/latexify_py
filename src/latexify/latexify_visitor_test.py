@@ -1,9 +1,21 @@
 """Tests for latexify.latexify_visitor."""
 
 import ast
+from latexify import exceptions
 import pytest
 
 from latexify.latexify_visitor import LatexifyVisitor
+
+
+def test_generic_visit() -> None:
+    class UnknownNode(ast.AST):
+        pass
+
+    with pytest.raises(
+        exceptions.LatexifyNotSupportedError,
+        match=r"^Unsupported AST: UnknownNode$",
+    ):
+        LatexifyVisitor().visit(UnknownNode())
 
 
 @pytest.mark.parametrize(
