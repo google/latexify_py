@@ -16,12 +16,21 @@ class LatexifyError(Exception):
 
 
 class LatexifyNotSupportedError(LatexifyError):
-    """Some subtree in the AST is not supported by the current implementation."""
+    """Some subtree in the AST is not supported by the current implementation.
+
+    This error is raised when the library discovered incompatible syntaxes due to lack
+    of the implementation. Possibly this error would be resolved in the future.
+    """
 
     ...
 
 
 class LatexifySyntaxError(LatexifyError):
-    """Some subtree in the AST has an incompatible form to be converted to LaTeX."""
+    """Some subtree in the AST is not supported.
+
+    This error is raised when the library discovered syntaxes that are not possible to
+    be processed anymore. This error is essential, and wouldn't be resolved in the
+    future.
+    """
 
     ...
