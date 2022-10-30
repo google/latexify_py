@@ -20,7 +20,7 @@ To contribute to this Project you need to refer [CONTRIBUTING.md](https://github
 
 ## Disclaimer
 
-==This is not an officially supported Google product==.
+This is not an officially supported Google product.
 
 ## License 
 
