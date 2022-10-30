@@ -10,7 +10,7 @@ from typing import Any
 
 import dill
 
-from latexify import latexify_visitor
+from latexify import exceptions, latexify_visitor
 from latexify.transformers.identifier_replacer import IdentifierReplacer
 
 
@@ -40,6 +40,9 @@ def get_latex(
 
     Returns:
         Generatee LaTeX description.
+
+    Raises:
+        latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
     try:
         source = inspect.getsource(fn)
@@ -67,9 +70,18 @@ def get_latex(
 class LatexifiedFunction:
     """Function with latex representation."""
 
+    _fn: Callable[..., Any]
+    _latex: str | None
+    _error: str | None
+
     def __init__(self, fn, **kwargs):
         self._fn = fn
-        self._str = get_latex(fn, **kwargs)
+        try:
+            self._latex = get_latex(fn, **kwargs)
+            self._error = None
+        except exceptions.LatexifyError as e:
+            self._latex = None
+            self._error = f"{type(e).__name__}: {str(e)}"
 
     @property
     def __doc__(self):
@@ -91,11 +103,23 @@ class LatexifiedFunction:
         return self._fn(*args)
 
     def __str__(self):
-        return self._str
+        return self._latex if self._latex is not None else self._error
+
+    def _repr_html_(self):
+        """IPython hook to display HTML visualization."""
+        return (
+            '<span style="color: red;">' + self._error + "</span>"
+            if self._error is not None
+            else None
+        )
 
     def _repr_latex_(self):
         """IPython hook to display LaTeX visualization."""
-        return r"$$ \displaystyle " + self._str + " $$"
+        return (
+            r"$$ \displaystyle " + self._latex + " $$"
+            if self._latex is not None
+            else self._error
+        )
 
 
 def with_latex(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:

@@ -8,6 +8,7 @@ from typing import ClassVar
 from latexify import constants
 from latexify import math_symbols
 from latexify import node_visitor_base
+from latexify import exceptions
 
 
 class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
@@ -45,8 +46,10 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         self.assign_var = {}
 
-    def generic_visit(self, node, action):
-        return str(node)
+    def generic_visit(self, node, action) -> str:
+        raise exceptions.LatexifyNotSupportedError(
+            f"Unsupported AST: {type(node).__name__}"
+        )
 
     def visit_Module(self, node, action):  # pylint: disable=invalid-name
         return self.visit(node.body[0], "multi_lines")
@@ -78,7 +81,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
                 elif isinstance(el, ast.Return):
                     break
         if body_str == "":
-            raise ValueError("`return` missing")
+            raise exceptions.LatexifySyntaxError("`return` missing")
 
         return name_str, arg_strs, assign_vars, body_str
 
@@ -126,7 +129,7 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         def _decorated_lstr_and_arg(node, callee_str, lstr):
             """Decorates lstr and get its associated arguments"""
             if callee_str == "sum" and isinstance(node.args[0], ast.GeneratorExp):
-                generator_info = self.visit(node.args[0], constants.actions.SET_BOUNDS)
+                generator_info = self.visit(node.args[0], "set_bounds")
                 arg_str, comprehension = generator_info
                 var_comp, args_comp = comprehension
                 if len(args_comp) == 1:
@@ -293,14 +296,13 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_GeneratorExp_set_bounds(self, node):  # pylint: disable=invalid-name
-        action = constants.actions.SET_BOUNDS
         output = self.visit(node.elt)
         comprehensions = [
-            self.visit(generator, action) for generator in node.generators
+            self.visit(generator, "set_bounds") for generator in node.generators
         ]
         if len(comprehensions) == 1:
             return output, comprehensions[0]
-        raise TypeError(
+        raise exceptions.LatexifyNotSupportedError(
             "visit_GeneratorExp_sum() supports a single for clause"
             "but {} were given".format(len(comprehensions))
         )
@@ -351,6 +353,6 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             args = [self.visit(arg) for arg in node.iter.args]
             if len(args) in (1, 2):
                 return var, args
-        raise TypeError(
+        raise exceptions.LatexifyNotSupportedError(
             "Comprehension for sum only supports range func " "with 1 or 2 args"
         )
