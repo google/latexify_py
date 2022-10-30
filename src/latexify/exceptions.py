@@ -5,7 +5,7 @@ class LatexifyError(Exception):
     """Base class of all Latexify exceptions.
 
     Subclasses of this exception does not mean incorrect use of the library by the user,
-    but informs users that Latexify went into something worng during compiling the given
+    but informs users that Latexify went into something wrong during compiling the given
     functions.
     These functions are usually captured by the frontend functions (e.g., `with_latex`)
     to prevent destroying the entire program.
