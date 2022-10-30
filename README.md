@@ -13,14 +13,14 @@ pip install latexify-py
 
 ## Example
 
-Follow provided example on [Google Colaboratory](https://colab.research.google.com/drive/1MuiawKpVIZ12MWwyYuzZHmbKThdM5wNJ?usp=sharing).
+Follow the given example on [Google Colaboratory](https://colab.research.google.com/drive/1MuiawKpVIZ12MWwyYuzZHmbKThdM5wNJ?usp=sharing).
 
 ## How to Contribute 
-To contribute to this Project refer [CONTRIBUTING.md](https://github.com/google/latexify_py/blob/develop/CONTRIBUTING.md) file.
+To contribute to this Project you need to refer [CONTRIBUTING.md](https://github.com/google/latexify_py/blob/develop/CONTRIBUTING.md) file.
 
 ## Disclaimer
 
-This is not an officially supported Google product.
+===This is not an officially supported Google product.===
 
 ## License 
 
