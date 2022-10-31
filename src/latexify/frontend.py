@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from typing import Any
+import warnings
 
 from latexify import codegen
 from latexify import exceptions
@@ -18,6 +19,7 @@ def get_latex(
     reduce_assignments: bool = False,
     use_math_symbols: bool = False,
     use_raw_function_name: bool = False,
+    use_signature: bool = True,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
@@ -34,6 +36,8 @@ def get_latex(
             (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
         use_raw_function_name: Whether to keep underscores "_" in the function name,
             or convert it to subscript.
+        use_signature: Whether to add the function signature before the expression or
+            not.
 
     Returns:
         Generatee LaTeX description.
@@ -54,6 +58,7 @@ def get_latex(
     return codegen.FunctionCodegen(
         use_math_symbols=use_math_symbols,
         use_raw_function_name=use_raw_function_name,
+        use_signature=use_signature,
     ).visit(tree)
 
 
@@ -112,8 +117,8 @@ class LatexifiedFunction:
         )
 
 
-def with_latex(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Translate a function with latex representation.
+def function(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Translate a function into a corresponding LaTeX representation.
 
     This function works with or without specifying the target function as the positional
     argument. The following two syntaxes works similarly.
@@ -135,3 +140,22 @@ def with_latex(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunc
         return LatexifiedFunction(fn, **kwargs)
 
     return wrapper
+
+
+def expression(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Translate a function into a LaTeX representation without the signature.
+
+    This function is a shortcut for `latexify.function` with the default parameter
+    `use_signature=False`.
+    """
+    kwargs["use_signature"] = kwargs.get("use_signature", False)
+    return function(*args, **kwargs)
+
+
+def with_latex(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Deprecated. use `latexify.function` instead."""
+    warnings.warn(
+        "`latexify.with_latex` is deprecated. Use `latexify.function` instead.",
+        DeprecationWarning,
+    )
+    return function(*args, **kwargs)
