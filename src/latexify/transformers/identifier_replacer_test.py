@@ -1,5 +1,7 @@
 """Tests for latexify.transformer.identifier_replacer."""
 
+from __future__ import annotations
+
 import ast
 
 import pytest
@@ -31,11 +33,53 @@ def test_name_not_replaced() -> None:
     test_utils.assert_ast_equal(transformed, expected)
 
 
+@test_utils.require_at_most(7)
 def test_functiondef() -> None:
     # Subtree of:
     #     @d
+    #     def f(y=b, *, z=c):
+    #         pass
+    source = ast.FunctionDef(
+        name="f",
+        args=ast.arguments(
+            args=[ast.arg(arg="y")],
+            kwonlyargs=[ast.arg(arg="z")],
+            kw_defaults=[ast.Name(id="c", ctx=ast.Load())],
+            defaults=[
+                ast.Name(id="a", ctx=ast.Load()),
+                ast.Name(id="b", ctx=ast.Load()),
+            ],
+        ),
+        body=[ast.Pass()],
+        decorator_list=[ast.Name(id="d", ctx=ast.Load())],
+    )
+
+    expected = ast.FunctionDef(
+        name="F",
+        args=ast.arguments(
+            args=[ast.arg(arg="Y")],
+            kwonlyargs=[ast.arg(arg="Z")],
+            kw_defaults=[ast.Name(id="C", ctx=ast.Load())],
+            defaults=[
+                ast.Name(id="A", ctx=ast.Load()),
+                ast.Name(id="B", ctx=ast.Load()),
+            ],
+        ),
+        body=[ast.Pass()],
+        decorator_list=[ast.Name(id="D", ctx=ast.Load())],
+    )
+
+    mapping = {x: x.upper() for x in "abcdfyz"}
+    transformed = IdentifierReplacer(mapping).visit(source)
+    test_utils.assert_ast_equal(transformed, expected)
+
+
+@test_utils.require_at_least(8)
+def test_functiondef_with_posonlyargs() -> None:
+    # Subtree of:
+    #     @d
     #     def f(x=a, /, y=b, *, z=c):
-    #         ...
+    #         pass
     source = ast.FunctionDef(
         name="f",
         args=ast.arguments(
@@ -48,7 +92,7 @@ def test_functiondef() -> None:
                 ast.Name(id="b", ctx=ast.Load()),
             ],
         ),
-        body=[ast.Ellipsis()],
+        body=[ast.Pass()],
         decorator_list=[ast.Name(id="d", ctx=ast.Load())],
     )
 
@@ -64,7 +108,7 @@ def test_functiondef() -> None:
                 ast.Name(id="B", ctx=ast.Load()),
             ],
         ),
-        body=[ast.Ellipsis()],
+        body=[ast.Pass()],
         decorator_list=[ast.Name(id="D", ctx=ast.Load())],
     )
 
