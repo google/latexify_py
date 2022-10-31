@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import ast
-<<<<<<< HEAD
-from latexify import exceptions, test_utils
-=======
 from latexify import exceptions
->>>>>>> main
+from latexify import test_utils
+
 import pytest
 
-from latexify.latexify_visitor import LatexifyVisitor
+from latexify import latexify_visitor
 
 
 def test_generic_visit() -> None:
@@ -21,7 +19,7 @@ def test_generic_visit() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: UnknownNode$",
     ):
-        LatexifyVisitor().visit(UnknownNode())
+        latexify_visitor.LatexifyVisitor().visit(UnknownNode())
 
 
 @pytest.mark.parametrize(
@@ -61,7 +59,7 @@ def test_generic_visit() -> None:
 def test_visit_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
-    assert LatexifyVisitor().visit(tree) == latex
+    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -82,7 +80,7 @@ def test_visit_compare(code: str, latex: str) -> None:
 def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.BoolOp)
-    assert LatexifyVisitor().visit(tree) == latex
+    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
 
 
 @test_utils.require_at_most(7)
@@ -107,7 +105,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
 def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, cls)
-    assert LatexifyVisitor().visit(tree) == latex
+    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
 
 
 @test_utils.require_at_least(8)
@@ -137,9 +135,9 @@ def test_visit_constant(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("x[0]", "{x_{0}}"),
-        ("x[0][1]", "{x_{0, 1}}"),
-        ("x[0][1][2]", "{x_{0, 1, 2}}"),
+        ("x[0]", "{x_{{0}}}"),
+        ("x[0][1]", "{x_{{0}, {1}}}"),
+        ("x[0][1][2]", "{x_{{0}, {1}, {2}}}"),
         ("x[foo]", "{x_{foo}}"),
         ("x[math.floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
     ],
@@ -147,4 +145,4 @@ def test_visit_constant(code: str, latex: str) -> None:
 def test_visit_subscript(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Subscript)
-    assert LatexifyVisitor().visit(tree) == latex
+    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
