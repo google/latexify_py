@@ -104,14 +104,14 @@ def test_sum_with_limit_2args() -> None:
     _check_with_latex(sum_with_limit, latex)
 
 
-def test_nested_function():
+def test_nested_function() -> None:
     def nested(x):
         return 3 * x
 
     _check_with_latex(nested, r"\mathrm{nested}(x) = {3}x")
 
 
-def test_double_nested_function():
+def test_double_nested_function() -> None:
     def nested(x):
         def inner(y):
             return x * y
@@ -121,7 +121,7 @@ def test_double_nested_function():
     _check_with_latex(nested(3), r"\mathrm{inner}(y) = xy")
 
 
-def test_use_raw_function_name():
+def test_use_raw_function_name() -> None:
     def foo_bar():
         return 42
 
@@ -138,7 +138,7 @@ def test_use_raw_function_name():
     )
 
 
-def test_reduce_assignments():
+def test_reduce_assignments() -> None:
     def f(x):
         a = x + x
         return 3 * a
@@ -150,7 +150,7 @@ def test_reduce_assignments():
     _check_with_latex(f, r"\mathrm{f}(x) = {3}(x + x)", reduce_assignments=True)
 
 
-def test_reduce_assignments_double():
+def test_reduce_assignments_double() -> None:
     def f(x):
         a = x**2
         b = a + a
@@ -169,5 +169,28 @@ def test_reduce_assignments_double():
     _check_with_latex(
         f,
         r"\mathrm{f}(x) = {3}(x^{{2}} + x^{{2}})",
+        reduce_assignments=True,
+    )
+
+
+def test_reduce_assignments_with_if() -> None:
+    def sigmoid(x):
+        p = 1 / (1 + math.exp(-x))
+        n = math.exp(x) / (math.exp(x) + 1)
+        if x > 0:
+            return p
+        else:
+            return n
+
+    _check_with_latex(
+        sigmoid,
+        (
+            r"\mathrm{sigmoid}(x) = \left\{ \begin{array}{ll} "
+            r"\frac{{1}}{{1} + \exp{\left({-x}\right)}}, & "
+            r"\mathrm{if} \ {x > {0}} \\ "
+            r"\frac{\exp{\left({x}\right)}}{\exp{\left({x}\right)} + {1}}, & "
+            r"\mathrm{otherwise} "
+            r"\end{array} \right."
+        ),
         reduce_assignments=True,
     )
