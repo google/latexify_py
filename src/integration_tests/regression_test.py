@@ -104,6 +104,27 @@ def test_sum_with_limit_2args() -> None:
     _check_with_latex(sum_with_limit, latex)
 
 
+def test_prod_with_limit_1arg() -> None:
+    def prod_with_limit(n):
+        return math.prod(i**2 for i in range(n))
+
+    latex = (
+        r"\mathrm{prod_with_limit}(n) = \prod_{i = 0}^{{n - 1}} \left({i^{{2}}}\right)"
+    )
+    _check_with_latex(prod_with_limit, latex)
+
+
+def test_prod_with_limit_2args() -> None:
+    def prod_with_limit(a, n):
+        return math.prod(i**2 for i in range(a, n))
+
+    latex = (
+        r"\mathrm{prod_with_limit}(a, n) = "
+        r"\prod_{i = a}^{{n - 1}} \left({i^{{2}}}\right)"
+    )
+    _check_with_latex(prod_with_limit, latex)
+
+
 def test_nested_function() -> None:
     def nested(x):
         return 3 * x
