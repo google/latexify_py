@@ -90,7 +90,6 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
                 assert vo == ve
 
     except (AssertionError, AttributeError):
-        raise
         return False
 
     return True

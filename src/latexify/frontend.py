@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from latexify import codegen
 from latexify import exceptions
-from latexify import latexify_visitor
 from latexify import parser
 from latexify import transformers
 
@@ -41,18 +41,20 @@ def get_latex(
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
+    # Obtains the source AST.
     tree = parser.parse_function(fn)
 
+    # Applies AST transformations.
     if identifiers is not None:
         tree = transformers.IdentifierReplacer(identifiers).visit(tree)
+    if reduce_assignments:
+        tree = transformers.AssignmentReducer().visit(tree)
 
-    visitor = latexify_visitor.LatexifyVisitor(
+    # Generates LaTeX.
+    return codegen.FunctionCodegen(
         use_math_symbols=use_math_symbols,
         use_raw_function_name=use_raw_function_name,
-        reduce_assignments=reduce_assignments,
-    )
-
-    return visitor.visit(tree)
+    ).visit(tree)
 
 
 class LatexifiedFunction:

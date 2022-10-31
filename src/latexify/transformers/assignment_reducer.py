@@ -40,8 +40,8 @@ class AssignmentReducer(ast.NodeTransformer):
 
         for child in node.body[:-1]:
             if not isinstance(child, ast.Assign):
-                raise exceptions.LatexifySyntaxError(
-                    "Assignment reduction supports only Assign nodes, "
+                raise exceptions.LatexifyNotSupportedError(
+                    "AssignmentReducer supports only Assign nodes, "
                     f"but got: {type(child).__name__}"
                 )
 
@@ -49,20 +49,20 @@ class AssignmentReducer(ast.NodeTransformer):
 
             for target in child.targets:
                 if not isinstance(target, ast.Name):
-                    raise exceptions.LatexifySyntaxError(
-                        "Assignment reduction does not recognize list/tuple "
+                    raise exceptions.LatexifyNotSupportedError(
+                        "AssignmentReducer does not recognize list/tuple "
                         "decomposition."
                     )
                 self._assignments[target.id] = value
 
-        return_stmt = node.body[-1]
+        return_original = node.body[-1]
 
-        if not isinstance(return_stmt, ast.Return):
+        if not isinstance(return_original, (ast.Return, ast.If)):
             raise exceptions.LatexifySyntaxError(
-                f"Last statement must be Return, but got: {type(return_stmt).__name__}"
+                f"Unsupported last statement: {type(return_original).__name__}"
             )
 
-        return_value = self.visit(return_stmt.value)
+        return_transformed = self.visit(return_original)
 
         # Pop stack
         self._assignments = parent_assignments
@@ -70,7 +70,7 @@ class AssignmentReducer(ast.NodeTransformer):
         return ast.FunctionDef(
             name=node.name,
             args=node.args,
-            body=[ast.Return(value=return_value)],
+            body=[return_transformed],
             decorator_list=node.decorator_list,
         )
 

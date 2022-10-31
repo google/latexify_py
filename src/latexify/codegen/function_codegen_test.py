@@ -8,7 +8,7 @@ from latexify import test_utils
 
 import pytest
 
-from latexify import latexify_visitor
+from latexify.codegen import function_codegen
 
 
 def test_generic_visit() -> None:
@@ -19,7 +19,7 @@ def test_generic_visit() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: UnknownNode$",
     ):
-        latexify_visitor.LatexifyVisitor().visit(UnknownNode())
+        function_codegen.FunctionCodegen().visit(UnknownNode())
 
 
 @pytest.mark.parametrize(
@@ -59,7 +59,7 @@ def test_generic_visit() -> None:
 def test_visit_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
-    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -80,7 +80,7 @@ def test_visit_compare(code: str, latex: str) -> None:
 def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.BoolOp)
-    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_most(7)
@@ -105,7 +105,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
 def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, cls)
-    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_least(8)
@@ -145,4 +145,4 @@ def test_visit_constant(code: str, latex: str) -> None:
 def test_visit_subscript(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Subscript)
-    assert latexify_visitor.LatexifyVisitor().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex

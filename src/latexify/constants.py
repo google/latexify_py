@@ -18,7 +18,7 @@ import ast
 
 PREFIXES = ["math", "numpy", "np"]
 
-BUILTIN_CALLEES = {
+BUILTIN_FUNCS = {
     "abs": (r"\left|{", r"}\right|"),
     "acos": (r"\arccos{\left({", r"}\right)}"),
     "acosh": (r"\mathrm{arccosh}{\left({", r"}\right)}"),
