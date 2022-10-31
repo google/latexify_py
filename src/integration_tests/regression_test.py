@@ -34,7 +34,7 @@ def _check_function(
     #     @function(**kwargs)
     #     def fn(...):
     #         ...
-    latexified = frontend.function(fn, **kwargs)
+    latexified = frontend.function(**kwargs)(fn)
     assert str(latexified) == latex
     assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
 
