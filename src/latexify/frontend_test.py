@@ -15,5 +15,5 @@ def test_identifiers() -> None:
     }
 
     assert frontend.get_latex(very_long_name_function, identifiers=identifiers) == (
-        r"\mathrm{f}(x) \triangleq 3x"
+        r"\mathrm{f}(x) \triangleq {3}x"
     )

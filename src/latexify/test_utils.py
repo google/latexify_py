@@ -3,57 +3,137 @@
 from __future__ import annotations
 
 import ast
+from collections.abc import Callable
+import functools
+import sys
 from typing import cast
 
 
-def ast_equal(tree1: ast.AST, tree2: ast.AST) -> bool:
-    """Checks the equality between two ASTs.
+def require_at_least(
+    minor: int,
+) -> Callable[[Callable[..., None]], Callable[..., None]]:
+    """Require the minimum minor version of Python 3 to run the test.
 
     Args:
-        tree1: An AST to compare.
-        tree2: Another AST.
+        minor: Minimum minor version (inclusive) that the test case supports.
 
     Returns:
-        True if tree1 and tree2 represent the same AST, False otherwise.
+        A decorator function to wrap the test case function.
+    """
+
+    def decorator(fn: Callable[..., None]) -> Callable[..., None]:
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            if sys.version_info.minor < minor:
+                return
+            fn(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def require_at_most(
+    minor: int,
+) -> Callable[[Callable[..., None]], Callable[..., None]]:
+    """Require the maximum minor version of Python 3 to run the test.
+
+    Args:
+        minor: Maximum minor version (inclusive) that the test case supports.
+
+    Returns:
+        A decorator function to wrap the test case function.
+    """
+
+    def decorator(fn: Callable[..., None]) -> Callable[..., None]:
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            if sys.version_info.minor > minor:
+                return
+            fn(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
+    """Checks the equality between two ASTs.
+
+    This function checks if `ovserved` contains at least the same subtree with
+    `expected`. If `ovserved` has some extra branches that `expected` does not cover,
+    it is ignored.
+
+    Args:
+        observed: An AST to check.
+        expected: The expected AST.
+
+    Returns:
+        True if observed and expected represent the same AST, False otherwise.
     """
     try:
-        assert type(tree1) is type(tree2)
+        assert type(observed) is type(expected)
 
-        for k, v1 in vars(tree1).items():
-            v2 = getattr(tree2, k)
+        for k, ve in vars(expected).items():
+            vo = getattr(observed, k)  # May cause AttributeError.
 
-            if isinstance(v1, ast.AST):
-                assert ast_equal(v1, cast(ast.AST, v2))
-            elif isinstance(v1, list):
-                v2 = cast(list, v2)
-                assert len(v1) == len(v2)
+            if isinstance(ve, ast.AST):
+                assert ast_equal(cast(ast.AST, vo), ve)
+            elif isinstance(ve, list):
+                vo = cast(list, vo)
+                assert len(vo) == len(ve)
                 assert all(
-                    ast_equal(cast(ast.AST, c1), cast(ast.AST, c2))
-                    for c1, c2 in zip(v1, v2)
+                    ast_equal(cast(ast.AST, co), cast(ast.AST, ce))
+                    for co, ce in zip(vo, ve)
                 )
             else:
-                assert v1 == v2
+                assert vo == ve
 
-    except AssertionError:
+    except (AssertionError, AttributeError):
+        raise
         return False
 
     return True
 
 
-def assert_ast_equal(tree1: ast.AST, tree2: ast.AST) -> None:
+def assert_ast_equal(observed: ast.AST, expected: ast.AST) -> None:
     """Asserts the equality between two ASTs.
 
     Args:
-        tree1: An AST to compare.
-        tree2: Another AST.
+        observed: An AST to compare.
+        expected: Another AST.
 
     Raises:
-        AssertionError: tree1 and tree2 represent different ASTs.
+        AssertionError: observed and expected represent different ASTs.
     """
-    assert ast_equal(
-        tree1, tree2
-    ), f"""\
+    if sys.version_info.minor >= 9:
+        assert ast_equal(
+            observed, expected
+        ), f"""\
 AST does not match.
-tree1={ast.dump(tree1, indent=4)}
-tree2={ast.dump(tree2, indent=4)}
+observed={ast.dump(observed, indent=4)}
+expected={ast.dump(expected, indent=4)}
 """
+    else:
+        assert ast_equal(
+            observed, expected
+        ), f"""\
+AST does not match.
+observed={ast.dump(observed)}
+expected={ast.dump(expected)}
+"""
+
+
+def make_num(value: int) -> ast.expr:
+    """Helper function to generate a node for number.
+
+    Args:
+        value: The value of the node.
+
+    Returns:
+        Generated AST.
+    """
+    if sys.version_info.minor < 8:
+        return ast.Num(n=value)
+    else:
+        return ast.Constant(value=value)

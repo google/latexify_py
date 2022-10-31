@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import ast
 from collections.abc import Callable
-import inspect
-import textwrap
 from typing import Any
 
-import dill
-
-from latexify import exceptions, latexify_visitor
+from latexify import exceptions, latexify_visitor, parser
 from latexify.transformers.identifier_replacer import IdentifierReplacer
 
 
@@ -44,16 +39,7 @@ def get_latex(
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
-    try:
-        source = inspect.getsource(fn)
-    except Exception:
-        # Maybe running on console.
-        source = dill.source.getsource(fn)
-
-    # Remove extra indentation so that ast.parse runs correctly.
-    source = textwrap.dedent(source)
-
-    tree = ast.parse(source)
+    tree = parser.parse_function(fn)
 
     if identifiers is not None:
         tree = IdentifierReplacer(identifiers).visit(tree)

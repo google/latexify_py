@@ -1,7 +1,9 @@
 """Tests for latexify.latexify_visitor."""
 
+from __future__ import annotations
+
 import ast
-from latexify import exceptions
+from latexify import exceptions, test_utils
 import pytest
 
 from latexify.latexify_visitor import LatexifyVisitor
@@ -76,4 +78,54 @@ def test_visit_compare(code: str, latex: str) -> None:
 def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.BoolOp)
+    assert LatexifyVisitor().visit(tree) == latex
+
+
+@test_utils.require_at_most(7)
+@pytest.mark.parametrize(
+    "code,cls,latex",
+    [
+        ("0", ast.Num, "{0}"),
+        ("1", ast.Num, "{1}"),
+        ("0.0", ast.Num, "{0.0}"),
+        ("1.5", ast.Num, "{1.5}"),
+        ("0.0j", ast.Num, "{0j}"),
+        ("1.0j", ast.Num, "{1j}"),
+        ("1.5j", ast.Num, "{1.5j}"),
+        ('"abc"', ast.Str, r'\textrm{"abc"}'),
+        ('b"abc"', ast.Bytes, r"\textrm{b'abc'}"),
+        ("None", ast.NameConstant, r"\mathrm{None}"),
+        ("False", ast.NameConstant, r"\mathrm{False}"),
+        ("True", ast.NameConstant, r"\mathrm{True}"),
+        ("...", ast.Ellipsis, r"{\cdots}"),
+    ],
+)
+def test_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, cls)
+    assert LatexifyVisitor().visit(tree) == latex
+
+
+@test_utils.require_at_least(8)
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("0", "{0}"),
+        ("1", "{1}"),
+        ("0.0", "{0.0}"),
+        ("1.5", "{1.5}"),
+        ("0.0j", "{0j}"),
+        ("1.0j", "{1j}"),
+        ("1.5j", "{1.5j}"),
+        ('"abc"', r'\textrm{"abc"}'),
+        ('b"abc"', r"\textrm{b'abc'}"),
+        ("None", r"\mathrm{None}"),
+        ("False", r"\mathrm{False}"),
+        ("True", r"\mathrm{True}"),
+        ("...", r"{\cdots}"),
+    ],
+)
+def test_constant(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.Constant)
     assert LatexifyVisitor().visit(tree) == latex

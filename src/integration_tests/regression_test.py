@@ -24,7 +24,7 @@ def solve(a, b, c):
 
 
 solve_latex = (
-    r"\mathrm{solve}(a, b, c) \triangleq " r"\frac{-b + \sqrt{b^{2} - 4ac}}{2a}"
+    r"\mathrm{solve}(a, b, c) \triangleq " r"\frac{-b + \sqrt{b^{{2}} - {4}ac}}{{2}a}"
 )
 
 
@@ -37,8 +37,8 @@ def sinc(x):
 
 
 sinc_latex = (
-    r"\mathrm{sinc}(x) \triangleq \left\{ \begin{array}{ll} 1, & \mathrm{if} \ "
-    r"{x = 0} \\ \frac{\sin{\left({x}\right)}}{x}, & \mathrm{otherwise} \end{array}"
+    r"\mathrm{sinc}(x) \triangleq \left\{ \begin{array}{ll} {1}, & \mathrm{if} \ "
+    r"{x = {0}} \\ \frac{\sin{\left({x}\right)}}{x}, & \mathrm{otherwise} \end{array}"
     r" \right."
 )
 
@@ -56,7 +56,7 @@ def sum_with_limit(n):
 
 
 sum_with_limit_latex = (
-    r"\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n-1} \left({i^{2}}\right)"
+    r"\mathrm{sum_with_limit}(n) \triangleq \sum_{i=0}^{n-1} \left({i^{{2}}}\right)"
 )
 
 
@@ -66,7 +66,7 @@ def sum_with_limit_two_args(a, n):
 
 sum_with_limit_two_args_latex = (
     r"\mathrm{sum_with_limit_two_args}(a, n) "
-    r"\triangleq \sum_{i=a}^{n-1} \left({i^{2}}\right)"
+    r"\triangleq \sum_{i=a}^{n-1} \left({i^{{2}}}\right)"
 )
 
 
@@ -96,7 +96,7 @@ def test_nested_function():
     def nested(x):
         return 3 * x
 
-    assert get_latex(nested) == r"\mathrm{nested}(x) \triangleq 3x"
+    assert get_latex(nested) == r"\mathrm{nested}(x) \triangleq {3}x"
 
 
 def test_double_nested_function():
@@ -113,14 +113,14 @@ def test_use_raw_function_name():
     def foo_bar():
         return 42
 
-    assert str(with_latex(foo_bar)) == r"\mathrm{foo_bar}() \triangleq 42"
+    assert str(with_latex(foo_bar)) == r"\mathrm{foo_bar}() \triangleq {42}"
     assert (
         str(with_latex(foo_bar, use_raw_function_name=True))
-        == r"\mathrm{foo\_bar}() \triangleq 42"
+        == r"\mathrm{foo\_bar}() \triangleq {42}"
     )
     assert (
         str(with_latex(use_raw_function_name=True)(foo_bar))
-        == r"\mathrm{foo\_bar}() \triangleq 42"
+        == r"\mathrm{foo\_bar}() \triangleq {42}"
     )
 
 
@@ -129,9 +129,9 @@ def test_reduce_assignments():
         a = x + x
         return 3 * a
 
-    assert str(with_latex(f)) == r"a \triangleq x + x \\ \mathrm{f}(x) \triangleq 3a"
+    assert str(with_latex(f)) == r"a \triangleq x + x \\ \mathrm{f}(x) \triangleq {3}a"
 
-    latex_with_option = r"\mathrm{f}(x) \triangleq 3\left( x + x \right)"
+    latex_with_option = r"\mathrm{f}(x) \triangleq {3}\left( x + x \right)"
     assert str(with_latex(f, reduce_assignments=True)) == latex_with_option
     assert str(with_latex(reduce_assignments=True)(f)) == latex_with_option
 
@@ -143,12 +143,12 @@ def test_reduce_assignments_double():
         return 3 * b
 
     assert str(with_latex(f)) == (
-        r"a \triangleq x^{2} \\ b \triangleq a + a \\ \mathrm{f}(x) \triangleq 3b"
+        r"a \triangleq x^{{2}} \\ b \triangleq a + a \\ \mathrm{f}(x) \triangleq {3}b"
     )
 
     latex_with_option = (
         r"\mathrm{f}(x) \triangleq "
-        r"3\left( \left( x^{2} \right) + \left( x^{2} \right) \right)"
+        r"{3}\left( \left( x^{{2}} \right) + \left( x^{{2}} \right) \right)"
     )
     assert str(with_latex(f, reduce_assignments=True)) == latex_with_option
     assert str(with_latex(reduce_assignments=True)(f)) == latex_with_option

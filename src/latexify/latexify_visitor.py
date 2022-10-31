@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ast
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from latexify import constants
 from latexify import math_symbols
@@ -182,13 +182,52 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
 
         return self._math_symbol_converter.convert(str(node.id))
 
-    def visit_Constant(self, node, action):  # pylint: disable=invalid-name
-        # for python >= 3.8
-        return str(node.n)
+    def convert_constant(self, value: Any) -> str:
+        """Helper to convert constant values to LaTeX.
 
-    def visit_Num(self, node, action):  # pylint: disable=invalid-name
-        # for python < 3.8
-        return str(node.n)
+        Args:
+            value: A constant value.
+
+        Returns:
+            The LaTeX representation of `value`.
+        """
+        if value is None or isinstance(value, bool):
+            return r"\mathrm{" + str(value) + "}"
+        if isinstance(value, (int, float, complex)):
+            return "{" + str(value) + "}"
+        if isinstance(value, str):
+            return r'\textrm{"' + value + '"}'
+        if isinstance(value, bytes):
+            return r"\textrm{" + str(value) + "}"
+        if value is ...:
+            return r"{\cdots}"
+        raise exceptions.LatexifyNotSupportedError(
+            f"Unrecognized constant: {type(value).__name__}"
+        )
+
+    # From Python 3.8
+    def visit_Constant(self, node: ast.Constant, action) -> str:
+        return self.convert_constant(node.value)
+
+    # Until Python 3.7
+    def visit_Num(self, node: ast.Num, action) -> str:
+        return self.convert_constant(node.n)
+
+    # Until Python 3.7
+    def visit_Str(self, node: ast.Str, action) -> str:
+        return self.convert_constant(node.s)
+
+    # Until Python 3.7
+    def visit_Bytes(self, node: ast.Bytes, action) -> str:
+        return self.convert_constant(node.s)
+
+    # Until Python 3.7
+    def visit_NameConstant(self, node: ast.NameConstant, action) -> str:
+        return self.convert_constant(node.value)
+
+    # Until Python 3.7
+    def visit_Ellipsis(self, node: ast.Ellipsis, action) -> str:
+        return self.convert_constant(...)
 
     def visit_UnaryOp(self, node, action):  # pylint: disable=invalid-name
         """Visit a unary op node."""
