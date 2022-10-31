@@ -34,7 +34,7 @@ def _check_with_latex(
     #     @with_latex(**kwargs)
     #     def fn(...):
     #         ...
-    latexified = frontend.with_latex(fn, **kwargs)
+    latexified = frontend.with_latex(**kwargs)(fn)
     assert str(latexified) == latex
     assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
 
