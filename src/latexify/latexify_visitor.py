@@ -346,6 +346,43 @@ class LatexifyVisitor(node_visitor_base.NodeVisitorBase):
             "but {} were given".format(len(comprehensions))
         )
 
+    # Until 3.8
+    def visit_Index(self, node: ast.Index, action) -> str:
+        """Visitor for the Index nodes."""
+        return self.visit(node.value)
+
+    def convert_nested_subscripts(self, node: ast.Subscript) -> tuple[str, list[str]]:
+        """Helper function to convert nested subscription.
+
+        This function converts x[i][j][...] to "x" and ["i", "j", ...]
+
+        Args:
+            node: ast.Subscript node to be converted.
+
+        Returns:
+            Tuple of following strings:
+                - The root value of the subscription.
+                - Sequence of incices.
+        """
+        if isinstance(node.value, ast.Subscript):
+            value, indices = self.convert_nested_subscripts(node.value)
+        else:
+            value = self.visit(node.value)
+            indices = []
+
+        indices.append(self.visit(node.slice))
+        return value, indices
+
+    def visit_Subscript(self, node: ast.Subscript, action) -> str:
+        """Visitor of the Subscript nodes."""
+        value, indices = self.convert_nested_subscripts(node)
+
+        # TODO(odashi):
+        # "[i][j][...]" may be a possible representation as well as "i, j. ..."
+        indices_str = "{" + ", ".join(indices) + "}"
+
+        return f"{{{value}_{indices_str}}}"
+
     def visit_comprehension_set_bounds(self, node):  # pylint: disable=invalid-name
         """Visit a comprehension node, which represents a for clause"""
         var = self.visit(node.target)

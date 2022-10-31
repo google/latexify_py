@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import ast
+<<<<<<< HEAD
 from latexify import exceptions, test_utils
+=======
+from latexify import exceptions
+>>>>>>> main
 import pytest
 
 from latexify.latexify_visitor import LatexifyVisitor
@@ -100,7 +104,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
         ("...", ast.Ellipsis, r"{\cdots}"),
     ],
 )
-def test_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
+def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, cls)
     assert LatexifyVisitor().visit(tree) == latex
@@ -125,7 +129,22 @@ def test_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
         ("...", r"{\cdots}"),
     ],
 )
-def test_constant(code: str, latex: str) -> None:
+def test_visit_constant(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Constant)
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("x[0]", "{x_{0}}"),
+        ("x[0][1]", "{x_{0, 1}}"),
+        ("x[0][1][2]", "{x_{0, 1, 2}}"),
+        ("x[foo]", "{x_{foo}}"),
+        ("x[math.floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
+    ],
+)
+def test_visit_subscript(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.Subscript)
     assert LatexifyVisitor().visit(tree) == latex

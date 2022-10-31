@@ -5,8 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from latexify import exceptions, latexify_visitor, parser
-from latexify.transformers.identifier_replacer import IdentifierReplacer
+from latexify import exceptions
+from latexify import latexify_visitor
+from latexify import parser
+from latexify import transformers
 
 
 def get_latex(
@@ -42,7 +44,7 @@ def get_latex(
     tree = parser.parse_function(fn)
 
     if identifiers is not None:
-        tree = IdentifierReplacer(identifiers).visit(tree)
+        tree = transformers.IdentifierReplacer(identifiers).visit(tree)
 
     visitor = latexify_visitor.LatexifyVisitor(
         use_math_symbols=use_math_symbols,
