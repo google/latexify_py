@@ -8,7 +8,7 @@ from latexify import test_utils
 
 import pytest
 
-from latexify.codegen import function_codegen
+from latexify.codegen import FunctionCodegen, function_codegen
 
 
 def test_generic_visit() -> None:
@@ -20,6 +20,25 @@ def test_generic_visit() -> None:
         match=r"^Unsupported AST: UnknownNode$",
     ):
         function_codegen.FunctionCodegen().visit(UnknownNode())
+
+
+def test_visit_functiondef_use_signature() -> None:
+    tree = ast.FunctionDef(
+        name="f",
+        args=ast.arguments(
+            args=[ast.arg(arg="x")],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[],
+        ),
+        body=[ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
+        decorator_list=[],
+    )
+    latex_without_flag = "x"
+    latex_with_flag = r"\mathrm{f}(x) = x"
+    assert FunctionCodegen().visit(tree) == latex_with_flag
+    assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
+    assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
 
 
 @pytest.mark.parametrize(

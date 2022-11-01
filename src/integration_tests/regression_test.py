@@ -1,4 +1,4 @@
-"""End-to-end test cases of with_latex."""
+"""End-to-end test cases of function."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any
 from latexify import frontend
 
 
-def _check_with_latex(
+def _check_function(
     fn: Callable[..., Any],
     latex: str,
     **kwargs,
@@ -19,30 +19,30 @@ def _check_with_latex(
     Args:
         fn: Function to check.
         latex: LaTeX form of `fn`.
-        **kwargs: Arguments passed to `frontend.with_latex`.
+        **kwargs: Arguments passed to `frontend.function`.
     """
     # Checks the syntax:
-    #     @with_latex
+    #     @function
     #     def fn(...):
     #         ...
     if not kwargs:
-        latexified = frontend.with_latex(fn)
+        latexified = frontend.function(fn)
         assert str(latexified) == latex
         assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
 
     # Checks the syntax:
-    #     @with_latex(**kwargs)
+    #     @function(**kwargs)
     #     def fn(...):
     #         ...
-    latexified = frontend.with_latex(**kwargs)(fn)
+    latexified = frontend.function(**kwargs)(fn)
     assert str(latexified) == latex
     assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
 
     # Checks the syntax:
     #     def fn(...):
     #         ...
-    #     latexified = with_latex(fn, **kwargs)
-    latexified = frontend.with_latex(fn, **kwargs)
+    #     latexified = function(fn, **kwargs)
+    latexified = frontend.function(fn, **kwargs)
     assert str(latexified) == latex
     assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
 
@@ -52,7 +52,7 @@ def test_quadratic_solution() -> None:
         return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
     latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4}ac}}{{2}a}"
-    _check_with_latex(solve, latex)
+    _check_function(solve, latex)
 
 
 def test_sinc() -> None:
@@ -69,7 +69,7 @@ def test_sinc() -> None:
         r"{x = {0}} \\ \frac{\sin{\left({x}\right)}}{x}, & \mathrm{otherwise} "
         r"\end{array} \right."
     )
-    _check_with_latex(sinc, latex)
+    _check_function(sinc, latex)
 
 
 def test_x_times_beta() -> None:
@@ -77,11 +77,11 @@ def test_x_times_beta() -> None:
         return x * beta
 
     latex_without_symbols = r"\mathrm{xtimesbeta}(x, beta) = xbeta"
-    _check_with_latex(xtimesbeta, latex_without_symbols)
-    _check_with_latex(xtimesbeta, latex_without_symbols, use_math_symbols=False)
+    _check_function(xtimesbeta, latex_without_symbols)
+    _check_function(xtimesbeta, latex_without_symbols, use_math_symbols=False)
 
     latex_with_symbols = r"\mathrm{xtimesbeta}(x, {\beta}) = x{\beta}"
-    _check_with_latex(xtimesbeta, latex_with_symbols, use_math_symbols=True)
+    _check_function(xtimesbeta, latex_with_symbols, use_math_symbols=True)
 
 
 def test_sum_with_limit_1arg() -> None:
@@ -91,7 +91,7 @@ def test_sum_with_limit_1arg() -> None:
     latex = (
         r"\mathrm{sum_with_limit}(n) = \sum_{i = 0}^{{n - 1}} \left({i^{{2}}}\right)"
     )
-    _check_with_latex(sum_with_limit, latex)
+    _check_function(sum_with_limit, latex)
 
 
 def test_sum_with_limit_2args() -> None:
@@ -101,7 +101,7 @@ def test_sum_with_limit_2args() -> None:
     latex = (
         r"\mathrm{sum_with_limit}(a, n) = \sum_{i = a}^{{n - 1}} \left({i^{{2}}}\right)"
     )
-    _check_with_latex(sum_with_limit, latex)
+    _check_function(sum_with_limit, latex)
 
 
 def test_prod_with_limit_1arg() -> None:
@@ -111,7 +111,7 @@ def test_prod_with_limit_1arg() -> None:
     latex = (
         r"\mathrm{prod_with_limit}(n) = \prod_{i = 0}^{{n - 1}} \left({i^{{2}}}\right)"
     )
-    _check_with_latex(prod_with_limit, latex)
+    _check_function(prod_with_limit, latex)
 
 
 def test_prod_with_limit_2args() -> None:
@@ -122,14 +122,14 @@ def test_prod_with_limit_2args() -> None:
         r"\mathrm{prod_with_limit}(a, n) = "
         r"\prod_{i = a}^{{n - 1}} \left({i^{{2}}}\right)"
     )
-    _check_with_latex(prod_with_limit, latex)
+    _check_function(prod_with_limit, latex)
 
 
 def test_nested_function() -> None:
     def nested(x):
         return 3 * x
 
-    _check_with_latex(nested, r"\mathrm{nested}(x) = {3}x")
+    _check_function(nested, r"\mathrm{nested}(x) = {3}x")
 
 
 def test_double_nested_function() -> None:
@@ -139,20 +139,20 @@ def test_double_nested_function() -> None:
 
         return inner
 
-    _check_with_latex(nested(3), r"\mathrm{inner}(y) = xy")
+    _check_function(nested(3), r"\mathrm{inner}(y) = xy")
 
 
 def test_use_raw_function_name() -> None:
     def foo_bar():
         return 42
 
-    _check_with_latex(foo_bar, r"\mathrm{foo_bar}() = {42}")
-    _check_with_latex(
+    _check_function(foo_bar, r"\mathrm{foo_bar}() = {42}")
+    _check_function(
         foo_bar,
         r"\mathrm{foo_bar}() = {42}",
         use_raw_function_name=False,
     )
-    _check_with_latex(
+    _check_function(
         foo_bar,
         r"\mathrm{foo\_bar}() = {42}",
         use_raw_function_name=True,
@@ -164,11 +164,11 @@ def test_reduce_assignments() -> None:
         a = x + x
         return 3 * a
 
-    _check_with_latex(
+    _check_function(
         f,
         r"\begin{array}{l} a = x + x \\ \mathrm{f}(x) = {3}a \end{array}",
     )
-    _check_with_latex(f, r"\mathrm{f}(x) = {3}(x + x)", reduce_assignments=True)
+    _check_function(f, r"\mathrm{f}(x) = {3}(x + x)", reduce_assignments=True)
 
 
 def test_reduce_assignments_double() -> None:
@@ -185,9 +185,9 @@ def test_reduce_assignments_double() -> None:
         r"\end{array}"
     )
 
-    _check_with_latex(f, latex_without_option)
-    _check_with_latex(f, latex_without_option, reduce_assignments=False)
-    _check_with_latex(
+    _check_function(f, latex_without_option)
+    _check_function(f, latex_without_option, reduce_assignments=False)
+    _check_function(
         f,
         r"\mathrm{f}(x) = {3}(x^{{2}} + x^{{2}})",
         reduce_assignments=True,
@@ -203,7 +203,7 @@ def test_reduce_assignments_with_if() -> None:
         else:
             return n
 
-    _check_with_latex(
+    _check_function(
         sigmoid,
         (
             r"\mathrm{sigmoid}(x) = \left\{ \begin{array}{ll} "

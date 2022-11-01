@@ -19,12 +19,14 @@ class FunctionCodegen(ast.NodeVisitor):
 
     _math_symbol_converter: math_symbols.MathSymbolConverter
     _use_raw_function_name: bool
+    _use_signature: bool
 
     def __init__(
         self,
         *,
         use_math_symbols: bool = False,
         use_raw_function_name: bool = False,
+        use_signature: bool = True,
     ) -> None:
         """Initializer.
 
@@ -33,11 +35,14 @@ class FunctionCodegen(ast.NodeVisitor):
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
             use_raw_function_name: Whether to keep underscores "_" in the function name,
                 or convert it to subscript.
+            use_signature: Whether to add the function signature before the expression
+                or not.
         """
         self._math_symbol_converter = math_symbols.MathSymbolConverter(
             enabled=use_math_symbols
         )
         self._use_raw_function_name = use_raw_function_name
+        self._use_signature = use_signature
 
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
@@ -81,7 +86,9 @@ class FunctionCodegen(ast.NodeVisitor):
         signature_str = name_str + "(" + ", ".join(arg_strs) + ")"
 
         # Function definition: f(x, ...) \triangleq ...
-        return_str = signature_str + " = " + self.visit(return_stmt)
+        return_str = self.visit(return_stmt)
+        if self._use_signature:
+            return_str = signature_str + " = " + return_str
 
         if not body_strs:
             # Only the definition.

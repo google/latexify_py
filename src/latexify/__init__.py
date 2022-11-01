@@ -16,4 +16,9 @@
 from latexify import frontend
 
 get_latex = frontend.get_latex
+
+function = frontend.function
+expression = frontend.expression
+
+# Deprecated
 with_latex = frontend.with_latex
