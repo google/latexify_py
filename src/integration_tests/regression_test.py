@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 """End-to-end test cases of function."""
+=======
+"""End-to-end test cases of with_latex."""
+>>>>>>> main
 
 from __future__ import annotations
 
