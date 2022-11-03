@@ -1,4 +1,4 @@
-"""Tests for latexify.latexify_visitor."""
+"""Tests for latexify.codegen.function_codegen."""
 
 from __future__ import annotations
 

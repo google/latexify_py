@@ -89,7 +89,7 @@ def test_sum_with_limit_1arg() -> None:
         return sum(i**2 for i in range(n))
 
     latex = (
-        r"\mathrm{sum_with_limit}(n) = \sum_{i = 0}^{{n - 1}} \left({i^{{2}}}\right)"
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n - 1}} \left({i^{{2}}}\right)"
     )
     _check_function(sum_with_limit, latex)
 
@@ -109,7 +109,8 @@ def test_prod_with_limit_1arg() -> None:
         return math.prod(i**2 for i in range(n))
 
     latex = (
-        r"\mathrm{prod_with_limit}(n) = \prod_{i = 0}^{{n - 1}} \left({i^{{2}}}\right)"
+        r"\mathrm{prod_with_limit}(n) = "
+        r"\prod_{i = {0}}^{{n - 1}} \left({i^{{2}}}\right)"
     )
     _check_function(prod_with_limit, latex)
 

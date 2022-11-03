@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from typing import Any, ClassVar
 
+from latexify import analyzers
 from latexify import constants
 from latexify import math_symbols
 from latexify import exceptions
@@ -321,34 +322,35 @@ class FunctionCodegen(ast.NodeVisitor):
 
         comp = node.generators[0]
 
-        if not (
-            isinstance(comp.iter, ast.Call)
-            and isinstance(comp.iter.func, ast.Name)
-            and comp.iter.func.id == "range"
-            and 1 <= len(comp.iter.args) <= 2
-            and not comp.ifs
-        ):
-            raise exceptions.LatexifySyntaxError(
-                "Comprehension with range contains unsupported syntax."
+        if not isinstance(comp.iter, ast.Call) or comp.ifs:
+            raise exceptions.LatexifyNotSupportedError("Unsupported comprehension.")
+
+        # May cause LatexifyError
+        range_info = analyzers.analyze_range(comp.iter)
+
+        if (
+            # Only accepts ascending order with step size 1.
+            range_info.step_int != 1
+            or (
+                range_info.start_int is not None
+                and range_info.stop_int is not None
+                and range_info.start_int >= range_info.stop_int
             )
+        ):
+            raise exceptions.LatexifyNotSupportedError("Unsupported comprehension.")
 
         elt_str = self.visit(node.elt)
         target_str = self.visit(comp.target)
-        args_str = [self.visit(arg) for arg in comp.iter.args]
 
-        if len(args_str) == 1:
-            lower_str = "0"
-            upper_plus_1 = args_str[0]
+        if range_info.start_int is None:
+            lower_str = self.visit(range_info.start)
         else:
-            lower_str = args_str[0]
-            upper_plus_1 = args_str[1]
+            lower_str = f"{{{range_info.start_int}}}"
 
-        # Upper bound of range is exclusive. Try to numerically subtract it by 1.
-        try:
-            upper_plus_1_unwrapped = upper_plus_1[1:-1]  # Remove { and }
-            upper_str = str(int(upper_plus_1_unwrapped) - 1)
-        except ValueError:
-            upper_str = "{" + upper_plus_1 + " - 1}"
+        if range_info.stop_int is None:
+            upper_str = "{" + self.visit(range_info.stop) + " - 1}"
+        else:
+            upper_str = f"{{{range_info.stop_int - 1}}}"
 
         # Used for: \sum_{target_str = lower_str}^{upper_str} elt_str
         return elt_str, target_str, lower_str, upper_str
