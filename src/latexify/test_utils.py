@@ -87,6 +87,7 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
                     for co, ce in zip(vo, ve)
                 )
             else:
+                assert type(vo) is type(ve)
                 assert vo == ve
 
     except (AssertionError, AttributeError):
@@ -121,18 +122,3 @@ AST does not match.
 observed={ast.dump(observed)}
 expected={ast.dump(expected)}
 """
-
-
-def make_num(value: int) -> ast.expr:
-    """Helper function to generate a node for number.
-
-    Args:
-        value: The value of the node.
-
-    Returns:
-        Generated AST.
-    """
-    if sys.version_info.minor < 8:
-        return ast.Num(n=value)
-    else:
-        return ast.Constant(value=value)

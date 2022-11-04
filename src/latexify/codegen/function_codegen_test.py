@@ -1,4 +1,4 @@
-"""Tests for latexify.latexify_visitor."""
+"""Tests for latexify.codegen.function_codegen."""
 
 from __future__ import annotations
 
@@ -39,6 +39,55 @@ def test_visit_functiondef_use_signature() -> None:
     assert FunctionCodegen().visit(tree) == latex_with_flag
     assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
     assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
+
+
+@pytest.mark.parametrize(
+    "src_suffix,dest_suffix",
+    [
+        ("(x)", r" \left({x}\right)"),
+        ("([1, 2])", r" \left({\left[ {1}\space,\space {2}\right] }\right)"),
+        ("({1, 2})", r" \left({\left\{ {1}\space,\space {2}\right\} }\right)"),
+        ("(f(x))", r" \left({\mathrm{f}\left(x\right)}\right)"),
+        ("(i for i in x)", r"_{i \in x}^{} \left({i}\right)"),
+        (
+            "(i for i in [1, 2])",
+            r"_{i \in \left[ {1}\space,\space {2}\right] }^{} \left({i}\right)",
+        ),
+        (
+            "(i for i in {1, 2})",
+            r"_{i \in \left\{ {1}\space,\space {2}\right\} }^{} \left({i}\right)",
+        ),
+        ("(i for i in f(x))", r"_{i \in \mathrm{f}\left(x\right)}^{} \left({i}\right)"),
+        ("(i for i in range(n))", r"_{i = {0}}^{{n - 1}} \left({i}\right)"),
+        ("(i for i in range(3))", r"_{i = {0}}^{{2}} \left({i}\right)"),
+        ("(i for i in range(n, m))", r"_{i = n}^{{m - 1}} \left({i}\right)"),
+        ("(i for i in range(1, m))", r"_{i = {1}}^{{m - 1}} \left({i}\right)"),
+        ("(i for i in range(n, 3))", r"_{i = n}^{{2}} \left({i}\right)"),
+        (
+            "(i for i in range(n, m, k))",
+            r"_{i \in \mathrm{range}\left(n, m, k\right)}^{} \left({i}\right)",
+        ),
+    ],
+)
+def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
+    for src_fn, dest_fn in [("sum", r"\sum"), ("math.prod", r"\prod")]:
+        node = ast.parse(src_fn + src_suffix).body[0].value
+        assert isinstance(node, ast.Call)
+        assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
+
+
+def test_visit_call_sum_prod_multi_comprehension() -> None:
+    for fn_name in ["sum", "math.prod"]:
+        node = ast.parse(f"{fn_name}(i for y in x for i in y)").body[0].value
+        with pytest.raises(exceptions.LatexifyNotSupportedError, match="^Multi-clause"):
+            FunctionCodegen().visit(node)
+
+
+def test_visit_call_sum_prod_with_if() -> None:
+    for fn_name in ["sum", "math.prod"]:
+        node = ast.parse(f"{fn_name}(i for y in x if y == 0)").body[0].value
+        with pytest.raises(exceptions.LatexifyNotSupportedError, match="^If-clause"):
+            FunctionCodegen().visit(node)
 
 
 @pytest.mark.parametrize(

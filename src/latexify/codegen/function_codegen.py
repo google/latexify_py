@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from typing import Any, ClassVar
 
+from latexify import analyzers
 from latexify import constants
 from latexify import math_symbols
 from latexify import exceptions
@@ -137,9 +138,8 @@ class FunctionCodegen(ast.NodeVisitor):
         )
 
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
-            # Special treatment for sum/prod(x for x in range(a, b))
-            elt, tgt, lo, up = self._get_range_info(node.args[0])
-            return rf"\{func_str}_{{{tgt} = {lo}}}^{{{up}}} \left({{{elt}}}\right)"
+            elt, lower, upper = self._get_sum_prod_info(node.args[0])
+            return rf"\{func_str}_{{{lower}}}^{{{upper}}} \left({{{elt}}}\right)"
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
@@ -310,8 +310,70 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
-    def _get_range_info(self, node: ast.GeneratorExp) -> tuple[str, str, str, str]:
-        """Processor for (x for x in range(a, b))"""
+    def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
+        """Helper to process range(...) for sum and prod functions.
+
+        Args:
+            node: comprehension node to be analyzed.
+
+        Returns:
+            Tuple of following strings:
+                - lower_rhs
+                - upper
+            which are used in _get_sum_prod_info, or None if the analysis failed.
+        """
+        if not (
+            isinstance(node.iter, ast.Call)
+            and isinstance(node.iter.func, ast.Name)
+            and node.iter.func.id == "range"
+        ):
+            return None
+
+        try:
+            range_info = analyzers.analyze_range(node.iter)
+        except exceptions.LatexifyError:
+            return None
+
+        if (
+            # Only accepts ascending order with step size 1.
+            range_info.step_int != 1
+            or (
+                range_info.start_int is not None
+                and range_info.stop_int is not None
+                and range_info.start_int >= range_info.stop_int
+            )
+        ):
+            return None
+
+        if range_info.start_int is None:
+            lower_rhs = self.visit(range_info.start)
+        else:
+            lower_rhs = f"{{{range_info.start_int}}}"
+
+        if range_info.stop_int is None:
+            upper = "{" + self.visit(range_info.stop) + " - 1}"
+        else:
+            upper = f"{{{range_info.stop_int - 1}}}"
+
+        return lower_rhs, upper
+
+    def _get_sum_prod_info(self, node: ast.GeneratorExp) -> tuple[str, str, str]:
+        r"""Process GeneratorExp for sum and prod functions.
+
+        Args:
+            node: GeneratorExp node to be analyzed.
+
+        Returns:
+            Tuple of following strings:
+                - elt
+                - lower
+                - upper
+            which are used to represent sum/prod operators as follows:
+                "\sum_{lower}^{upper} {elt}"
+
+        Raises:
+            LateixfyError: Unsupported AST is given.
+        """
 
         # TODO(odashi): This could be supported.
         if len(node.generators) != 1:
@@ -321,37 +383,26 @@ class FunctionCodegen(ast.NodeVisitor):
 
         comp = node.generators[0]
 
-        if not (
-            isinstance(comp.iter, ast.Call)
-            and isinstance(comp.iter.func, ast.Name)
-            and comp.iter.func.id == "range"
-            and 1 <= len(comp.iter.args) <= 2
-            and not comp.ifs
-        ):
-            raise exceptions.LatexifySyntaxError(
-                "Comprehension with range contains unsupported syntax."
+        # TODO(odashi): This could be supported.
+        if comp.ifs:
+            raise exceptions.LatexifyNotSupportedError(
+                "If-clause in comprehension is not supported."
             )
 
-        elt_str = self.visit(node.elt)
-        target_str = self.visit(comp.target)
-        args_str = [self.visit(arg) for arg in comp.iter.args]
+        elt = self.visit(node.elt)
+        target = self.visit(comp.target)
 
-        if len(args_str) == 1:
-            lower_str = "0"
-            upper_plus_1 = args_str[0]
+        range_args = self._get_sum_prod_range(comp)
+
+        if range_args is not None:
+            lower_rhs, upper = range_args
+            lower = f"{target} = {lower_rhs}"
         else:
-            lower_str = args_str[0]
-            upper_plus_1 = args_str[1]
+            lower_rhs = self.visit(comp.iter)
+            lower = rf"{target} \in {lower_rhs}"
+            upper = ""
 
-        # Upper bound of range is exclusive. Try to numerically subtract it by 1.
-        try:
-            upper_plus_1_unwrapped = upper_plus_1[1:-1]  # Remove { and }
-            upper_str = str(int(upper_plus_1_unwrapped) - 1)
-        except ValueError:
-            upper_str = "{" + upper_plus_1 + " - 1}"
-
-        # Used for: \sum_{target_str = lower_str}^{upper_str} elt_str
-        return elt_str, target_str, lower_str, upper_str
+        return elt, lower, upper
 
     # Until 3.8
     def visit_Index(self, node: ast.Index) -> str:

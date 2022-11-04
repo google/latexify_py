@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ast
-from latexify import parser, test_utils
+from latexify import ast_utils, parser, test_utils
 
 from latexify.transformers.assignment_reducer import AssignmentReducer
 
@@ -54,7 +54,7 @@ def test_constant() -> None:
 
     expected = _make_ast(
         [
-            ast.Return(value=test_utils.make_num(0)),
+            ast.Return(value=ast_utils.make_constant(0)),
         ]
     )
     transformed = AssignmentReducer().visit(parser.parse_function(f))
@@ -70,7 +70,7 @@ def test_nested() -> None:
         [
             ast.Return(
                 value=ast.BinOp(
-                    left=test_utils.make_num(2),
+                    left=ast_utils.make_constant(2),
                     op=ast.Mult(),
                     right=ast.Name(id="x", ctx=ast.Load()),
                 )
@@ -91,10 +91,10 @@ def test_nested2() -> None:
         [
             ast.Return(
                 value=ast.BinOp(
-                    left=test_utils.make_num(3),
+                    left=ast_utils.make_constant(3),
                     op=ast.Add(),
                     right=ast.BinOp(
-                        left=test_utils.make_num(2),
+                        left=ast_utils.make_constant(2),
                         op=ast.Mult(),
                         right=ast.Name(id="x", ctx=ast.Load()),
                     ),
@@ -116,7 +116,7 @@ def test_overwrite() -> None:
         [
             ast.Return(
                 value=ast.BinOp(
-                    left=test_utils.make_num(3),
+                    left=ast_utils.make_constant(3),
                     op=ast.Add(),
                     right=ast.Name(id="x", ctx=ast.Load()),
                 )
