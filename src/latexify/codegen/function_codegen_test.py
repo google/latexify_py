@@ -44,10 +44,12 @@ def test_visit_functiondef_use_signature() -> None:
 @pytest.mark.parametrize(
     "src_suffix,dest_suffix",
     [
+        # No comprehension
         ("(x)", r" \left({x}\right)"),
         ("([1, 2])", r" \left({\left[ {1}\space,\space {2}\right] }\right)"),
         ("({1, 2})", r" \left({\left\{ {1}\space,\space {2}\right\} }\right)"),
         ("(f(x))", r" \left({\mathrm{f}\left(x\right)}\right)"),
+        # Single comprehension
         ("(i for i in x)", r"_{i \in x}^{} \left({i}\right)"),
         (
             "(i for i in [1, 2])",
@@ -76,11 +78,34 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
 
-def test_visit_call_sum_prod_multi_comprehension() -> None:
-    for fn_name in ["sum", "math.prod"]:
-        node = ast.parse(f"{fn_name}(i for y in x for i in y)").body[0].value
-        with pytest.raises(exceptions.LatexifyNotSupportedError, match="^Multi-clause"):
-            FunctionCodegen().visit(node)
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        # 2 clauses
+        (
+            "sum(i for y in x for i in y)",
+            r"\sum_{y \in x}^{} \sum_{i \in y}^{} \left({i}\right)",
+        ),
+        (
+            "sum(i for y in x for z in y for i in z)",
+            r"\sum_{y \in x}^{} \sum_{z \in y}^{} \sum_{i \in z}^{} \left({i}\right)",
+        ),
+        # 3 clauses
+        (
+            "math.prod(i for y in x for i in y)",
+            r"\prod_{y \in x}^{} \prod_{i \in y}^{} \left({i}\right)",
+        ),
+        (
+            "math.prod(i for y in x for z in y for i in z)",
+            r"\prod_{y \in x}^{} \prod_{z \in y}^{} \prod_{i \in z}^{} "
+            r"\left({i}\right)",
+        ),
+    ],
+)
+def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> None:
+    node = ast.parse(code).body[0].value
+    assert isinstance(node, ast.Call)
+    assert FunctionCodegen().visit(node) == latex
 
 
 def test_visit_call_sum_prod_with_if() -> None:

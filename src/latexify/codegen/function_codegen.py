@@ -138,8 +138,9 @@ class FunctionCodegen(ast.NodeVisitor):
         )
 
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
-            elt, lower, upper = self._get_sum_prod_info(node.args[0])
-            return rf"\{func_str}_{{{lower}}}^{{{upper}}} \left({{{elt}}}\right)"
+            elt, scripts = self._get_sum_prod_info(node.args[0])
+            scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
+            return " ".join(scripts_str) + rf" \left({{{elt}}}\right)"
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
@@ -357,7 +358,9 @@ class FunctionCodegen(ast.NodeVisitor):
 
         return lower_rhs, upper
 
-    def _get_sum_prod_info(self, node: ast.GeneratorExp) -> tuple[str, str, str]:
+    def _get_sum_prod_info(
+        self, node: ast.GeneratorExp
+    ) -> tuple[str, list[tuple[str, str]]]:
         r"""Process GeneratorExp for sum and prod functions.
 
         Args:
@@ -366,43 +369,41 @@ class FunctionCodegen(ast.NodeVisitor):
         Returns:
             Tuple of following strings:
                 - elt
-                - lower
-                - upper
+                - scripts
             which are used to represent sum/prod operators as follows:
-                "\sum_{lower}^{upper} {elt}"
+                \sum_{scripts[0][0]}^{scripts[0][1]}
+                    \sum_{scripts[1][0]}^{scripts[1][1]}
+                    ...
+                    {elt}
 
         Raises:
             LateixfyError: Unsupported AST is given.
         """
-
-        # TODO(odashi): This could be supported.
-        if len(node.generators) != 1:
-            raise exceptions.LatexifyNotSupportedError(
-                "Multi-clause comprehension is not supported."
-            )
-
-        comp = node.generators[0]
-
-        # TODO(odashi): This could be supported.
-        if comp.ifs:
-            raise exceptions.LatexifyNotSupportedError(
-                "If-clause in comprehension is not supported."
-            )
-
         elt = self.visit(node.elt)
-        target = self.visit(comp.target)
 
-        range_args = self._get_sum_prod_range(comp)
+        scripts: list[tuple[str, str]] = []
 
-        if range_args is not None:
-            lower_rhs, upper = range_args
-            lower = f"{target} = {lower_rhs}"
-        else:
-            lower_rhs = self.visit(comp.iter)
-            lower = rf"{target} \in {lower_rhs}"
-            upper = ""
+        for comp in node.generators:
+            # TODO(odashi): This could be supported.
+            if comp.ifs:
+                raise exceptions.LatexifyNotSupportedError(
+                    "If-clause in comprehension is not supported."
+                )
 
-        return elt, lower, upper
+            target = self.visit(comp.target)
+            range_args = self._get_sum_prod_range(comp)
+
+            if range_args is not None:
+                lower_rhs, upper = range_args
+                lower = f"{target} = {lower_rhs}"
+            else:
+                lower_rhs = self.visit(comp.iter)
+                lower = rf"{target} \in {lower_rhs}"
+                upper = ""
+
+            scripts.append((lower, upper))
+
+        return elt, scripts
 
     # Until 3.8
     def visit_Index(self, node: ast.Index) -> str:
