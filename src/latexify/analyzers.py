@@ -32,6 +32,9 @@ def analyze_range(node: ast.Call) -> RangeInfo:
 
     Returns:
         RangeInfo extracted from `node`.
+
+    Raises:
+        LatexifySyntaxError: Analysis failed.
     """
     if not (
         isinstance(node.func, ast.Name)

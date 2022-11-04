@@ -138,9 +138,8 @@ class FunctionCodegen(ast.NodeVisitor):
         )
 
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
-            # Special treatment for sum/prod(x for x in range(a, b))
-            elt, tgt, lo, up = self._get_range_info(node.args[0])
-            return rf"\{func_str}_{{{tgt} = {lo}}}^{{{up}}} \left({{{elt}}}\right)"
+            elt, lower, upper = self._get_sum_prod_info(node.args[0])
+            return rf"\{func_str}_{{{lower}}}^{{{upper}}} \left({{{elt}}}\right)"
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
@@ -311,22 +310,29 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
-    def _get_range_info(self, node: ast.GeneratorExp) -> tuple[str, str, str, str]:
-        """Processor for (x for x in range(a, b))"""
+    def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
+        """Helper to process range(...) for sum and prod functions.
 
-        # TODO(odashi): This could be supported.
-        if len(node.generators) != 1:
-            raise exceptions.LatexifyNotSupportedError(
-                "Multi-clause comprehension is not supported."
-            )
+        Args:
+            node: comprehension node to be analyzed.
 
-        comp = node.generators[0]
+        Returns:
+            Tuple of following strings:
+                - lower_rhs
+                - upper
+            which are used in _get_sum_prod_info, or None if the analysis failed.
+        """
+        if not (
+            isinstance(node.iter, ast.Call)
+            and isinstance(node.iter.func, ast.Name)
+            and node.iter.func.id == "range"
+        ):
+            return None
 
-        if not isinstance(comp.iter, ast.Call) or comp.ifs:
-            raise exceptions.LatexifyNotSupportedError("Unsupported comprehension.")
-
-        # May cause LatexifyError
-        range_info = analyzers.analyze_range(comp.iter)
+        try:
+            range_info = analyzers.analyze_range(node.iter)
+        except exceptions.LatexifyError:
+            return None
 
         if (
             # Only accepts ascending order with step size 1.
@@ -337,23 +343,66 @@ class FunctionCodegen(ast.NodeVisitor):
                 and range_info.start_int >= range_info.stop_int
             )
         ):
-            raise exceptions.LatexifyNotSupportedError("Unsupported comprehension.")
-
-        elt_str = self.visit(node.elt)
-        target_str = self.visit(comp.target)
+            return None
 
         if range_info.start_int is None:
-            lower_str = self.visit(range_info.start)
+            lower_rhs = self.visit(range_info.start)
         else:
-            lower_str = f"{{{range_info.start_int}}}"
+            lower_rhs = f"{{{range_info.start_int}}}"
 
         if range_info.stop_int is None:
-            upper_str = "{" + self.visit(range_info.stop) + " - 1}"
+            upper = "{" + self.visit(range_info.stop) + " - 1}"
         else:
-            upper_str = f"{{{range_info.stop_int - 1}}}"
+            upper = f"{{{range_info.stop_int - 1}}}"
 
-        # Used for: \sum_{target_str = lower_str}^{upper_str} elt_str
-        return elt_str, target_str, lower_str, upper_str
+        return lower_rhs, upper
+
+    def _get_sum_prod_info(self, node: ast.GeneratorExp) -> tuple[str, str, str]:
+        r"""Process GeneratorExp for sum and prod functions.
+
+        Args:
+            node: GeneratorExp node to be analyzed.
+
+        Returns:
+            Tuple of following strings:
+                - elt
+                - lower
+                - upper
+            which are used to represent sum/prod operators as follows:
+                "\sum_{lower}^{upper} {elt}"
+
+        Raises:
+            LateixfyError: Unsupported AST is given.
+        """
+
+        # TODO(odashi): This could be supported.
+        if len(node.generators) != 1:
+            raise exceptions.LatexifyNotSupportedError(
+                "Multi-clause comprehension is not supported."
+            )
+
+        comp = node.generators[0]
+
+        # TODO(odashi): This could be supported.
+        if comp.ifs:
+            raise exceptions.LatexifyNotSupportedError(
+                "If-clause in comprehension is not supported."
+            )
+
+        elt = self.visit(node.elt)
+        target = self.visit(comp.target)
+
+        range_args = self._get_sum_prod_range(comp)
+
+        if range_args is not None:
+            lower_rhs, upper = range_args
+            lower = f"{target} = {lower_rhs}"
+        else:
+            lower_rhs = self.visit(comp.iter)
+            lower = rf"{target} \in {lower_rhs}"
+            upper = ""
+
+        return elt, lower, upper
 
     # Until 3.8
     def visit_Index(self, node: ast.Index) -> str:
