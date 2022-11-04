@@ -12,7 +12,7 @@ from latexify import ast_utils, exceptions
 class RangeInfo:
     """Information of the range function."""
 
-    # Argument subtrees. These areguments could be shallow copies of the original
+    # Argument subtrees. These arguments could be shallow copies of the original
     # subtree.
     start: ast.expr
     stop: ast.expr
