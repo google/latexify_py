@@ -384,22 +384,26 @@ class FunctionCodegen(ast.NodeVisitor):
         scripts: list[tuple[str, str]] = []
 
         for comp in node.generators:
-            # TODO(odashi): This could be supported.
-            if comp.ifs:
-                raise exceptions.LatexifyNotSupportedError(
-                    "If-clause in comprehension is not supported."
-                )
-
             target = self.visit(comp.target)
             range_args = self._get_sum_prod_range(comp)
 
-            if range_args is not None:
+            if range_args is not None and not comp.ifs:
                 lower_rhs, upper = range_args
                 lower = f"{target} = {lower_rhs}"
             else:
                 lower_rhs = self.visit(comp.iter)
-                lower = rf"{target} \in {lower_rhs}"
+                lower_in = rf"{target} \in {lower_rhs}"
                 upper = ""
+
+                if comp.ifs:
+                    conds = [lower_in] + [self.visit(cond) for cond in comp.ifs]
+                    lower = r" \land ".join(conds)
+                    # TODO(odashi):
+                    # Following form may be prettier, but requires amsmath.
+                    # It would be good if we have an option to switch the behavior.
+                    # lower = r"\substack{" + r" \\ ".join(lowers) + "}"
+                else:
+                    lower = lower_in
 
             scripts.append((lower, upper))
 
