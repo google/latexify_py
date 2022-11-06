@@ -108,11 +108,26 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     assert FunctionCodegen().visit(node) == latex
 
 
-def test_visit_call_sum_prod_with_if() -> None:
-    for fn_name in ["sum", "math.prod"]:
-        node = ast.parse(f"{fn_name}(i for y in x if y == 0)").body[0].value
-        with pytest.raises(exceptions.LatexifyNotSupportedError, match="^If-clause"):
-            FunctionCodegen().visit(node)
+@pytest.mark.parametrize(
+    "src_suffix,dest_suffix",
+    [
+        (
+            "(i for i in x if i < y)",
+            r"_{\left(i \in x\right) \land \left({i < y}\right)}^{} \left({i}\right)",
+        ),
+        (
+            "(i for i in x if i < y if f(i))",
+            r"_{\left(i \in x\right) \land \left({i < y}\right)"
+            r" \land \left(\mathrm{f}\left(i\right)\right)}^{}"
+            r" \left({i}\right)",
+        ),
+    ],
+)
+def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
+    for src_fn, dest_fn in [("sum", r"\sum"), ("math.prod", r"\prod")]:
+        node = ast.parse(src_fn + src_suffix).body[0].value
+        assert isinstance(node, ast.Call)
+        assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
 
 @pytest.mark.parametrize(
