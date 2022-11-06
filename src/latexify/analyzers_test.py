@@ -100,7 +100,7 @@ def test_analyze_range(
     code: str,
     start: ast.expr,
     stop: ast.expr,
-    step: ast.expr | None,
+    step: ast.expr,
     start_int: int | None,
     stop_int: int | None,
     step_int: int | None,
