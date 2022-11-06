@@ -397,7 +397,8 @@ class FunctionCodegen(ast.NodeVisitor):
 
                 if comp.ifs:
                     conds = [lower_in] + [self.visit(cond) for cond in comp.ifs]
-                    lower = r" \land ".join(conds)
+                    conds_wrapped = [r"\left(" + cond + r"\right)" for cond in conds]
+                    lower = r" \land ".join(conds_wrapped)
                     # TODO(odashi):
                     # Following form may be prettier, but requires amsmath.
                     # It would be good if we have an option to switch the behavior.

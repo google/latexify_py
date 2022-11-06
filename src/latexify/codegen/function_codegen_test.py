@@ -113,12 +113,13 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     [
         (
             "(i for i in x if i < y)",
-            r"_{i \in x \land {i < y}}^{} \left({i}\right)",
+            r"_{\left(i \in x\right) \land \left({i < y}\right)}^{} \left({i}\right)",
         ),
         (
             "(i for i in x if i < y if f(i))",
-            r"_{i \in x \land {i < y} \land \mathrm{f}\left(i\right)}^{} "
-            r"\left({i}\right)",
+            r"_{\left(i \in x\right) \land \left({i < y}\right)"
+            r" \land \left(\mathrm{f}\left(i\right)\right)}^{}"
+            r" \left({i}\right)",
         ),
     ],
 )
