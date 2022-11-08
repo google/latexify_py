@@ -216,3 +216,11 @@ def test_reduce_assignments_with_if() -> None:
         ),
         reduce_assignments=True,
     )
+
+
+def test_sub_bracket() -> None:
+    def solve(a, b):
+        return ((a + b) - b) / (a - b) - (a + b) - (a - b) - (a * b)
+
+    latex = r"\mathrm{solve}(a, b) = \frac{a + b - b}{a - b} - (a + b) - (a - b) - ab"
+    _check_function(solve, latex)

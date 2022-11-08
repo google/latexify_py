@@ -229,12 +229,12 @@ class FunctionCodegen(ast.NodeVisitor):
         def _unwrap(child):
             return self.visit(child)
 
-        def _wrap(child):
+        def _wrap(child, force_use_bracket=False):
             latex = _unwrap(child)
             if isinstance(child, ast.BinOp):
                 cp = priority[type(child.op)] if type(child.op) in priority else 100
                 pp = priority[type(node.op)] if type(node.op) in priority else 100
-                if cp < pp:
+                if cp < pp or (cp == pp and force_use_bracket):
                     return "(" + latex + ")"
             return latex
 
@@ -242,7 +242,7 @@ class FunctionCodegen(ast.NodeVisitor):
         rhs = node.right
         reprs = {
             ast.Add: (lambda: _wrap(lhs) + " + " + _wrap(rhs)),
-            ast.Sub: (lambda: _wrap(lhs) + " - " + _wrap(rhs)),
+            ast.Sub: (lambda: _wrap(lhs) + " - " + _wrap(rhs, True)),
             ast.Mult: (lambda: _wrap(lhs) + _wrap(rhs)),
             ast.MatMult: (lambda: _wrap(lhs) + _wrap(rhs)),
             ast.Div: (lambda: r"\frac{" + _unwrap(lhs) + "}{" + _unwrap(rhs) + "}"),
