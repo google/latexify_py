@@ -42,6 +42,96 @@ def test_visit_functiondef_use_signature() -> None:
 
 
 @pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("[i for i in n]", r"\left[ i \mid i \in n \right]"),
+        (
+            "[i for i in n if i > 0]",
+            r"\left[ i \mid"
+            r" \left( i \in n \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \right]",
+        ),
+        (
+            "[i for i in n if i > 0 if f(i)]",
+            r"\left[ i \mid"
+            r" \left( i \in n \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \land \left( \mathrm{f}\left(i\right) \right)"
+            r" \right]",
+        ),
+        ("[i for k in n for i in k]", r"\left[ i \mid k \in n, i \in k" r" \right]"),
+        (
+            "[i for k in n for i in k if i > 0]",
+            r"\left[ i \mid"
+            r" k \in n,"
+            r" \left( i \in k \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \right]",
+        ),
+        (
+            "[i for k in n if f(k) for i in k if i > 0]",
+            r"\left[ i \mid"
+            r" \left( k \in n \right)"
+            r" \land \left( \mathrm{f}\left(k\right) \right),"
+            r" \left( i \in k \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \right]",
+        ),
+    ],
+)
+def test_visit_listcomp(code: str, latex: str) -> None:
+    node = ast.parse(code).body[0].value
+    assert isinstance(node, ast.ListComp)
+    assert FunctionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("{i for i in n}", r"\left\{ i \mid i \in n \right\}"),
+        (
+            "{i for i in n if i > 0}",
+            r"\left\{ i \mid"
+            r" \left( i \in n \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \right\}",
+        ),
+        (
+            "{i for i in n if i > 0 if f(i)}",
+            r"\left\{ i \mid"
+            r" \left( i \in n \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \land \left( \mathrm{f}\left(i\right) \right)"
+            r" \right\}",
+        ),
+        ("{i for k in n for i in k}", r"\left\{ i \mid k \in n, i \in k" r" \right\}"),
+        (
+            "{i for k in n for i in k if i > 0}",
+            r"\left\{ i \mid"
+            r" k \in n,"
+            r" \left( i \in k \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \right\}",
+        ),
+        (
+            "{i for k in n if f(k) for i in k if i > 0}",
+            r"\left\{ i \mid"
+            r" \left( k \in n \right)"
+            r" \land \left( \mathrm{f}\left(k\right) \right),"
+            r" \left( i \in k \right)"
+            r" \land \left( {i > {0}} \right)"
+            r" \right\}",
+        ),
+    ],
+)
+def test_visit_setcomp(code: str, latex: str) -> None:
+    node = ast.parse(code).body[0].value
+    assert isinstance(node, ast.SetComp)
+    assert FunctionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
     "src_suffix,dest_suffix",
     [
         # No comprehension
@@ -113,12 +203,13 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     [
         (
             "(i for i in x if i < y)",
-            r"_{\left(i \in x\right) \land \left({i < y}\right)}^{} \left({i}\right)",
+            r"_{\left( i \in x \right) \land \left( {i < y} \right)}^{} "
+            r"\left({i}\right)",
         ),
         (
             "(i for i in x if i < y if f(i))",
-            r"_{\left(i \in x\right) \land \left({i < y}\right)"
-            r" \land \left(\mathrm{f}\left(i\right)\right)}^{}"
+            r"_{\left( i \in x \right) \land \left( {i < y} \right)"
+            r" \land \left( \mathrm{f}\left(i\right) \right)}^{}"
             r" \left({i}\right)",
         ),
     ],
