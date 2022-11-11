@@ -119,6 +119,37 @@ class FunctionCodegen(ast.NodeVisitor):
         elts = [self.visit(i) for i in node.elts]
         return r"\left\{ " + r"\space,\space ".join(elts) + r"\right\} "
 
+    def visit_ListComp(self, node: ast.ListComp) -> str:
+        generators = [self.visit(comp) for comp in node.generators]
+        return (
+            r"\left[ "
+            + self.visit(node.elt)
+            + r" \mid "
+            + ", ".join(generators)
+            + r" \right]"
+        )
+
+    def visit_SetComp(self, node: ast.SetComp) -> str:
+        generators = [self.visit(comp) for comp in node.generators]
+        return (
+            r"\left\{ "
+            + self.visit(node.elt)
+            + r" \mid "
+            + ", ".join(generators)
+            + r" \right\}"
+        )
+
+    def visit_comprehension(self, node: ast.comprehension) -> str:
+        target = rf"{self.visit(node.target)} \in {self.visit(node.iter)}"
+
+        if not node.ifs:
+            # Returns the source without parenthesis.
+            return target
+
+        conds = [target] + [self.visit(cond) for cond in node.ifs]
+        wrapped = [r"\left( " + s + r" \right)" for s in conds]
+        return r" \land ".join(wrapped)
+
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
         # Function signature (possibly an expression).
@@ -384,27 +415,15 @@ class FunctionCodegen(ast.NodeVisitor):
         scripts: list[tuple[str, str]] = []
 
         for comp in node.generators:
-            target = self.visit(comp.target)
             range_args = self._get_sum_prod_range(comp)
 
             if range_args is not None and not comp.ifs:
+                target = self.visit(comp.target)
                 lower_rhs, upper = range_args
                 lower = f"{target} = {lower_rhs}"
             else:
-                lower_rhs = self.visit(comp.iter)
-                lower_in = rf"{target} \in {lower_rhs}"
+                lower = self.visit(comp)  # Use a usual comprehension form.
                 upper = ""
-
-                if comp.ifs:
-                    conds = [lower_in] + [self.visit(cond) for cond in comp.ifs]
-                    conds_wrapped = [r"\left(" + cond + r"\right)" for cond in conds]
-                    lower = r" \land ".join(conds_wrapped)
-                    # TODO(odashi):
-                    # Following form may be prettier, but requires amsmath.
-                    # It would be good if we have an option to switch the behavior.
-                    # lower = r"\substack{" + r" \\ ".join(lowers) + "}"
-                else:
-                    lower = lower_in
 
             scripts.append((lower, upper))
 
