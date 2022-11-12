@@ -51,7 +51,7 @@ def test_quadratic_solution() -> None:
     def solve(a, b, c):
         return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
-    latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4}ac}}{{2}a}"
+    latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}"
     _check_function(solve, latex)
 
 
@@ -76,11 +76,11 @@ def test_x_times_beta() -> None:
     def xtimesbeta(x, beta):
         return x * beta
 
-    latex_without_symbols = r"\mathrm{xtimesbeta}(x, beta) = xbeta"
+    latex_without_symbols = r"\mathrm{xtimesbeta}(x, beta) = x beta"
     _check_function(xtimesbeta, latex_without_symbols)
     _check_function(xtimesbeta, latex_without_symbols, use_math_symbols=False)
 
-    latex_with_symbols = r"\mathrm{xtimesbeta}(x, {\beta}) = x{\beta}"
+    latex_with_symbols = r"\mathrm{xtimesbeta}(x, {\beta}) = x {\beta}"
     _check_function(xtimesbeta, latex_with_symbols, use_math_symbols=True)
 
 
@@ -130,7 +130,7 @@ def test_nested_function() -> None:
     def nested(x):
         return 3 * x
 
-    _check_function(nested, r"\mathrm{nested}(x) = {3}x")
+    _check_function(nested, r"\mathrm{nested}(x) = {3} x")
 
 
 def test_double_nested_function() -> None:
@@ -140,7 +140,7 @@ def test_double_nested_function() -> None:
 
         return inner
 
-    _check_function(nested(3), r"\mathrm{inner}(y) = xy")
+    _check_function(nested(3), r"\mathrm{inner}(y) = x y")
 
 
 def test_use_raw_function_name() -> None:
@@ -167,9 +167,13 @@ def test_reduce_assignments() -> None:
 
     _check_function(
         f,
-        r"\begin{array}{l} a = x + x \\ \mathrm{f}(x) = {3}a \end{array}",
+        r"\begin{array}{l} a = x + x \\ \mathrm{f}(x) = {3} a \end{array}",
     )
-    _check_function(f, r"\mathrm{f}(x) = {3}(x + x)", reduce_assignments=True)
+    _check_function(
+        f,
+        r"\mathrm{f}(x) = {3} \left( x + x \right)",
+        reduce_assignments=True,
+    )
 
 
 def test_reduce_assignments_double() -> None:
@@ -182,7 +186,7 @@ def test_reduce_assignments_double() -> None:
         r"\begin{array}{l} "
         r"a = x^{{2}} \\ "
         r"b = a + a \\ "
-        r"\mathrm{f}(x) = {3}b "
+        r"\mathrm{f}(x) = {3} b "
         r"\end{array}"
     )
 
@@ -190,7 +194,7 @@ def test_reduce_assignments_double() -> None:
     _check_function(f, latex_without_option, reduce_assignments=False)
     _check_function(
         f,
-        r"\mathrm{f}(x) = {3}(x^{{2}} + x^{{2}})",
+        r"\mathrm{f}(x) = {3} \left( x^{{2}} + x^{{2}} \right)",
         reduce_assignments=True,
     )
 
@@ -222,5 +226,8 @@ def test_sub_bracket() -> None:
     def solve(a, b):
         return ((a + b) - b) / (a - b) - (a + b) - (a - b) - (a * b)
 
-    latex = r"\mathrm{solve}(a, b) = \frac{a + b - b}{a - b} - (a + b) - (a - b) - ab"
+    latex = (
+        r"\mathrm{solve}(a, b) = "
+        r"\frac{a + b - b}{a - b} - \left( a + b \right) - \left( a - b \right) - a b"
+    )
     _check_function(solve, latex)

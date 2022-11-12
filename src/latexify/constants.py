@@ -13,12 +13,9 @@
 # limitations under the License.
 """Latexify module-level constants"""
 
-import ast
-
-
 PREFIXES = ["math", "numpy", "np"]
 
-BUILTIN_FUNCS = {
+BUILTIN_FUNCS: dict[str, tuple[str, str]] = {
     "abs": (r"\left|{", r"}\right|"),
     "acos": (r"\arccos{\left({", r"}\right)}"),
     "acosh": (r"\mathrm{arccosh}{\left({", r"}\right)}"),
@@ -51,15 +48,4 @@ BUILTIN_FUNCS = {
     "tan": (r"\tan{\left({", r"}\right)}"),
     "tanh": (r"\tanh{\left({", r"}\right)}"),
     "sum": (r"\sum \left({", r"}\right)"),
-}
-
-BIN_OP_PRIORITY = {
-    ast.Add: 10,
-    ast.Sub: 10,
-    ast.Mult: 20,
-    ast.MatMult: 20,
-    ast.Div: 20,
-    ast.FloorDiv: 20,
-    ast.Mod: 20,
-    ast.Pow: 30,
 }
