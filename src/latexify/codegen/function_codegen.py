@@ -3,12 +3,84 @@
 from __future__ import annotations
 
 import ast
-from typing import Any, ClassVar
+import dataclasses
+from typing import Any
 
 from latexify import analyzers
 from latexify import constants
 from latexify import math_symbols
 from latexify import exceptions
+
+
+@dataclasses.dataclass(frozen=True)
+class BinOpRule:
+    """Syntax rules for binary operators."""
+
+    # Precedence of this operator.
+    # See also: https://docs.python.org/3/reference/expressions.html
+    precedence: int
+
+    # Left/middle/right syntaxes to wrap operands.
+    latex_left: str
+    latex_middle: str
+    latex_right: str
+
+    # Whether to require wrapping operands by parentheses according to the precedence.
+    wrap_left: bool = True
+    wrap_right: bool = True
+
+    # Whether to require wrapping operands by parentheses if the operand has the same
+    # precedence with this operator.
+    # This is used to control the behavior of non-associative operators.
+    force_left: bool = False
+    force_right: bool = False
+
+    # Whether to assume the resulting syntax is wrapped by some bracket operators.
+    # If True, the parent operator can avoid wrapping this operator by parentheses.
+    is_wrapped: bool = False
+
+
+_BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
+    ast.Pow: BinOpRule(70, "", "^{", "}", wrap_right=False, force_left=True),
+    ast.Mult: BinOpRule(60, "", " ", ""),
+    ast.MatMult: BinOpRule(60, "", " ", ""),
+    ast.Div: BinOpRule(60, r"\frac{", "}{", "}", wrap_left=False, wrap_right=False),
+    ast.FloorDiv: BinOpRule(
+        60,
+        r"\left\lfloor\frac{",
+        "}{",
+        r"}\right\rfloor",
+        wrap_left=False,
+        wrap_right=False,
+        is_wrapped=True,
+    ),
+    ast.Mod: BinOpRule(60, "", r" \mathbin{\%} ", "", force_right=True),
+    ast.Add: BinOpRule(50, "", " + ", ""),
+    ast.Sub: BinOpRule(50, "", " - ", "", force_right=True),
+    ast.LShift: BinOpRule(40, "", r" \ll ", "", force_right=True),
+    ast.RShift: BinOpRule(40, "", r" \gg ", "", force_right=True),
+    ast.BitAnd: BinOpRule(30, "", r" \mathbin{\&} ", ""),
+    ast.BitXor: BinOpRule(20, "", r" \oplus ", ""),
+    ast.BitOr: BinOpRule(10, "", r" \mathbin{|} ", ""),
+}
+
+_COMPARE_OPS: dict[type[ast.cmpop], str] = {
+    ast.Eq: "=",
+    ast.Gt: ">",
+    ast.GtE: r"\ge",
+    ast.In: r"\in",
+    ast.Is: r"\equiv",
+    ast.IsNot: r"\not\equiv",
+    ast.Lt: "<",
+    ast.LtE: r"\le",
+    ast.NotEq: r"\ne",
+    ast.NotIn: r"\notin",
+}
+
+_BOOL_OPS: dict[type[ast.boolop], str] = {
+    ast.And: r"\land",
+    ast.Or: r"\lor",
+}
 
 
 class FunctionCodegen(ast.NodeVisitor):
@@ -253,75 +325,63 @@ class FunctionCodegen(ast.NodeVisitor):
             return reprs[type(node.op)]()
         return r"\mathrm{unknown\_uniop}(" + self.visit(node.operand) + ")"
 
-    def visit_BinOp(self, node: ast.BinOp) -> str:
-        """Visit a binary op node."""
-        priority = constants.BIN_OP_PRIORITY
+    def _wrap_binop_operand(
+        self,
+        child: ast.expr,
+        parent_rule: BinOpRule,
+        is_left: bool,
+    ) -> str:
+        """Wraps the given LaTeX with parenthesis.
 
-        def _unwrap(child):
-            return self.visit(child)
+        Args:
+            child: Child subtree.
+            parent_rule: Syntax rule of the parent operator.
+            is_left: Position of the `child` in the parent operator:
+                - True: `child` is the left-hand side operand.
+                - False: `child` is the right-hand side operand.
 
-        def _wrap(child, force_use_bracket=False):
-            latex = _unwrap(child)
-            if isinstance(child, ast.BinOp):
-                cp = priority[type(child.op)] if type(child.op) in priority else 100
-                pp = priority[type(node.op)] if type(node.op) in priority else 100
-                if cp < pp or (cp == pp and force_use_bracket):
-                    return "(" + latex + ")"
+        Returns:
+            LaTeX form of the `child`, with or without a surrounding parenthesis.
+        """
+        latex = self.visit(child)
+
+        if not isinstance(child, ast.BinOp):
             return latex
 
-        lhs = node.left
-        rhs = node.right
-        reprs = {
-            ast.Add: (lambda: _wrap(lhs) + " + " + _wrap(rhs)),
-            ast.Sub: (lambda: _wrap(lhs) + " - " + _wrap(rhs, True)),
-            ast.Mult: (lambda: _wrap(lhs) + _wrap(rhs)),
-            ast.MatMult: (lambda: _wrap(lhs) + _wrap(rhs)),
-            ast.Div: (lambda: r"\frac{" + _unwrap(lhs) + "}{" + _unwrap(rhs) + "}"),
-            ast.FloorDiv: (
-                lambda: r"\left\lfloor\frac{"
-                + _unwrap(lhs)
-                + "}{"
-                + _unwrap(rhs)
-                + r"}\right\rfloor"
-            ),
-            ast.Mod: (lambda: _wrap(lhs) + r" \bmod " + _wrap(rhs)),
-            ast.Pow: (lambda: _wrap(lhs) + "^{" + _unwrap(rhs) + "}"),
-        }
+        child_rule = _BIN_OP_RULES[type(child.op)]
+        wrap = parent_rule.wrap_left if is_left else parent_rule.wrap_right
 
-        if type(node.op) in reprs:
-            return reprs[type(node.op)]()
-        return r"\mathrm{unknown\_binop}(" + _unwrap(lhs) + ", " + _unwrap(rhs) + ")"
+        if not wrap or child_rule.is_wrapped:
+            return latex
 
-    _compare_ops: ClassVar[dict[type[ast.cmpop], str]] = {
-        ast.Eq: "=",
-        ast.Gt: ">",
-        ast.GtE: r"\ge",
-        ast.In: r"\in",
-        ast.Is: r"\equiv",
-        ast.IsNot: r"\not\equiv",
-        ast.Lt: "<",
-        ast.LtE: r"\le",
-        ast.NotEq: r"\ne",
-        ast.NotIn: r"\notin",
-    }
+        child_prec = child_rule.precedence
+        parent_prec = parent_rule.precedence
+        force = parent_rule.force_left if is_left else parent_rule.force_right
+
+        if child_prec > parent_prec or (child_prec == parent_prec and not force):
+            return latex
+
+        return rf"\left( {latex} \right)"
+
+    def visit_BinOp(self, node: ast.BinOp) -> str:
+        """Visit a BinOp node."""
+        rule = _BIN_OP_RULES[type(node.op)]
+        lhs = self._wrap_binop_operand(node.left, rule, is_left=True)
+        rhs = self._wrap_binop_operand(node.right, rule, is_left=False)
+        return f"{rule.latex_left}{lhs}{rule.latex_middle}{rhs}{rule.latex_right}"
 
     def visit_Compare(self, node: ast.Compare) -> str:
         """Visit a compare node."""
         lhs = self.visit(node.left)
-        ops = [self._compare_ops[type(x)] for x in node.ops]
+        ops = [_COMPARE_OPS[type(x)] for x in node.ops]
         rhs = [self.visit(x) for x in node.comparators]
         ops_rhs = [f" {o} {r}" for o, r in zip(ops, rhs)]
         return "{" + lhs + "".join(ops_rhs) + "}"
 
-    _bool_ops: ClassVar[dict[type[ast.boolop], str]] = {
-        ast.And: r"\land",
-        ast.Or: r"\lor",
-    }
-
     def visit_BoolOp(self, node: ast.BoolOp) -> str:
         """Visit a BoolOp node."""
         values = [rf"\left( {self.visit(x)} \right)" for x in node.values]
-        op = f" {self._bool_ops[type(node.op)]} "
+        op = f" {_BOOL_OPS[type(node.op)]} "
         return "{" + op.join(values) + "}"
 
     def visit_If(self, node: ast.If) -> str:

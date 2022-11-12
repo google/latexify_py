@@ -1,24 +1,10 @@
-# Copyright 2020 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Latexify module-level constants"""
 
-import ast
-
+from __future__ import annotations
 
 PREFIXES = ["math", "numpy", "np"]
 
-BUILTIN_FUNCS = {
+BUILTIN_FUNCS: dict[str, tuple[str, str]] = {
     "abs": (r"\left|{", r"}\right|"),
     "acos": (r"\arccos{\left({", r"}\right)}"),
     "acosh": (r"\mathrm{arccosh}{\left({", r"}\right)}"),
@@ -51,15 +37,4 @@ BUILTIN_FUNCS = {
     "tan": (r"\tan{\left({", r"}\right)}"),
     "tanh": (r"\tanh{\left({", r"}\right)}"),
     "sum": (r"\sum \left({", r"}\right)"),
-}
-
-BIN_OP_PRIORITY = {
-    ast.Add: 10,
-    ast.Sub: 10,
-    ast.Mult: 20,
-    ast.MatMult: 20,
-    ast.Div: 20,
-    ast.FloorDiv: 20,
-    ast.Mod: 20,
-    ast.Pow: 30,
 }
