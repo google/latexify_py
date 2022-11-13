@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 
 [project]
 name = "latexify-py"
-version = "0.1.1"
 description = "Generates LaTeX math description from Python functions."
 readme = "README.md"
 requires-python = ">=3.7, <3.11"
@@ -36,6 +35,9 @@ classifiers = [
 dependencies = [
     "dill>=0.3.2",
 ]
+dynamic = [
+    "version"
+]
 
 [project.optional-dependencies]
 dev = [
@@ -63,6 +65,9 @@ only-packages = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/latexify"]
+
+[tool.hatch.version]
+path = "src/latexify/_version.py"
 
 [tool.flake8]
 max-line-length = 88
