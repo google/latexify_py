@@ -51,5 +51,5 @@ or contact the [main maintainer](https://github.com/odashi).
 
 ## License 
 
-This Repository follows
+This software adopts the
 [Apache License 2.0](https://github.com/google/latexify_py/blob/develop/LICENSE).
