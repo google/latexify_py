@@ -27,9 +27,9 @@ corresponding $\LaTeX$ expression.
 
 ## Getting started
 
-The following
+We prepared a
 [Google Colaboratory notebook](https://colab.research.google.com/drive/1MuiawKpVIZ12MWwyYuzZHmbKThdM5wNJ?usp=sharing)
-provides several examples to use this package.
+that provides several examples to use this package.
 
 See also the official [documentation](docs/index.md) for more details.
 
