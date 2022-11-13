@@ -20,6 +20,7 @@ def get_latex(
     use_math_symbols: bool = False,
     use_raw_function_name: bool = False,
     use_signature: bool = True,
+    use_set_symbols: bool = False,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
@@ -38,6 +39,7 @@ def get_latex(
             or convert it to subscript.
         use_signature: Whether to add the function signature before the expression or
             not.
+        use_set_symbols: Whether to use set symbols or not.
 
     Returns:
         Generatee LaTeX description.
@@ -59,6 +61,7 @@ def get_latex(
         use_math_symbols=use_math_symbols,
         use_raw_function_name=use_raw_function_name,
         use_signature=use_signature,
+        use_set_symbols=use_set_symbols,
     ).visit(tree)
 
 
