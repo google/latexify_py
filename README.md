@@ -8,8 +8,6 @@ corresponding $\LaTeX$ expression.
 * Libraries to compile Python source code or AST to $\LaTeX$.
 * IPython classes to pretty-print compiled functions.
 
-See the [documentation](docs/index.md) for more details.
-
 
 ## FAQs
 
@@ -27,11 +25,13 @@ See the [documentation](docs/index.md) for more details.
    If the "AI" meant some techniques around machine learning, the answer is no.
 
 
-## Examples
+## Getting started
 
-Follow provided example on
-[Google Colaboratory](https://colab.research.google.com/drive/1MuiawKpVIZ12MWwyYuzZHmbKThdM5wNJ?usp=sharing).
+The following
+[Google Colaboratory notebook](https://colab.research.google.com/drive/1MuiawKpVIZ12MWwyYuzZHmbKThdM5wNJ?usp=sharing)
+provides several examples to use this package.
 
+See also the official [documentation](docs/index.md) for more details.
 
 ## How to Contribute
 
