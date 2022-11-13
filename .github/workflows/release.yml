@@ -1,0 +1,26 @@
+name: Release workflow
+
+on:
+  push:
+    tags:
+      - "v[0123456789].*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: build
+        run: |
+          echo "__version__ = \"${GITHUB_REF_NAME:1}\"" > src/latexify/_version.py
+          python -m pip install --upgrade build
+          python -m build
+      - name: publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
