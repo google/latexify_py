@@ -326,11 +326,83 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
         ("(x | y) ^ z", r"\left( x \mathbin{|} y \right) \oplus z"),
         # is_wrapped
         ("(x // y)**z", r"\left\lfloor\frac{x}{y}\right\rfloor^{z}"),
+        # With Call
+        ("x**f(y)", r"x^{\mathrm{f}\left(y\right)}"),
+        ("f(x)**y", r"\mathrm{f}\left(x\right)^{y}"),
+        ("x * f(y)", r"x \mathrm{f}\left(y\right)"),
+        ("f(x) * y", r"\mathrm{f}\left(x\right) y"),
+        ("x / f(y)", r"\frac{x}{\mathrm{f}\left(y\right)}"),
+        ("f(x) / y", r"\frac{\mathrm{f}\left(x\right)}{y}"),
+        ("x + f(y)", r"x + \mathrm{f}\left(y\right)"),
+        ("f(x) + y", r"\mathrm{f}\left(x\right) + y"),
+        # With UnaryOp
+        ("x**-y", r"x^{-y}"),
+        ("(-x)**y", r"\left( -x \right)^{y}"),
+        ("x * -y", r"x -y"),  # TODO(odashi): google/latexify_py#89
+        ("-x * y", r"-x y"),
+        ("x / -y", r"\frac{x}{-y}"),
+        ("-x / y", r"\frac{-x}{y}"),
+        ("x + -y", r"x + -y"),
+        ("-x + y", r"-x + y"),
+        # With Compare
+        ("x**(y == z)", r"x^{{y = z}}"),
+        ("(x == y)**z", r"\left( {x = y} \right)^{z}"),
+        ("x * (y == z)", r"x \left( {y = z} \right)"),
+        ("(x == y) * z", r"\left( {x = y} \right) z"),
+        ("x / (y == z)", r"\frac{x}{{y = z}}"),
+        ("(x == y) / z", r"\frac{{x = y}}{z}"),
+        ("x + (y == z)", r"x + \left( {y = z} \right)"),
+        ("(x == y) + z", r"\left( {x = y} \right) + z"),
+        # With BoolOp
+        ("x**(y and z)", r"x^{{y \land z}}"),
+        ("(x and y)**z", r"\left( {x \land y} \right)^{z}"),
+        ("x * (y and z)", r"x \left( {y \land z} \right)"),
+        ("(x and y) * z", r"\left( {x \land y} \right) z"),
+        ("x / (y and z)", r"\frac{x}{{y \land z}}"),
+        ("(x and y) / z", r"\frac{{x \land y}}{z}"),
+        ("x + (y and z)", r"x + \left( {y \land z} \right)"),
+        ("(x and y) + z", r"\left( {x \land y} \right) + z"),
     ],
 )
 def test_visit_binop(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.BinOp)
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        # With literals
+        ("+x", r"+x"),
+        ("-x", r"-x"),
+        ("~x", r"\mathord{\sim} x"),
+        ("not x", r"\lnot x"),
+        # With Call
+        ("+f(x)", r"+\mathrm{f}\left(x\right)"),
+        ("-f(x)", r"-\mathrm{f}\left(x\right)"),
+        ("~f(x)", r"\mathord{\sim} \mathrm{f}\left(x\right)"),
+        ("not f(x)", r"\lnot \mathrm{f}\left(x\right)"),
+        # With BinOp
+        ("+(x + y)", r"+\left( x + y \right)"),
+        ("-(x + y)", r"-\left( x + y \right)"),
+        ("~(x + y)", r"\mathord{\sim} \left( x + y \right)"),
+        ("not x + y", r"\lnot \left( x + y \right)"),
+        # With Compare
+        ("+(x == y)", r"+\left( {x = y} \right)"),
+        ("-(x == y)", r"-\left( {x = y} \right)"),
+        ("~(x == y)", r"\mathord{\sim} \left( {x = y} \right)"),
+        ("not x == y", r"\lnot \left( {x = y} \right)"),
+        # With BoolOp
+        ("+(x and y)", r"+\left( {x \land y} \right)"),
+        ("-(x and y)", r"-\left( {x \land y} \right)"),
+        ("~(x and y)", r"\mathord{\sim} \left( {x \land y} \right)"),
+        ("not (x and y)", r"\lnot \left( {x \land y} \right)"),
+    ],
+)
+def test_visit_unaryop(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.UnaryOp)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
@@ -366,6 +438,20 @@ def test_visit_binop(code: str, latex: str) -> None:
         ("a <= b == c", r"{a \le b = c}"),
         ("a <= b < c", r"{a \le b < c}"),
         ("a <= b <= c", r"{a \le b \le c}"),
+        # With Call
+        ("a == f(b)", r"{a = \mathrm{f}\left(b\right)}"),
+        ("f(a) == b", r"{\mathrm{f}\left(a\right) = b}"),
+        # With BinOp
+        ("a == b + c", r"{a = b + c}"),
+        ("a + b == c", r"{a + b = c}"),
+        # With UnaryOp
+        ("a == -b", r"{a = -b}"),
+        ("-a == b", r"{-a = b}"),
+        ("a == (not b)", r"{a = \lnot b}"),
+        ("(not a) == b", r"{\lnot a = b}"),
+        # With BoolOp
+        ("a == (b and c)", r"{a = \left( {b \land c} \right)}"),
+        ("(a and b) == c", r"{\left( {a \land b} \right) = c}"),
     ],
 )
 def test_visit_compare(code: str, latex: str) -> None:
@@ -377,16 +463,35 @@ def test_visit_compare(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("a and b", r"{\left( a \right) \land \left( b \right)}"),
-        (
-            "a and b and c",
-            r"{\left( a \right) \land \left( b \right) \land \left( c \right)}",
-        ),
-        ("a or b", r"{\left( a \right) \lor \left( b \right)}"),
-        (
-            "a or b or c",
-            r"{\left( a \right) \lor \left( b \right) \lor \left( c \right)}",
-        ),
+        # With literals
+        ("a and b", r"{a \land b}"),
+        ("a and b and c", r"{a \land b \land c}"),
+        ("a or b", r"{a \lor b}"),
+        ("a or b or c", r"{a \lor b \lor c}"),
+        ("a or b and c", r"{a \lor {b \land c}}"),
+        ("(a or b) and c", r"{\left( {a \lor b} \right) \land c}"),
+        ("a and b or c", r"{{a \land b} \lor c}"),
+        ("a and (b or c)", r"{a \land \left( {b \lor c} \right)}"),
+        # With Call
+        ("a and f(b)", r"{a \land \mathrm{f}\left(b\right)}"),
+        ("f(a) and b", r"{\mathrm{f}\left(a\right) \land b}"),
+        ("a or f(b)", r"{a \lor \mathrm{f}\left(b\right)}"),
+        ("f(a) or b", r"{\mathrm{f}\left(a\right) \lor b}"),
+        # With BinOp
+        ("a and b + c", r"{a \land b + c}"),
+        ("a + b and c", r"{a + b \land c}"),
+        ("a or b + c", r"{a \lor b + c}"),
+        ("a + b or c", r"{a + b \lor c}"),
+        # With UnaryOp
+        ("a and not b", r"{a \land \lnot b}"),
+        ("not a and b", r"{\lnot a \land b}"),
+        ("a or not b", r"{a \lor \lnot b}"),
+        ("not a or b", r"{\lnot a \lor b}"),
+        # With Compare
+        ("a and b == c", r"{a \land {b = c}}"),
+        ("a == b and c", r"{{a = b} \land c}"),
+        ("a or b == c", r"{a \lor {b = c}}"),
+        ("a == b or c", r"{{a = b} \lor c}"),
     ],
 )
 def test_visit_boolop(code: str, latex: str) -> None:
