@@ -3,7 +3,7 @@
 ## Index
 
 * [Getting started](getting_started.md)
-* [Parameters](getting_started.md)
+* [Parameters](parameters.md)
 
 ## External resources
 
