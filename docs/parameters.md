@@ -74,6 +74,8 @@ f
 
 $$\mathrm{quadratic\_solution}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}$$
 
+(note that GitHub's LaTeX renderrer does not process underscores correctly.)
+
 ## `use_set_symbols: bool`
 
 Whether to use binary operators for set operations or not.
