@@ -69,6 +69,18 @@ def test_get_latex_use_signature() -> None:
     assert frontend.get_latex(f, use_signature=True) == latex_with_flag
 
 
+def test_get_latex_use_set_symbols() -> None:
+    def f(x, y):
+        return x & y
+
+    latex_without_flag = r"\mathrm{f}(x, y) = x \mathbin{\&} y"
+    latex_with_flag = r"\mathrm{f}(x, y) = x \cap y"
+
+    assert frontend.get_latex(f) == latex_without_flag
+    assert frontend.get_latex(f, use_set_symbols=False) == latex_without_flag
+    assert frontend.get_latex(f, use_set_symbols=True) == latex_with_flag
+
+
 def test_function() -> None:
     def f(x):
         return x

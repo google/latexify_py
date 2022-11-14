@@ -563,3 +563,33 @@ def test_visit_subscript(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Subscript)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("a - b", r"a \setminus b"),
+        ("a & b", r"a \cap b"),
+        ("a ^ b", r"a \mathbin{\triangle} b"),
+        ("a | b", r"a \cup b"),
+    ],
+)
+def test_use_set_symbols_binop(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.BinOp)
+    assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("a < b", r"{a \subset b}"),
+        ("a <= b", r"{a \subseteq b}"),
+        ("a > b", r"{a \supset b}"),
+        ("a >= b", r"{a \supseteq b}"),
+    ],
+)
+def test_use_set_symbols_compare(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.Compare)
+    assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex

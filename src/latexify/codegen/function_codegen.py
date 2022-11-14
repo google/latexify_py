@@ -144,6 +144,17 @@ _BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
     ast.BitOr: BinOpRule("", r" \mathbin{|} ", ""),
 }
 
+# Typeset for BinOp of sets.
+_SET_BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
+    **_BIN_OP_RULES,
+    ast.Sub: BinOpRule(
+        "", r" \setminus ", "", operand_right=BinOperandRule(force=True)
+    ),
+    ast.BitAnd: BinOpRule("", r" \cap ", ""),
+    ast.BitXor: BinOpRule("", r" \mathbin{\triangle} ", ""),
+    ast.BitOr: BinOpRule("", r" \cup ", ""),
+}
+
 _UNARY_OPS: dict[type[ast.unaryop], str] = {
     ast.Invert: r"\mathord{\sim} ",
     ast.UAdd: "+",  # Explicitly adds the $+$ operator.
@@ -164,6 +175,15 @@ _COMPARE_OPS: dict[type[ast.cmpop], str] = {
     ast.NotIn: r"\notin",
 }
 
+# Typeset for Compare of sets.
+_SET_COMPARE_OPS: dict[type[ast.cmpop], str] = {
+    **_COMPARE_OPS,
+    ast.Gt: r"\supset",
+    ast.GtE: r"\supseteq",
+    ast.Lt: r"\subset",
+    ast.LtE: r"\subseteq",
+}
+
 _BOOL_OPS: dict[type[ast.boolop], str] = {
     ast.And: r"\land",
     ast.Or: r"\lor",
@@ -181,12 +201,16 @@ class FunctionCodegen(ast.NodeVisitor):
     _use_raw_function_name: bool
     _use_signature: bool
 
+    _bin_op_rules: dict[type[ast.operator], BinOpRule]
+    _compare_ops: dict[type[ast.cmpop], str]
+
     def __init__(
         self,
         *,
         use_math_symbols: bool = False,
         use_raw_function_name: bool = False,
         use_signature: bool = True,
+        use_set_symbols: bool = False,
     ) -> None:
         """Initializer.
 
@@ -197,12 +221,16 @@ class FunctionCodegen(ast.NodeVisitor):
                 or convert it to subscript.
             use_signature: Whether to add the function signature before the expression
                 or not.
+            use_set_symbols: Whether to use set symbols or not.
         """
         self._math_symbol_converter = math_symbols.MathSymbolConverter(
             enabled=use_math_symbols
         )
         self._use_raw_function_name = use_raw_function_name
         self._use_signature = use_signature
+
+        self._bin_op_rules = _SET_BIN_OP_RULES if use_set_symbols else _BIN_OP_RULES
+        self._compare_ops = _SET_COMPARE_OPS if use_set_symbols else _COMPARE_OPS
 
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
@@ -445,7 +473,7 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_BinOp(self, node: ast.BinOp) -> str:
         """Visit a BinOp node."""
         prec = _get_precedence(node)
-        rule = _BIN_OP_RULES[type(node.op)]
+        rule = self._bin_op_rules[type(node.op)]
         lhs = self._wrap_binop_operand(node.left, prec, rule.operand_left)
         rhs = self._wrap_binop_operand(node.right, prec, rule.operand_right)
         return f"{rule.latex_left}{lhs}{rule.latex_middle}{rhs}{rule.latex_right}"
@@ -459,7 +487,7 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a compare node."""
         parent_prec = _get_precedence(node)
         lhs = self._wrap_operand(node.left, parent_prec)
-        ops = [_COMPARE_OPS[type(x)] for x in node.ops]
+        ops = [self._compare_ops[type(x)] for x in node.ops]
         rhs = [self._wrap_operand(x, parent_prec) for x in node.comparators]
         ops_rhs = [f" {o} {r}" for o, r in zip(ops, rhs)]
         return "{" + lhs + "".join(ops_rhs) + "}"
