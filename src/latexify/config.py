@@ -28,10 +28,10 @@ class Config:
         return Config(**{f.name: merge_field(f.name) for f in dataclasses.fields(self)})
 
     def expand_function(self, fun: str | list[str]) -> None:
-        if type(function) == str:
-            self.expanded_function.add(fun)
-        elif type(function) == list:
-            self.expand_function.update(fun)
+        if type(fun) == str:
+            self.expanded_functions.add(fun)
+        elif type(fun) == list:
+            self.expanded_functions.update(fun)
 
     @staticmethod
     def defaults() -> Config:
