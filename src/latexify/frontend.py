@@ -10,18 +10,10 @@ from latexify import codegen
 from latexify import exceptions
 from latexify import parser
 from latexify import transformers
+from latexify.config import Config
 
 
-def get_latex(
-    fn: Callable[..., Any],
-    *,
-    identifiers: dict[str, str] | None = None,
-    reduce_assignments: bool = False,
-    use_math_symbols: bool = False,
-    use_raw_function_name: bool = False,
-    use_signature: bool = True,
-    use_set_symbols: bool = False,
-) -> str:
+def get_latex(fn: Callable[..., Any], *, config: Config | None = None, **kwargs) -> str:
     """Obtains LaTeX description from the function's source.
 
     Args:
@@ -47,21 +39,23 @@ def get_latex(
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
+    merged_config = Config.defaults().merge(config=config, **kwargs)
+
     # Obtains the source AST.
     tree = parser.parse_function(fn)
 
     # Applies AST transformations.
-    if identifiers is not None:
-        tree = transformers.IdentifierReplacer(identifiers).visit(tree)
-    if reduce_assignments:
+    if merged_config.identifiers is not None:
+        tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
+    if merged_config.reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
-        use_math_symbols=use_math_symbols,
-        use_raw_function_name=use_raw_function_name,
-        use_signature=use_signature,
-        use_set_symbols=use_set_symbols,
+        use_math_symbols=merged_config.use_math_symbols,
+        use_raw_function_name=merged_config.use_raw_function_name,
+        use_signature=merged_config.use_signature,
+        use_set_symbols=merged_config.use_set_symbols,
     ).visit(tree)
 
 
