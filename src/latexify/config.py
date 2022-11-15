@@ -1,4 +1,7 @@
+"""Definition of the Config class."""
+
 from __future__ import annotations
+
 import dataclasses
 
 from typing import Any
@@ -6,8 +9,9 @@ from typing import Any
 
 @dataclasses.dataclass(frozen=True)
 class Config:
+   """Configurations to control the behavior of latexify."""
+
     identifiers: dict[str, str] | None
-    expanded_functions: set[str] | None
     reduce_assignments: bool
     use_math_symbols: bool
     use_raw_function_name: bool
@@ -27,17 +31,10 @@ class Config:
 
         return Config(**{f.name: merge_field(f.name) for f in dataclasses.fields(self)})
 
-    def expand_function(self, fun: str | list[str]) -> None:
-        if type(fun) == str:
-            self.expanded_functions.add(fun)
-        elif type(fun) == list:
-            self.expanded_functions.update(fun)
-
     @staticmethod
     def defaults() -> Config:
         return Config(
             identifiers=None,
-            expanded_functions=set(),
             reduce_assignments=False,
             use_math_symbols=False,
             use_raw_function_name=False,
