@@ -18,20 +18,9 @@ def get_latex(fn: Callable[..., Any], *, config: Config | None = None, **kwargs)
 
     Args:
         fn: Reference to a function to analyze.
-        identifiers: If set, the mapping to replace identifier names in the function.
-            Keys are the original names of the identifiers, and corresponding values are
-            the replacements.
-            Both keys and values have to represent valid Python identifiers:
-            ^[A-Za-z_][A-Za-z0-9_]*$
-        reduce_assignments: If True, assignment statements are used to synthesize
-            the final expression.
-        use_math_symbols: Whether to convert identifiers with a math symbol surface
-            (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-        use_raw_function_name: Whether to keep underscores "_" in the function name,
-            or convert it to subscript.
-        use_signature: Whether to add the function signature before the expression or
-            not.
-        use_set_symbols: Whether to use set symbols or not.
+        config: use defined Config object, if it is None, it will be automatic assigned with
+                default value.
+        kwargs: dict of Config field values that could be defined individually by uses.
 
     Returns:
         Generatee LaTeX description.
