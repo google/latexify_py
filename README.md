@@ -13,7 +13,7 @@ corresponding $\LaTeX$ expression.
 
 1. *Which Python versions are supported?*
 
-   Syntaxes on **Pythons 3.7 to 3.10** are officially supported, or will be supported.
+   Syntaxes on **Pythons 3.7 to 3.11** are officially supported, or will be supported.
 
 2. *Which technique is used?*
 
