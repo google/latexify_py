@@ -432,7 +432,7 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = self.visit(child)
         if _get_precedence(child) >= parent_prec:
             return latex
-        return rf"\left( {latex} \right)"
+        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
     def _wrap_binop_operand(
         self,
