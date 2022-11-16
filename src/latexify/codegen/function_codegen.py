@@ -588,14 +588,18 @@ class FunctionCodegen(ast.NodeVisitor):
                         upper = "{" + self.visit(range_info.stop.left) + "}"
                     else:
                         reduced_constant = ast.Constant(range_info.stop.right.value - 1)
-                        new_node = ast.BinOp(range_info.stop.left, range_info.stop.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}" 
+                        new_node = ast.BinOp(
+                            range_info.stop.left, range_info.stop.op, reduced_constant
+                        )
+                        upper = "{" + self.visit(new_node) + "}"
                 else:
                     if range_info.stop.right.value == -1:
                         upper = "{" + self.visit(range_info.stop.left) + "}"
                     else:
                         reduced_constant = ast.Constant(range_info.stop.right.value + 1)
-                        new_node = ast.BinOp(range_info.stop.left, range_info.stop.op, reduced_constant)
+                        new_node = ast.BinOp(
+                            range_info.stop.left, range_info.stop.op, reduced_constant
+                        )
                         upper = "{" + self.visit(new_node) + "}"
             else:
                 upper = "{" + self.visit(range_info.stop) + " - 1}"
