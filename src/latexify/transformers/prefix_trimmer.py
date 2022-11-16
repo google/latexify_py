@@ -27,7 +27,7 @@ class PrefixTrimmer(ast.NodeTransformer):
         """Initializer.
 
         Args:
-            prefixes: User defined prefixes.
+            prefixes: Set of prefixes to be trimmed.
         """
         self._prefixes = prefixes
 
