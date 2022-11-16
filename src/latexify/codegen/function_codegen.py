@@ -577,7 +577,28 @@ class FunctionCodegen(ast.NodeVisitor):
             lower_rhs = f"{{{range_info.start_int}}}"
 
         if range_info.stop_int is None:
-            upper = "{" + self.visit(range_info.stop) + " - 1}"
+            # special processing needed if range_info.stop involves addition or subtraction
+            if (
+                isinstance(range_info.stop, ast.BinOp)
+                and isinstance(range_info.stop.op, (ast.Add, ast.Sub))
+                and isinstance(range_info.stop.right, ast.Constant)
+            ):
+                if isinstance(range_info.stop.op, ast.Add):
+                    if range_info.stop.right.value == 1:
+                        upper = "{" + self.visit(range_info.stop.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(range_info.stop.right.value - 1)
+                        new_node = ast.BinOp(range_info.stop.left, range_info.stop.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}" 
+                else:
+                    if range_info.stop.right.value == -1:
+                        upper = "{" + self.visit(range_info.stop.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(range_info.stop.right.value + 1)
+                        new_node = ast.BinOp(range_info.stop.left, range_info.stop.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(range_info.stop) + " - 1}"
         else:
             upper = f"{{{range_info.stop_int - 1}}}"
 
