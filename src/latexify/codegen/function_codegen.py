@@ -525,7 +525,7 @@ class FunctionCodegen(ast.NodeVisitor):
             true_latex = self.visit(node.body)
             latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
             node = node.orelse
-        
+
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
