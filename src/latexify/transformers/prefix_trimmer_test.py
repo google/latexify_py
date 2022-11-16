@@ -54,11 +54,7 @@ def test_not_correct_trim() -> None:
         args=[ast.Name(id="x", ctx=ast.Load())],
         keywords=[],
     )
-    expected = ast.Call(
-        func=ast.Name(id="sqrt", ctx=ast.Load()),
-        args=[ast.Name(id="x", ctx=ast.Load())],
-        keywords=[],
-    )
+    expected = PrefixTrimmer({"math"}).visit(source)
     transformed = PrefixTrimmer({""}).visit(source)
     with pytest.raises(AssertionError):
         test_utils.assert_ast_equal(transformed, expected)
@@ -76,11 +72,7 @@ def test_not_correct_recursive_trim() -> None:
         args=[ast.Name(id="x", ctx=ast.Load())],
         keywords=[],
     )
-    expected = ast.Call(
-        func=ast.Name(id="lat", ctx=ast.Load()),
-        args=[ast.Name(id="x", ctx=ast.Load())],
-        keywords=[],
-    )
+    expected = PrefixTrimmer({"foo"}).visit(source)
     transformed = PrefixTrimmer({"lat"}).visit(source)
     with pytest.raises(AssertionError):
         test_utils.assert_ast_equal(transformed, expected)

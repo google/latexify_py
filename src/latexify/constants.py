@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-PREFIXES = ["math", "numpy", "np"]
+PREFIXES = {"math", "numpy", "np"}
 
 BUILTIN_FUNCS: dict[str, tuple[str, str]] = {
     "abs": (r"\left|{", r"}\right|"),

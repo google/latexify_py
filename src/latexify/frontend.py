@@ -22,7 +22,7 @@ def get_latex(
     use_raw_function_name: bool = False,
     use_signature: bool = True,
     use_set_symbols: bool = False,
-    prefixes: set[str] = set(),
+    prefixes: set[str] | None = None,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
@@ -59,9 +59,10 @@ def get_latex(
         tree = transformers.IdentifierReplacer(identifiers).visit(tree)
     if reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
-    # assume that both prefixes and PREFIXES are sets.
     # merge and de-duplicate the prefix list.
-    merged_prefixes = set(constants.PREFIXES) | prefixes
+    if prefixes is None:
+        prefixes = set()
+    merged_prefixes = constants.PREFIXES | prefixes
     tree = transformers.PrefixTrimmer(merged_prefixes).visit(tree)
 
     # Generates LaTeX.
