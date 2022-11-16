@@ -6,7 +6,7 @@ import ast
 
 
 class PrefixTrimmer(ast.NodeTransformer):
-    """NodeTransformer to trim package prefixes.
+    """NodeTransformer to trim prefixes of identifiers.
 
     Example:
         import math
