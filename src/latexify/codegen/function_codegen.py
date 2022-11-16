@@ -517,15 +517,17 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
-    def visit_IfExp(self, node: ast.IfExp) -> Any:
+    def visit_IfExp(self, node: ast.IfExp) -> str:
         """Visit an ifexp node"""
         latex = r"\left\{ \begin{array}{ll} "
-        cond_latex = self.visit(node.test)
-        true_latex = self.visit(node.body)
-        false_latex = self.visit(node.orelse)
-        latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-        latex += false_latex + r", & \mathrm{otherwise} \end{array} \right."
-        return latex
+        while isinstance(node, ast.IfExp):
+            cond_latex = self.visit(node.test)
+            true_latex = self.visit(node.body)
+            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
+            node = node.orelse
+        
+        latex += self.visit(node)
+        return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.
