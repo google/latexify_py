@@ -220,6 +220,37 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
         assert isinstance(node, ast.Call)
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        (
+            "x if x < y else y",
+            r"\left\{ \begin{array}{ll} x,"
+            r" & \mathrm{if} \ {x < y} \\ y,"
+            r" & \mathrm{otherwise} \end{array} \right.",
+        ),
+        (
+            "x if x < y else (y if y < z else z)",
+            r"\left\{ \begin{array}{ll} x,"
+            r" & \mathrm{if} \ {x < y} \\ y,"
+            r" & \mathrm{if} \ {y < z} \\ z,"
+            r" & \mathrm{otherwise} \end{array} \right.",
+        ),
+        (
+            "x if x < y else (y if y < z else (z if z < w else w))",
+            r"\left\{ \begin{array}{ll} x,"
+            r" & \mathrm{if} \ {x < y} \\ y," 
+            r" & \mathrm{if} \ {y < z} \\ z,"
+            r" & \mathrm{if} \ {z < w} \\ w," 
+            r" & \mathrm{otherwise} \end{array} \right.",
+        ),
+    ],
+)
+def test_if_then_else(code: str, latex: str) -> None:
+    node = ast.parse(code).body[0].value
+    assert isinstance(node, ast.IfExp)
+    assert FunctionCodegen().visit(node) == latex
+
 
 @pytest.mark.parametrize(
     "code,latex",
