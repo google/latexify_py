@@ -17,8 +17,6 @@ class PrefixTrimmer(ast.NodeTransformer):
         PrefixTrimmer(["math"]) will modify the AST of
         the function above to below:
 
-        import math
-
         def foo(n):
             return sqrt(n)
     """
