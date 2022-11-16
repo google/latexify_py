@@ -355,6 +355,9 @@ class FunctionCodegen(ast.NodeVisitor):
             (r"\mathrm{" + func_str + r"}\left(", r"\right)"),
         )
 
+        if func_str == "ndarray" or func_str == "array":
+            return self._generate_matrix(node)
+
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
             elt, scripts = self._get_sum_prod_info(node.args[0])
             scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
@@ -362,6 +365,35 @@ class FunctionCodegen(ast.NodeVisitor):
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
+
+    def _generate_matrix(self, node: ast.Call) -> str:
+        """Generates a matrix from numpy.matrix."""
+        if len(node.args) != 1:
+            # raise with function name
+            raise ValueError(
+                f"Invalid number of arguments {len(node.args)}"
+            )
+        
+        arg = node.args[0]
+        # TODO: Support string being passed to numpy.matrix.
+        if not isinstance(arg, ast.List):
+            raise exceptions.LatexifyNotSupportedError(
+                "Only matrices represented by lists are supported."
+            )
+
+        # TODO: Support other types of matrix environments like (pmatrix, matrix, Bmatrix, etc.)
+        latex = r"\begin{bmatrix}"
+        if type(arg) == ast.List:
+            for elt in arg.elts:
+                if type(elt) == ast.List:
+                    for sub_elt in elt.elts:
+                        latex += self.visit(sub_elt) + r" & "
+                    latex = latex[:-2] + r" \\ "
+                else:
+                    latex += self.visit(elt) + r" & "
+            latex = latex[:-3] + r"\end{bmatrix}"
+
+        return latex
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
