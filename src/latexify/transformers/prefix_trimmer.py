@@ -31,7 +31,7 @@ class PrefixTrimmer(ast.NodeTransformer):
         """
         self._prefixes = prefixes
 
-    def visit_Call(self, node: ast.Call) -> ast.Name:
+    def visit_Call(self, node: ast.Call) -> ast.Call:
         """Visitor of Call."""
         if (
             isinstance(node.func, ast.Attribute)
