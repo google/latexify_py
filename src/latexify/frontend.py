@@ -21,6 +21,7 @@ def get_latex(
     use_raw_function_name: bool = False,
     use_signature: bool = True,
     use_set_symbols: bool = False,
+    prefixes: list[str] | None = None,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
@@ -40,9 +41,11 @@ def get_latex(
         use_signature: Whether to add the function signature before the expression or
             not.
         use_set_symbols: Whether to use set symbols or not.
-
+        prefixes: Package prefixes to trim. If an alias is used, it should be in the list,
+            instead of the package itself. Example: for an `import numpy as np`, you pass
+            `prefixes=["np"]`
     Returns:
-        Generatee LaTeX description.
+        Generated LaTeX description.
 
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
@@ -55,6 +58,8 @@ def get_latex(
         tree = transformers.IdentifierReplacer(identifiers).visit(tree)
     if reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
+    if prefixes is not None:
+        tree = transformers.PrefixTrimmer(prefixes).visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
