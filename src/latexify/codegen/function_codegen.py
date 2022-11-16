@@ -292,7 +292,11 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\mathopen{}\left( " + r"\space,\space ".join(elts) + r"\mathclose{}\right) "
+        return (
+            r"\mathopen{}\left( "
+            + r"\space,\space ".join(elts)
+            + r"\mathclose{}\right) "
+        )
 
     def visit_List(self, node: ast.List) -> str:
         elts = [self.visit(i) for i in node.elts]
@@ -354,7 +358,10 @@ class FunctionCodegen(ast.NodeVisitor):
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
             elt, scripts = self._get_sum_prod_info(node.args[0])
             scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-            return " ".join(scripts_str) + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+            return (
+                " ".join(scripts_str)
+                + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+            )
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
