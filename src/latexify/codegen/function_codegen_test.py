@@ -57,7 +57,8 @@ def test_visit_functiondef_use_signature() -> None:
             r"\left[ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(i\mathclose{}\right) \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r"i\mathclose{}\right) \mathclose{}\right)"
             r" \right]",
         ),
         ("[i for k in n for i in k]", r"\left[ i \mid k \in n, i \in k" r" \right]"),
@@ -73,7 +74,8 @@ def test_visit_functiondef_use_signature() -> None:
             "[i for k in n if f(k) for i in k if i > 0]",
             r"\left[ i \mid"
             r" \mathopen{}\left( k \in n \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(k\mathclose{}\right) \mathclose{}\right),"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r"k\mathclose{}\right) \mathclose{}\right),"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right]",
@@ -102,7 +104,8 @@ def test_visit_listcomp(code: str, latex: str) -> None:
             r"\left\{ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(i\mathclose{}\right) \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r"i\mathclose{}\right) \mathclose{}\right)"
             r" \right\}",
         ),
         ("{i for k in n for i in k}", r"\left\{ i \mid k \in n, i \in k" r" \right\}"),
@@ -118,7 +121,8 @@ def test_visit_listcomp(code: str, latex: str) -> None:
             "{i for k in n if f(k) for i in k if i > 0}",
             r"\left\{ i \mid"
             r" \mathopen{}\left( k \in n \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(k\mathclose{}\right) \mathclose{}\right),"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r"k\mathclose{}\right) \mathclose{}\right),"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right\}",
@@ -143,15 +147,18 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ("(i for i in x)", r"_{i \in x}^{} \mathopen{}\left({i}\mathclose{}\right)"),
         (
             "(i for i in [1, 2])",
-            r"_{i \in \left[ {1}\space,\space {2}\right] }^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in \left[ {1}\space,\space {2}\right] }^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in {1, 2})",
-            r"_{i \in \left\{ {1}\space,\space {2}\right\} }^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in \left\{ {1}\space,\space {2}\right\} }^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in f(x))",
-            r"_{i \in \mathrm{f}\mathopen{}\left(x\mathclose{}\right)}^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in \mathrm{f}\mathopen{}\left(x\mathclose{}\right)}^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in range(n))",
@@ -175,7 +182,8 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ),
         (
             "(i for i in range(n, m, k))",
-            r"_{i \in \mathrm{range}\mathopen{}\left(n, m, k\mathclose{}\right)}^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in \mathrm{range}\mathopen{}\left(n, m, k"
+            r"\mathclose{}\right)}^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
 )
@@ -192,16 +200,19 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
         # 2 clauses
         (
             "sum(i for y in x for i in y)",
-            r"\sum_{y \in x}^{} \sum_{i \in y}^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\sum_{y \in x}^{} \sum_{i \in y}^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "sum(i for y in x for z in y for i in z)",
-            r"\sum_{y \in x}^{} \sum_{z \in y}^{} \sum_{i \in z}^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\sum_{y \in x}^{} \sum_{z \in y}^{} \sum_{i \in z}^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         # 3 clauses
         (
             "math.prod(i for y in x for i in y)",
-            r"\prod_{y \in x}^{} \prod_{i \in y}^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\prod_{y \in x}^{} \prod_{i \in y}^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "math.prod(i for y in x for z in y for i in z)",
@@ -221,13 +232,16 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     [
         (
             "(i for i in x if i < y)",
-            r"_{\mathopen{}\left( i \in x \mathclose{}\right) \land \mathopen{}\left( {i < y} \mathclose{}\right)}^{} "
+            r"_{\mathopen{}\left( i \in x \mathclose{}\right) "
+            r"\land \mathopen{}\left( {i < y} \mathclose{}\right)}^{} "
             r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in x if i < y if f(i))",
-            r"_{\mathopen{}\left( i \in x \mathclose{}\right) \land \mathopen{}\left( {i < y} \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(i\mathclose{}\right) \mathclose{}\right)}^{}"
+            r"_{\mathopen{}\left( i \in x \mathclose{}\right) "
+            r"\land \mathopen{}\left( {i < y} \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r"i\mathclose{}\right) \mathclose{}\right)}^{}"
             r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
