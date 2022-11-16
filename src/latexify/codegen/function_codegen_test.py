@@ -48,16 +48,16 @@ def test_visit_functiondef_use_signature() -> None:
         (
             "[i for i in n if i > 0]",
             r"\left[ i \mid"
-            r" \left( i \in n \right)"
-            r" \land \left( {i > {0}} \right)"
+            r" \mathopen{}\left( i \in n \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right]",
         ),
         (
             "[i for i in n if i > 0 if f(i)]",
             r"\left[ i \mid"
-            r" \left( i \in n \right)"
-            r" \land \left( {i > {0}} \right)"
-            r" \land \left( \mathrm{f}\left(i\right) \right)"
+            r" \mathopen{}\left( i \in n \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(i\mathclose{}\right) \mathclose{}\right)"
             r" \right]",
         ),
         ("[i for k in n for i in k]", r"\left[ i \mid k \in n, i \in k" r" \right]"),
@@ -65,17 +65,17 @@ def test_visit_functiondef_use_signature() -> None:
             "[i for k in n for i in k if i > 0]",
             r"\left[ i \mid"
             r" k \in n,"
-            r" \left( i \in k \right)"
-            r" \land \left( {i > {0}} \right)"
+            r" \mathopen{}\left( i \in k \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right]",
         ),
         (
             "[i for k in n if f(k) for i in k if i > 0]",
             r"\left[ i \mid"
-            r" \left( k \in n \right)"
-            r" \land \left( \mathrm{f}\left(k\right) \right),"
-            r" \left( i \in k \right)"
-            r" \land \left( {i > {0}} \right)"
+            r" \mathopen{}\left( k \in n \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(k\mathclose{}\right) \mathclose{}\right),"
+            r" \mathopen{}\left( i \in k \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right]",
         ),
     ],
@@ -93,16 +93,16 @@ def test_visit_listcomp(code: str, latex: str) -> None:
         (
             "{i for i in n if i > 0}",
             r"\left\{ i \mid"
-            r" \left( i \in n \right)"
-            r" \land \left( {i > {0}} \right)"
+            r" \mathopen{}\left( i \in n \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right\}",
         ),
         (
             "{i for i in n if i > 0 if f(i)}",
             r"\left\{ i \mid"
-            r" \left( i \in n \right)"
-            r" \land \left( {i > {0}} \right)"
-            r" \land \left( \mathrm{f}\left(i\right) \right)"
+            r" \mathopen{}\left( i \in n \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(i\mathclose{}\right) \mathclose{}\right)"
             r" \right\}",
         ),
         ("{i for k in n for i in k}", r"\left\{ i \mid k \in n, i \in k" r" \right\}"),
@@ -110,17 +110,17 @@ def test_visit_listcomp(code: str, latex: str) -> None:
             "{i for k in n for i in k if i > 0}",
             r"\left\{ i \mid"
             r" k \in n,"
-            r" \left( i \in k \right)"
-            r" \land \left( {i > {0}} \right)"
+            r" \mathopen{}\left( i \in k \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right\}",
         ),
         (
             "{i for k in n if f(k) for i in k if i > 0}",
             r"\left\{ i \mid"
-            r" \left( k \in n \right)"
-            r" \land \left( \mathrm{f}\left(k\right) \right),"
-            r" \left( i \in k \right)"
-            r" \land \left( {i > {0}} \right)"
+            r" \mathopen{}\left( k \in n \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(k\mathclose{}\right) \mathclose{}\right),"
+            r" \mathopen{}\left( i \in k \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
             r" \right\}",
         ),
     ],
@@ -138,26 +138,26 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ("(x)", r" \left({x}\right)"),
         ("([1, 2])", r" \left({\left[ {1}\space,\space {2}\right] }\right)"),
         ("({1, 2})", r" \left({\left\{ {1}\space,\space {2}\right\} }\right)"),
-        ("(f(x))", r" \left({\mathrm{f}\left(x\right)}\right)"),
+        ("(f(x))", r" \left({\mathrm{f}\mathopen{}\left(x\mathclose{}\right)}\right)"),
         # Single comprehension
-        ("(i for i in x)", r"_{i \in x}^{} \left({i}\right)"),
+        ("(i for i in x)", r"_{i \in x}^{} \mathopen{}\left({i}\mathclose{}\right)"),
         (
             "(i for i in [1, 2])",
-            r"_{i \in \left[ {1}\space,\space {2}\right] }^{} \left({i}\right)",
+            r"_{i \in \left[ {1}\space,\space {2}\right] }^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in {1, 2})",
-            r"_{i \in \left\{ {1}\space,\space {2}\right\} }^{} \left({i}\right)",
+            r"_{i \in \left\{ {1}\space,\space {2}\right\} }^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
-        ("(i for i in f(x))", r"_{i \in \mathrm{f}\left(x\right)}^{} \left({i}\right)"),
-        ("(i for i in range(n))", r"_{i = {0}}^{{n - 1}} \left({i}\right)"),
-        ("(i for i in range(3))", r"_{i = {0}}^{{2}} \left({i}\right)"),
-        ("(i for i in range(n, m))", r"_{i = n}^{{m - 1}} \left({i}\right)"),
-        ("(i for i in range(1, m))", r"_{i = {1}}^{{m - 1}} \left({i}\right)"),
-        ("(i for i in range(n, 3))", r"_{i = n}^{{2}} \left({i}\right)"),
+        ("(i for i in f(x))", r"_{i \in \mathrm{f}\mathopen{}\left(x\mathclose{}\right)}^{} \mathopen{}\left({i}\mathclose{}\right)"),
+        ("(i for i in range(n))", r"_{i = {0}}^{{n - 1}} \mathopen{}\left({i}\mathclose{}\right)"),
+        ("(i for i in range(3))", r"_{i = {0}}^{{2}} \mathopen{}\left({i}\mathclose{}\right)"),
+        ("(i for i in range(n, m))", r"_{i = n}^{{m - 1}} \mathopen{}\left({i}\mathclose{}\right)"),
+        ("(i for i in range(1, m))", r"_{i = {1}}^{{m - 1}} \mathopen{}\left({i}\mathclose{}\right)"),
+        ("(i for i in range(n, 3))", r"_{i = n}^{{2}} \mathopen{}\left({i}\mathclose{}\right)"),
         (
             "(i for i in range(n, m, k))",
-            r"_{i \in \mathrm{range}\left(n, m, k\right)}^{} \left({i}\right)",
+            r"_{i \in \mathrm{range}\mathopen{}\left(n, m, k\mathclose{}\right)}^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
 )
@@ -174,21 +174,21 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
         # 2 clauses
         (
             "sum(i for y in x for i in y)",
-            r"\sum_{y \in x}^{} \sum_{i \in y}^{} \left({i}\right)",
+            r"\sum_{y \in x}^{} \sum_{i \in y}^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "sum(i for y in x for z in y for i in z)",
-            r"\sum_{y \in x}^{} \sum_{z \in y}^{} \sum_{i \in z}^{} \left({i}\right)",
+            r"\sum_{y \in x}^{} \sum_{z \in y}^{} \sum_{i \in z}^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         # 3 clauses
         (
             "math.prod(i for y in x for i in y)",
-            r"\prod_{y \in x}^{} \prod_{i \in y}^{} \left({i}\right)",
+            r"\prod_{y \in x}^{} \prod_{i \in y}^{} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "math.prod(i for y in x for z in y for i in z)",
             r"\prod_{y \in x}^{} \prod_{z \in y}^{} \prod_{i \in z}^{} "
-            r"\left({i}\right)",
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
 )
@@ -203,14 +203,14 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     [
         (
             "(i for i in x if i < y)",
-            r"_{\left( i \in x \right) \land \left( {i < y} \right)}^{} "
-            r"\left({i}\right)",
+            r"_{\mathopen{}\left( i \in x \mathclose{}\right) \land \mathopen{}\left( {i < y} \mathclose{}\right)}^{} "
+            r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in x if i < y if f(i))",
-            r"_{\left( i \in x \right) \land \left( {i < y} \right)"
-            r" \land \left( \mathrm{f}\left(i\right) \right)}^{}"
-            r" \left({i}\right)",
+            r"_{\mathopen{}\left( i \in x \mathclose{}\right) \land \mathopen{}\left( {i < y} \mathclose{}\right)"
+            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left(i\mathclose{}\right) \mathclose{}\right)}^{}"
+            r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
 )
@@ -239,7 +239,7 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
         ("x ^ y", r"x \oplus y"),
         ("x | y", R"x \mathbin{|} y"),
         # (x op y) op z
-        ("(x**y)**z", r"\left( x^{y} \right)^{z}"),
+        ("(x**y)**z", r"\mathopen{}\left( x^{y} \mathclose{}\right)^{z}"),
         ("(x * y) * z", r"x y z"),
         ("(x @ y) @ z", r"x y z"),
         ("(x / y) / z", r"\frac{\frac{x}{y}}{z}"),
@@ -264,11 +264,11 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
             "x // (y // z)",
             r"\left\lfloor\frac{x}{\left\lfloor\frac{y}{z}\right\rfloor}\right\rfloor",
         ),
-        ("x % (y % z)", r"x \mathbin{\%} \left( y \mathbin{\%} z \right)"),
+        ("x % (y % z)", r"x \mathbin{\%} \mathopen{}\left( y \mathbin{\%} z \mathclose{}\right)"),
         ("x + (y + z)", r"x + y + z"),
-        ("x - (y - z)", r"x - \left( y - z \right)"),
-        ("x << (y << z)", r"x \ll \left( y \ll z \right)"),
-        ("x >> (y >> z)", r"x \gg \left( y \gg z \right)"),
+        ("x - (y - z)", r"x - \mathopen{}\left( y - z \mathclose{}\right)"),
+        ("x << (y << z)", r"x \ll \mathopen{}\left( y \ll z \mathclose{}\right)"),
+        ("x >> (y >> z)", r"x \gg \mathopen{}\left( y \gg z \mathclose{}\right)"),
         ("x & (y & z)", r"x \mathbin{\&} y \mathbin{\&} z"),
         ("x ^ (y ^ z)", r"x \oplus y \oplus z"),
         ("x | (y | z)", r"x \mathbin{|} y \mathbin{|} z"),
@@ -287,17 +287,17 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
         ("x ^ y | z", r"x \oplus y \mathbin{|} z"),
         # x OP (y op z)
         ("x**(y * z)", r"x^{y z}"),
-        ("x * (y + z)", r"x \left( y + z \right)"),
-        ("x @ (y + z)", r"x \left( y + z \right)"),
+        ("x * (y + z)", r"x \mathopen{}\left( y + z \mathclose{}\right)"),
+        ("x @ (y + z)", r"x \mathopen{}\left( y + z \mathclose{}\right)"),
         ("x / (y + z)", r"\frac{x}{y + z}"),
         ("x // (y + z)", r"\left\lfloor\frac{x}{y + z}\right\rfloor"),
-        ("x % (y + z)", r"x \mathbin{\%} \left( y + z \right)"),
-        ("x + (y << z)", r"x + \left( y \ll z \right)"),
-        ("x - (y << z)", r"x - \left( y \ll z \right)"),
-        ("x << (y & z)", r"x \ll \left( y \mathbin{\&} z \right)"),
-        ("x >> (y & z)", r"x \gg \left( y \mathbin{\&} z \right)"),
-        ("x & (y ^ z)", r"x \mathbin{\&} \left( y \oplus z \right)"),
-        ("x ^ (y | z)", r"x \oplus \left( y \mathbin{|} z \right)"),
+        ("x % (y + z)", r"x \mathbin{\%} \mathopen{}\left( y + z \mathclose{}\right)"),
+        ("x + (y << z)", r"x + \mathopen{}\left( y \ll z \mathclose{}\right)"),
+        ("x - (y << z)", r"x - \mathopen{}\left( y \ll z \mathclose{}\right)"),
+        ("x << (y & z)", r"x \ll \mathopen{}\left( y \mathbin{\&} z \mathclose{}\right)"),
+        ("x >> (y & z)", r"x \gg \mathopen{}\left( y \mathbin{\&} z \mathclose{}\right)"),
+        ("x & (y ^ z)", r"x \mathbin{\&} \mathopen{}\left( y \oplus z \mathclose{}\right)"),
+        ("x ^ (y | z)", r"x \oplus \mathopen{}\left( y \mathbin{|} z \mathclose{}\right)"),
         # x op y OP z
         ("x * y**z", r"x y^{z}"),
         ("x + y * z", r"x + y z"),
@@ -312,32 +312,32 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
         ("x ^ y & z", r"x \oplus y \mathbin{\&} z"),
         ("x | y ^ z", r"x \mathbin{|} y \oplus z"),
         # (x op y) OP z
-        ("(x * y)**z", r"\left( x y \right)^{z}"),
-        ("(x + y) * z", r"\left( x + y \right) z"),
-        ("(x + y) @ z", r"\left( x + y \right) z"),
+        ("(x * y)**z", r"\mathopen{}\left( x y \mathclose{}\right)^{z}"),
+        ("(x + y) * z", r"\mathopen{}\left( x + y \mathclose{}\right) z"),
+        ("(x + y) @ z", r"\mathopen{}\left( x + y \mathclose{}\right) z"),
         ("(x + y) / z", r"\frac{x + y}{z}"),
         ("(x + y) // z", r"\left\lfloor\frac{x + y}{z}\right\rfloor"),
-        ("(x + y) % z", r"\left( x + y \right) \mathbin{\%} z"),
-        ("(x << y) + z", r"\left( x \ll y \right) + z"),
-        ("(x << y) - z", r"\left( x \ll y \right) - z"),
-        ("(x & y) << z", r"\left( x \mathbin{\&} y \right) \ll z"),
-        ("(x & y) >> z", r"\left( x \mathbin{\&} y \right) \gg z"),
-        ("(x ^ y) & z", r"\left( x \oplus y \right) \mathbin{\&} z"),
-        ("(x | y) ^ z", r"\left( x \mathbin{|} y \right) \oplus z"),
+        ("(x + y) % z", r"\mathopen{}\left( x + y \mathclose{}\right) \mathbin{\%} z"),
+        ("(x << y) + z", r"\mathopen{}\left( x \ll y \mathclose{}\right) + z"),
+        ("(x << y) - z", r"\mathopen{}\left( x \ll y \mathclose{}\right) - z"),
+        ("(x & y) << z", r"\mathopen{}\left( x \mathbin{\&} y \mathclose{}\right) \ll z"),
+        ("(x & y) >> z", r"\mathopen{}\left( x \mathbin{\&} y \mathclose{}\right) \gg z"),
+        ("(x ^ y) & z", r"\mathopen{}\left( x \oplus y \mathclose{}\right) \mathbin{\&} z"),
+        ("(x | y) ^ z", r"\mathopen{}\left( x \mathbin{|} y \mathclose{}\right) \oplus z"),
         # is_wrapped
         ("(x // y)**z", r"\left\lfloor\frac{x}{y}\right\rfloor^{z}"),
         # With Call
-        ("x**f(y)", r"x^{\mathrm{f}\left(y\right)}"),
-        ("f(x)**y", r"\mathrm{f}\left(x\right)^{y}"),
-        ("x * f(y)", r"x \mathrm{f}\left(y\right)"),
-        ("f(x) * y", r"\mathrm{f}\left(x\right) y"),
-        ("x / f(y)", r"\frac{x}{\mathrm{f}\left(y\right)}"),
-        ("f(x) / y", r"\frac{\mathrm{f}\left(x\right)}{y}"),
-        ("x + f(y)", r"x + \mathrm{f}\left(y\right)"),
-        ("f(x) + y", r"\mathrm{f}\left(x\right) + y"),
+        ("x**f(y)", r"x^{\mathrm{f}\mathopen{}\left(y\mathclose{}\right)}"),
+        ("f(x)**y", r"\mathrm{f}\mathopen{}\left(x\mathclose{}\right)^{y}"),
+        ("x * f(y)", r"x \mathrm{f}\mathopen{}\left(y\mathclose{}\right)"),
+        ("f(x) * y", r"\mathrm{f}\mathopen{}\left(x\mathclose{}\right) y"),
+        ("x / f(y)", r"\frac{x}{\mathrm{f}\mathopen{}\left(y\mathclose{}\right)}"),
+        ("f(x) / y", r"\frac{\mathrm{f}\mathopen{}\left(x\mathclose{}\right)}{y}"),
+        ("x + f(y)", r"x + \mathrm{f}\mathopen{}\left(y\mathclose{}\right)"),
+        ("f(x) + y", r"\mathrm{f}\mathopen{}\left(x\mathclose{}\right) + y"),
         # With UnaryOp
         ("x**-y", r"x^{-y}"),
-        ("(-x)**y", r"\left( -x \right)^{y}"),
+        ("(-x)**y", r"\mathopen{}\left( -x \mathclose{}\right)^{y}"),
         ("x * -y", r"x -y"),  # TODO(odashi): google/latexify_py#89
         ("-x * y", r"-x y"),
         ("x / -y", r"\frac{x}{-y}"),
@@ -346,22 +346,22 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
         ("-x + y", r"-x + y"),
         # With Compare
         ("x**(y == z)", r"x^{{y = z}}"),
-        ("(x == y)**z", r"\left( {x = y} \right)^{z}"),
-        ("x * (y == z)", r"x \left( {y = z} \right)"),
-        ("(x == y) * z", r"\left( {x = y} \right) z"),
+        ("(x == y)**z", r"\mathopen{}\left( {x = y} \mathclose{}\right)^{z}"),
+        ("x * (y == z)", r"x \mathopen{}\left( {y = z} \mathclose{}\right)"),
+        ("(x == y) * z", r"\mathopen{}\left( {x = y} \mathclose{}\right) z"),
         ("x / (y == z)", r"\frac{x}{{y = z}}"),
         ("(x == y) / z", r"\frac{{x = y}}{z}"),
-        ("x + (y == z)", r"x + \left( {y = z} \right)"),
-        ("(x == y) + z", r"\left( {x = y} \right) + z"),
+        ("x + (y == z)", r"x + \mathopen{}\left( {y = z} \mathclose{}\right)"),
+        ("(x == y) + z", r"\mathopen{}\left( {x = y} \mathclose{}\right) + z"),
         # With BoolOp
         ("x**(y and z)", r"x^{{y \land z}}"),
-        ("(x and y)**z", r"\left( {x \land y} \right)^{z}"),
-        ("x * (y and z)", r"x \left( {y \land z} \right)"),
-        ("(x and y) * z", r"\left( {x \land y} \right) z"),
+        ("(x and y)**z", r"\mathopen{}\left( {x \land y} \mathclose{}\right)^{z}"),
+        ("x * (y and z)", r"x \mathopen{}\left( {y \land z} \mathclose{}\right)"),
+        ("(x and y) * z", r"\mathopen{}\left( {x \land y} \mathclose{}\right) z"),
         ("x / (y and z)", r"\frac{x}{{y \land z}}"),
         ("(x and y) / z", r"\frac{{x \land y}}{z}"),
-        ("x + (y and z)", r"x + \left( {y \land z} \right)"),
-        ("(x and y) + z", r"\left( {x \land y} \right) + z"),
+        ("x + (y and z)", r"x + \mathopen{}\left( {y \land z} \mathclose{}\right)"),
+        ("(x and y) + z", r"\mathopen{}\left( {x \land y} \mathclose{}\right) + z"),
     ],
 )
 def test_visit_binop(code: str, latex: str) -> None:
@@ -379,25 +379,25 @@ def test_visit_binop(code: str, latex: str) -> None:
         ("~x", r"\mathord{\sim} x"),
         ("not x", r"\lnot x"),
         # With Call
-        ("+f(x)", r"+\mathrm{f}\left(x\right)"),
-        ("-f(x)", r"-\mathrm{f}\left(x\right)"),
-        ("~f(x)", r"\mathord{\sim} \mathrm{f}\left(x\right)"),
-        ("not f(x)", r"\lnot \mathrm{f}\left(x\right)"),
+        ("+f(x)", r"+\mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
+        ("-f(x)", r"-\mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
+        ("~f(x)", r"\mathord{\sim} \mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
+        ("not f(x)", r"\lnot \mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
         # With BinOp
-        ("+(x + y)", r"+\left( x + y \right)"),
-        ("-(x + y)", r"-\left( x + y \right)"),
-        ("~(x + y)", r"\mathord{\sim} \left( x + y \right)"),
-        ("not x + y", r"\lnot \left( x + y \right)"),
+        ("+(x + y)", r"+\mathopen{}\left( x + y \mathclose{}\right)"),
+        ("-(x + y)", r"-\mathopen{}\left( x + y \mathclose{}\right)"),
+        ("~(x + y)", r"\mathord{\sim} \mathopen{}\left( x + y \mathclose{}\right)"),
+        ("not x + y", r"\lnot \mathopen{}\left( x + y \mathclose{}\right)"),
         # With Compare
-        ("+(x == y)", r"+\left( {x = y} \right)"),
-        ("-(x == y)", r"-\left( {x = y} \right)"),
-        ("~(x == y)", r"\mathord{\sim} \left( {x = y} \right)"),
-        ("not x == y", r"\lnot \left( {x = y} \right)"),
+        ("+(x == y)", r"+\mathopen{}\left( {x = y} \mathclose{}\right)"),
+        ("-(x == y)", r"-\mathopen{}\left( {x = y} \mathclose{}\right)"),
+        ("~(x == y)", r"\mathord{\sim} \mathopen{}\left( {x = y} \mathclose{}\right)"),
+        ("not x == y", r"\lnot \mathopen{}\left( {x = y} \mathclose{}\right)"),
         # With BoolOp
-        ("+(x and y)", r"+\left( {x \land y} \right)"),
-        ("-(x and y)", r"-\left( {x \land y} \right)"),
-        ("~(x and y)", r"\mathord{\sim} \left( {x \land y} \right)"),
-        ("not (x and y)", r"\lnot \left( {x \land y} \right)"),
+        ("+(x and y)", r"+\mathopen{}\left( {x \land y} \mathclose{}\right)"),
+        ("-(x and y)", r"-\mathopen{}\left( {x \land y} \mathclose{}\right)"),
+        ("~(x and y)", r"\mathord{\sim} \mathopen{}\left( {x \land y} \mathclose{}\right)"),
+        ("not (x and y)", r"\lnot \mathopen{}\left( {x \land y} \mathclose{}\right)"),
     ],
 )
 def test_visit_unaryop(code: str, latex: str) -> None:
@@ -439,8 +439,8 @@ def test_visit_unaryop(code: str, latex: str) -> None:
         ("a <= b < c", r"{a \le b < c}"),
         ("a <= b <= c", r"{a \le b \le c}"),
         # With Call
-        ("a == f(b)", r"{a = \mathrm{f}\left(b\right)}"),
-        ("f(a) == b", r"{\mathrm{f}\left(a\right) = b}"),
+        ("a == f(b)", r"{a = \mathrm{f}\mathopen{}\left(b\mathclose{}\right)}"),
+        ("f(a) == b", r"{\mathrm{f}\mathopen{}\left(a\mathclose{}\right) = b}"),
         # With BinOp
         ("a == b + c", r"{a = b + c}"),
         ("a + b == c", r"{a + b = c}"),
@@ -450,8 +450,8 @@ def test_visit_unaryop(code: str, latex: str) -> None:
         ("a == (not b)", r"{a = \lnot b}"),
         ("(not a) == b", r"{\lnot a = b}"),
         # With BoolOp
-        ("a == (b and c)", r"{a = \left( {b \land c} \right)}"),
-        ("(a and b) == c", r"{\left( {a \land b} \right) = c}"),
+        ("a == (b and c)", r"{a = \mathopen{}\left( {b \land c} \mathclose{}\right)}"),
+        ("(a and b) == c", r"{\mathopen{}\left( {a \land b} \mathclose{}\right) = c}"),
     ],
 )
 def test_visit_compare(code: str, latex: str) -> None:
@@ -469,14 +469,14 @@ def test_visit_compare(code: str, latex: str) -> None:
         ("a or b", r"{a \lor b}"),
         ("a or b or c", r"{a \lor b \lor c}"),
         ("a or b and c", r"{a \lor {b \land c}}"),
-        ("(a or b) and c", r"{\left( {a \lor b} \right) \land c}"),
+        ("(a or b) and c", r"{\mathopen{}\left( {a \lor b} \mathclose{}\right) \land c}"),
         ("a and b or c", r"{{a \land b} \lor c}"),
-        ("a and (b or c)", r"{a \land \left( {b \lor c} \right)}"),
+        ("a and (b or c)", r"{a \land \mathopen{}\left( {b \lor c} \mathclose{}\right)}"),
         # With Call
-        ("a and f(b)", r"{a \land \mathrm{f}\left(b\right)}"),
-        ("f(a) and b", r"{\mathrm{f}\left(a\right) \land b}"),
-        ("a or f(b)", r"{a \lor \mathrm{f}\left(b\right)}"),
-        ("f(a) or b", r"{\mathrm{f}\left(a\right) \lor b}"),
+        ("a and f(b)", r"{a \land \mathrm{f}\mathopen{}\left(b\mathclose{}\right)}"),
+        ("f(a) and b", r"{\mathrm{f}\mathopen{}\left(a\mathclose{}\right) \land b}"),
+        ("a or f(b)", r"{a \lor \mathrm{f}\mathopen{}\left(b\mathclose{}\right)}"),
+        ("f(a) or b", r"{\mathrm{f}\mathopen{}\left(a\mathclose{}\right) \lor b}"),
         # With BinOp
         ("a and b + c", r"{a \land b + c}"),
         ("a + b and c", r"{a + b \land c}"),
