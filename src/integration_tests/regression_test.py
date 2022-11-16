@@ -88,7 +88,10 @@ def test_sum_with_limit_1arg() -> None:
     def sum_with_limit(n):
         return sum(i**2 for i in range(n))
 
-    latex = r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n - 1}} \mathopen{}\left({i^{{2}}}\mathclose{}\right)"
+    latex = (
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n - 1}}"
+        r" \mathopen{}\left({i^{{2}}}\mathclose{}\right)"
+    )
     _check_function(sum_with_limit, latex)
 
 
@@ -96,7 +99,10 @@ def test_sum_with_limit_2args() -> None:
     def sum_with_limit(a, n):
         return sum(i**2 for i in range(a, n))
 
-    latex = r"\mathrm{sum_with_limit}(a, n) = \sum_{i = a}^{{n - 1}} \mathopen{}\left({i^{{2}}}\mathclose{}\right)"
+    latex = (
+        r"\mathrm{sum_with_limit}(a, n) = \sum_{i = a}^{{n - 1}} "
+        r"\mathopen{}\left({i^{{2}}}\mathclose{}\right)"
+    )
     _check_function(sum_with_limit, latex)
 
 
@@ -224,6 +230,8 @@ def test_sub_bracket() -> None:
 
     latex = (
         r"\mathrm{solve}(a, b) = "
-        r"\frac{a + b - b}{a - b} - \mathopen{}\left( a + b \mathclose{}\right) - \mathopen{}\left( a - b \mathclose{}\right) - a b"
+        r"\frac{a + b - b}{a - b} - \mathopen{}\left( "
+        r"a + b \mathclose{}\right) - \mathopen{}\left( "
+        r"a - b \mathclose{}\right) - a b"
     )
     _check_function(solve, latex)
