@@ -9,8 +9,6 @@ class PrefixTrimmer(ast.NodeTransformer):
     """NodeTransformer to trim prefixes of identifiers.
 
     Example:
-        import math
-
         def foo(n):
             return math.sqrt(n)
 
