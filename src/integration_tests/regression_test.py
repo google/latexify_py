@@ -106,6 +106,26 @@ def test_sum_with_limit_2args() -> None:
     _check_function(sum_with_limit, latex)
 
 
+def test_sum_with_reducible_limit() -> None:
+    def sum_with_limit(n):
+        return sum(i for i in range(n + 1))
+    
+    latex = (
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = 0}^{n} \left({i}\right) "
+    )
+    _check_function(sum_with_limit, latex)
+
+
+def test_sum_with_irreducible_limit() -> None:
+    def sum_with_limit(n):
+        return sum(i for i in range(n * 3))
+
+    latex = (
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = 0}^{n * 3 - 1} \left({i}\right)"
+    )
+    _check_function(sum_with_limit, latex)
+
+
 def test_prod_with_limit_1arg() -> None:
     def prod_with_limit(n):
         return math.prod(i**2 for i in range(n))
@@ -127,6 +147,28 @@ def test_prod_with_limit_2args() -> None:
     )
     _check_function(prod_with_limit, latex)
 
+
+def test_prod_with_reducible_limits() -> None:
+    def prod_with_limit(n):
+        return math.prod(i for i in range(n - 1))
+    
+    latex = (
+        r"\mathrm{prod_with_limit}(n) = "
+        r"\prod_{i = 0}^{n - 2} \left({i}\right)"
+    )
+    _check_function(prod_with_limit, latex)
+
+
+def test_prod_with_irreducible_limit() -> None:
+    def prod_with_limit(n):
+        return math.prod(i for i in range(n * 3))
+    
+    latex = (
+        r"\mathrm{prod_with_limit}(n) = "
+        r"\prod_{i = 0}^{n * 3 - 1} \left({i}\right)"
+    )
+    _check_function(prod_with_limit, latex)
+    
 
 def test_nested_function() -> None:
     def nested(x):
