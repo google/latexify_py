@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import ast
+from latexify import exceptions
+from latexify import test_utils
 
 import pytest
 
-from latexify import exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
 

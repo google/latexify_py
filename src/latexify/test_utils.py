@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import ast
+from collections.abc import Callable
 import functools
 import sys
-from collections.abc import Callable
 from typing import cast
 
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import math
 from collections.abc import Callable
+import math
 from typing import Any
 
 from latexify import frontend
