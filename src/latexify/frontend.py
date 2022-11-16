@@ -58,8 +58,10 @@ def get_latex(
         tree = transformers.IdentifierReplacer(identifiers).visit(tree)
     if reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
-    if prefixes is not None:
-        tree = transformers.PrefixTrimmer(prefixes).visit(tree)
+    # assume that both prefixes and PREFIXES are sets.
+    # merge and de-duplicate the prefix list.
+    merged_prefixes = constants.PREFIXES | prefixes
+    tree = transformers.PrefixTrimmer(merged_prefixes).visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
