@@ -296,7 +296,11 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\left( " + r"\space,\space ".join(elts) + r"\right) "
+        return (
+            r"\mathopen{}\left( "
+            + r"\space,\space ".join(elts)
+            + r"\mathclose{}\right) "
+        )
 
     def visit_List(self, node: ast.List) -> str:
         elts = [self.visit(i) for i in node.elts]
@@ -334,7 +338,7 @@ class FunctionCodegen(ast.NodeVisitor):
             return target
 
         conds = [target] + [self.visit(cond) for cond in node.ifs]
-        wrapped = [r"\left( " + s + r" \right)" for s in conds]
+        wrapped = [r"\mathopen{}\left( " + s + r" \mathclose{}\right)" for s in conds]
         return r" \land ".join(wrapped)
 
     def visit_Call(self, node: ast.Call) -> str:
@@ -345,13 +349,16 @@ class FunctionCodegen(ast.NodeVisitor):
         # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
         lstr, rstr = constants.BUILTIN_FUNCS.get(
             func_str,
-            (r"\mathrm{" + func_str + r"}\left(", r"\right)"),
+            (r"\mathrm{" + func_str + r"}\mathopen{}\left(", r"\mathclose{}\right)"),
         )
 
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
             elt, scripts = self._get_sum_prod_info(node.args[0])
             scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-            return " ".join(scripts_str) + rf" \left({{{elt}}}\right)"
+            return (
+                " ".join(scripts_str)
+                + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+            )
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
@@ -425,7 +432,7 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = self.visit(child)
         if _get_precedence(child) >= parent_prec:
             return latex
-        return rf"\left( {latex} \right)"
+        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
     def _wrap_binop_operand(
         self,
@@ -461,7 +468,7 @@ class FunctionCodegen(ast.NodeVisitor):
         ):
             return latex
 
-        return rf"\left( {latex} \right)"
+        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
     def visit_BinOp(self, node: ast.BinOp) -> str:
         """Visit a BinOp node."""
