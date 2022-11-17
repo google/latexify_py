@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import sys
 import dataclasses
 from typing import Any
 
@@ -536,6 +537,48 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
+    def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
+        # ast.Constant class is added in Python 3.8
+        # ast.Num is the relevant node type in previous versions
+        if sys.version_info.minor < 8:
+            if isinstance(node.right, ast.Num):
+                if isinstance(node.op, ast.Add):
+                    if node.right.n == 1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Num(node.right.n - 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+                else:
+                    if node.right.n == -1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Num(node.right.n + 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(node) + "}"
+        else:
+            if isinstance(node.right, ast.Constant):
+                if isinstance(node.op, ast.Add):
+                    if node.right.value == 1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(node.right.value - 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+                else:
+                    if node.right.value == -1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(node.right.value + 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(node) + "}"
+
+        return upper
+
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.
 
@@ -577,7 +620,13 @@ class FunctionCodegen(ast.NodeVisitor):
             lower_rhs = f"{{{range_info.start_int}}}"
 
         if range_info.stop_int is None:
-            upper = "{" + self.visit(range_info.stop) + " - 1}"
+            # use special processing if range_info.stop involves addition or subtraction
+            if isinstance(range_info.stop, ast.BinOp) and isinstance(
+                range_info.stop.op, (ast.Add, ast.Sub)
+            ):
+                upper = self._reduce_stop_parameter(range_info.stop)
+            else:
+                upper = "{" + self.visit(range_info.stop) + " - 1}"
         else:
             upper = f"{{{range_info.stop_int - 1}}}"
 
