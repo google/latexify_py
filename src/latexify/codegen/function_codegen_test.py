@@ -220,10 +220,13 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
             r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         # reduce stop parameter
-        ("sum(i for i in range(n+1))", r"\sum_{i = {0}}^{{n}} \left({i}\right)"),
+        (
+            "sum(i for i in range(n+1))",
+            r"\sum_{i = {0}}^{{n}} \mathopen{}\left({i}\mathclose{}\right)",
+        ),
         (
             "math.prod(i for i in range(n-1))",
-            r"\prod_{i = {0}}^{{n - {2}}} \left({i}\right)",
+            r"\prod_{i = {0}}^{{n - {2}}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
 )

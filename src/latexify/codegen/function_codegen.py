@@ -620,7 +620,7 @@ class FunctionCodegen(ast.NodeVisitor):
             lower_rhs = f"{{{range_info.start_int}}}"
 
         if range_info.stop_int is None:
-            # special processing needed if range_info.stop involves addition or subtraction
+            # use special processing if range_info.stop involves addition or subtraction
             if isinstance(range_info.stop, ast.BinOp) and isinstance(
                 range_info.stop.op, (ast.Add, ast.Sub)
             ):
