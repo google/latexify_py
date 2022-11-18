@@ -55,3 +55,17 @@ jobs:
           python -m pip install pyproject-flake8
       - name: Check
         run: pflake8 -v src
+  isort:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install isort
+    - name: Check
+      run: isort -v src
