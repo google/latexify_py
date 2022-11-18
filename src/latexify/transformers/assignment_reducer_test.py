@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import ast
-from latexify import ast_utils, parser, test_utils
 
+from latexify import ast_utils, parser, test_utils
 from latexify.transformers.assignment_reducer import AssignmentReducer
 
 
