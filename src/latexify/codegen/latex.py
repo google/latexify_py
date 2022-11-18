@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Union
+
+LatexLike = Union[str, "Latex"]
 
 
 class Latex:
@@ -68,45 +71,139 @@ class Latex:
             return Latex(other._raw + self._raw)
         raise ValueError("Unsupported operation.")
 
-    def wrap(self) -> Latex:
+    @staticmethod
+    def opt(src: LatexLike) -> Latex:
+        """Wraps the expression by "[" and "]".
+
+        This wrapping is used when the expression needs to be wrapped as an optional
+        argument of the environment.
+
+        Args:
+            src: Original expression.
+
+        Returns:
+            A new expression with surrounding brackets.
+        """
+        return Latex("[" + str(src) + "]")
+
+    @staticmethod
+    def arg(src: LatexLike) -> Latex:
         """Wraps the expression by "{" and "}".
 
         This wrapping is used when the expression needs to be wrapped as an argument of
         other expressions.
-        """
-        return Latex("{" + self._raw + "}")
 
-    def paren(self) -> Latex:
+        Args:
+            src: Original expression.
+
+        Returns:
+            A new expression with surrounding brackets.
+        """
+        return Latex("{" + str(src) + "}")
+
+    @staticmethod
+    def paren(src: LatexLike) -> Latex:
         """Adds surrounding parentheses: "(" and ")".
 
-        Returns:
-            A new Latex with surrounding brackets.
-        """
-        return Latex(r"\mathopen{}\left( " + self._raw + r" \mathclose{}\right)")
+        Args:
+            src: Original expression.
 
-    def curly(self) -> Latex:
+        Returns:
+            A new expression with surrounding brackets.
+        """
+        return Latex(r"\mathopen{}\left( " + str(src) + r" \mathclose{}\right)")
+
+    @staticmethod
+    def curly(src: LatexLike) -> Latex:
         """Adds surrounding curly brackets: "\\{" and "\\}".
 
-        Returns:
-            A new Latex with surrounding brackets.
-        """
-        return Latex(r"\mathopen{}\left\{ " + self._raw + r" \mathclose{}\right\}")
+        Args:
+            src: Original expression.
 
-    def square(self) -> Latex:
+        Returns:
+            A new expression with surrounding brackets.
+        """
+        return Latex(r"\mathopen{}\left\{ " + str(src) + r" \mathclose{}\right\}")
+
+    @staticmethod
+    def square(src: LatexLike) -> Latex:
         """Adds surrounding square brackets: "[" and "]".
 
-        Returns:
-            A new Latex with surrounding brackets.
-        """
-        return Latex(r"\mathopen{}\left[ " + self._raw + r" \mathclose{}\right]")
+        Args:
+            src: Original expression.
 
-    def join(self, seq: Iterable[str | Latex]) -> Latex:
+        Returns:
+            A new expression with surrounding brackets.
+        """
+        return Latex(r"\mathopen{}\left[ " + str(src) + r" \mathclose{}\right]")
+
+    @staticmethod
+    def command(
+        name: str,
+        *,
+        options: list[LatexLike] | None = None,
+        args: list[LatexLike] | None = None,
+    ) -> Latex:
+        """Makes a Latex command expression.
+
+        Args:
+            name: Name of the command.
+            options: List of optional arguments.
+            args: List of arguments.
+
+        Returns:
+            A new expression.
+        """
+        elms: list[LatexLike] = [rf"\{name}"]
+        if options is not None:
+            elms += [Latex.opt(x) for x in options]
+        if args is not None:
+            elms += [Latex.arg(x) for x in args]
+
+        return Latex.join("", elms)
+
+    @staticmethod
+    def environment(
+        name: str,
+        *,
+        options: list[LatexLike] | None = None,
+        args: list[LatexLike] | None = None,
+        content: LatexLike | None = None,
+    ) -> Latex:
+        """Makes a Latex environment expression.
+
+        Args:
+            name: Name of the environment.
+            options: List of optional arguments.
+            args: List of arguments.
+            content: Inner content of the environment.
+
+        Returns:
+            A new expression.
+        """
+        begin_elms: list[LatexLike] = [rf"\begin{{{name}}}"]
+        if options is not None:
+            begin_elms += [Latex.opt(x) for x in options]
+        if args is not None:
+            begin_elms += [Latex.arg(x) for x in args]
+
+        env_elms: list[LatexLike] = [Latex.join("", begin_elms)]
+        if content is not None:
+            env_elms.append(content)
+        env_elms.append(rf"\end{{{name}}}")
+
+        return Latex.join(" ", env_elms)
+
+    @staticmethod
+    def join(separator: LatexLike, elements: Iterable[LatexLike]) -> Latex:
         """Joins given sequence.
 
         Args:
-            seq: Iterable of expressions to be joined.
+            separator: Expression of the separator between each element.
+            elements: Iterable of expressions to be joined.
 
         Returns:
-            A new Latex: "{seq[0]}{self}{seq[1]}{self}...{self}{seq[-1]}"
+            A new Latex: "{e[0]}{s}{e[1]}{s}...{s}{e[-1]}"
+            where s == separator, and e == elements.
         """
-        return Latex(self._raw.join(x._raw if isinstance(x, Latex) else x for x in seq))
+        return Latex(str(separator).join(str(x) for x in elements))
