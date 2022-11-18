@@ -7,8 +7,7 @@ from typing import Any
 
 import pytest
 
-from latexify import ast_utils
-from latexify import test_utils
+from latexify import ast_utils, test_utils
 
 
 @test_utils.require_at_most(7)
