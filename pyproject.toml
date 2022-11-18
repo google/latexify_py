@@ -49,6 +49,7 @@ dev = [
     "pyproject-flake8>=5.0",
     "pytest>=7.1",
     "twine>=4.0",
+    "isort>=5.10",
 ]
 
 [project.urls]
