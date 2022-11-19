@@ -1,7 +1,9 @@
 # `latexify`
 
 `latexify` is a Python package to compile a fragment of Python source code to a
-corresponding $\LaTeX$ expression.
+corresponding $\LaTeX$ expression:
+
+![Example of latexify usage](example.jpg)
 
 `latexify` provides the following functionalities:
 
