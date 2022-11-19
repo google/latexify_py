@@ -13,6 +13,7 @@ def get_latex(
     fn: Callable[..., Any],
     *,
     identifiers: dict[str, str] | None = None,
+    expand_functions: tuple[str] = None,
     reduce_assignments: bool = False,
     use_math_symbols: bool = False,
     use_raw_function_name: bool = False,
@@ -28,6 +29,7 @@ def get_latex(
             the replacements.
             Both keys and values have to represent valid Python identifiers:
             ^[A-Za-z_][A-Za-z0-9_]*$
+        expand_functions: If set, the names of the functions to expand.
         reduce_assignments: If True, assignment statements are used to synthesize
             the final expression.
         use_math_symbols: Whether to convert identifiers with a math symbol surface
@@ -52,6 +54,8 @@ def get_latex(
         tree = transformers.IdentifierReplacer(identifiers).visit(tree)
     if reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
+    if expand_functions is not None:
+        tree = transformers.FunctionExpander(expand_functions).visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
