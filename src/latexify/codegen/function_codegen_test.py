@@ -6,7 +6,7 @@ import ast
 
 import pytest
 
-from latexify import exceptions, test_utils
+from latexify import ast_utils, exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
 
@@ -38,6 +38,25 @@ def test_visit_functiondef_use_signature() -> None:
     assert FunctionCodegen().visit(tree) == latex_with_flag
     assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
     assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
+
+
+def test_visit_functiondef_ignore_docstring() -> None:
+    tree = ast.FunctionDef(
+        name="f",
+        args=ast.arguments(
+            args=[ast.arg(arg="x")],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[],
+        ),
+        body=[
+            ast.Expr(ast_utils.make_constant("""docstring""")),
+            ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
+        ],
+        decorator_list=[],
+    )
+    latex_with_flag = r"\mathrm{f}(x) = x"
+    assert FunctionCodegen().visit(tree) == latex_with_flag
 
 
 @pytest.mark.parametrize(

@@ -252,7 +252,15 @@ class FunctionCodegen(ast.NodeVisitor):
         body_strs: list[str] = []
 
         # Assignment statements (if any): x = ...
-        for child in node.body[:-1]:
+        for i, child in enumerate(node.body[:-1]):
+            # Allow docstrings
+            if (
+                i == 0
+                and isinstance(child, ast.Expr)
+                and isinstance(child.value, ast.Constant)
+            ):
+                continue
+
             if not isinstance(child, ast.Assign):
                 raise exceptions.LatexifyNotSupportedError(
                     "Codegen supports only Assign nodes in multiline functions, "
