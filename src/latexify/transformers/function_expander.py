@@ -8,7 +8,7 @@ from collections.abc import Callable
 from latexify import ast_utils
 
 
-# TODO(ZibingZhang): handle recursive function expanders
+# TODO(ZibingZhang): handle recursive function expansions
 class FunctionExpander(ast.NodeTransformer):
     """NodeTransformer to expand functions.
 
