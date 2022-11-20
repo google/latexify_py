@@ -24,11 +24,15 @@ def test_generic_visit() -> None:
 
 def test_visit_functiondef_use_signature() -> None:
     tree = ast.parse(
-        """
-def f(x):
-    return x
-    """
-    )
+        textwrap.dedent(
+            """
+        def f(x):
+            return x
+            """
+        )
+    ).body[0]
+    assert isinstance(tree, ast.FunctionDef)
+
     latex_without_flag = "x"
     latex_with_flag = r"\mathrm{f}(x) = x"
     assert FunctionCodegen().visit(tree) == latex_with_flag
@@ -43,7 +47,7 @@ def test_visit_functiondef_ignore_docstring() -> None:
         def f(x):
             '''docstring'''
             return x
-        """
+            """
         )
     ).body[0]
     assert isinstance(tree, ast.FunctionDef)
