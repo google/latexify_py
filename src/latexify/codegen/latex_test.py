@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from latexify.codegen.latex import \
-    Latex  # Ignores [22-imports] for convenience.
+from latexify.codegen.latex import Latex  # Ignores [22-imports] for convenience.
 
 
 def test_eq() -> None:

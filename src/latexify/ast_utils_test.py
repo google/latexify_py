@@ -115,3 +115,21 @@ def test_extract_int_invalid() -> None:
         ast_utils.extract_int(ast_utils.make_constant("123"))
     with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
         ast_utils.extract_int(ast_utils.make_constant(b"123"))
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Call(ast.Name("hypot"), ast.Constant("foo")), "hypot"),
+        (
+            ast.Call(
+                ast.Attribute(ast.Name("math"), "hypot", ast.Load()),
+                ast.Constant("foo"),
+            ),
+            "hypot",
+        ),
+        (ast.Call(ast.Constant(123), ast.Constant("foo")), None),
+    ],
+)
+def test_extract_function_name_or_none(value: ast.Call, expected: str | None) -> None:
+    assert ast_utils.extract_function_name_or_none(value) == expected

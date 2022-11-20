@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import ast
+import functools
+from ast import Load
 from collections.abc import Callable
-from functools import reduce
-from typing import Any
 
-from latexify import exceptions
+from latexify import ast_utils
 
 
+# TODO(ZibingZhang): handle recursive function expanders
 class FunctionExpander(ast.NodeTransformer):
     """NodeTransformer to expand functions.
 
@@ -23,44 +24,38 @@ class FunctionExpander(ast.NodeTransformer):
             return sqrt(x**2, y**2)
     """
 
-    def __init__(self, functions):
-        self.functions = functions
+    def __init__(self, functions: set[str]) -> None:
+        self._functions = functions
 
-    def visit_Call(self, node: ast.Call) -> Any:
+    def visit_Call(self, node: ast.Call) -> ast.AST:
         """Visitor of FunctionDef nodes."""
+        func_name = ast_utils.extract_function_name_or_none(node)
         if (
-            isinstance(node.func, ast.Name)
-            and node.func.id in self.functions
-            and node.func.id in _FUNCTION_EXPANDERS
+            func_name is not None
+            and func_name in self._functions
+            and func_name in _FUNCTION_EXPANDERS
         ):
-            return _FUNCTION_EXPANDERS[node.func.id](node, self)
+            return _FUNCTION_EXPANDERS[func_name](self, node)
 
         return node
 
 
-def _hypot_expander(node: ast.Call, function_expander: FunctionExpander) -> ast.AST:
+def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
     if len(node.args) == 0:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander does not support expanding 'hypot' with zero arguments."
-        )
+        return ast_utils.make_constant(0)
 
-    args = []
-    for arg in node.args:
-        args.append(ast.BinOp(arg, ast.Pow(), ast.Num(2)))
+    args = [
+        ast.BinOp(function_expander.visit(arg), ast.Pow(), ast_utils.make_constant(2))
+        for arg in node.args
+    ]
 
-    args = list(map(lambda arg: function_expander.visit(arg), args))
-
-    node.func.id = "sqrt"
-    if len(args) <= 1:
-        node.args = args
-    else:
-        node.args = [
-            reduce(lambda acc, arg: ast.BinOp(acc, ast.Add(), arg), args[1:], args[0])
-        ]
-
-    return node
+    args_reduced = functools.reduce(lambda a, b: ast.BinOp(a, ast.Add(), b), args)
+    return ast.Call(
+        func=ast.Name(id="sqrt", ctx=Load()),
+        args=[args_reduced],
+    )
 
 
-_FUNCTION_EXPANDERS: dict[str, Callable[[ast.Call, FunctionExpander], ast.AST]] = {
+_FUNCTION_EXPANDERS: dict[str, Callable[[FunctionExpander, ast.Call], ast.AST]] = {
     "hypot": _hypot_expander
 }

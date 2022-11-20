@@ -3,18 +3,18 @@
 from __future__ import annotations
 
 import ast
+import math
 
-from latexify import parser, test_utils
-from latexify.test_stubs import hypot
+from latexify import ast_utils, parser, test_utils
 from latexify.transformers.function_expander import FunctionExpander
 
 
-def _make_ast(args: list[str], call: ast.Call) -> ast.Module:
+def _make_ast(args: list[str], body: ast.AST) -> ast.Module:
     """Helper function to generate an AST for f(x).
 
     Args:
-        name: The name of calling method.
         args: The arguments passed to the method.
+        body: The body of the return statement.
 
     Returns:
         Generated AST.
@@ -29,27 +29,44 @@ def _make_ast(args: list[str], call: ast.Call) -> ast.Module:
                     kw_defaults=[],
                     defaults=[],
                 ),
-                body=[ast.Return(call)],
+                body=[ast.Return(body)],
                 decorator_list=[],
             )
         ],
     )
 
 
-def test_unchanged() -> None:
+def test_unchanged_without_attribute_access() -> None:
+    from math import hypot
+
     def f(x, y):
         return hypot(x, y)
 
     expected = _make_ast(
         ["x", "y"], ast.Call(ast.Name("hypot"), [ast.Name("x"), ast.Name("y")])
     )
-    transformed = FunctionExpander([]).visit(parser.parse_function(f))
+    transformed = FunctionExpander(set()).visit(parser.parse_function(f))
+    test_utils.assert_ast_equal(transformed, expected)
+
+
+def test_unchanged() -> None:
+    def f(x, y):
+        return math.hypot(x, y)
+
+    expected = _make_ast(
+        ["x", "y"],
+        ast.Call(
+            ast.Attribute(ast.Name("math"), "hypot", ast.Load()),
+            [ast.Name("x"), ast.Name("y")],
+        ),
+    )
+    transformed = FunctionExpander(set()).visit(parser.parse_function(f))
     test_utils.assert_ast_equal(transformed, expected)
 
 
 def test_expand_hypot() -> None:
     def f(x, y):
-        return hypot(x, y)
+        return math.hypot(x, y)
 
     expected = _make_ast(
         ["x", "y"],
@@ -57,12 +74,24 @@ def test_expand_hypot() -> None:
             ast.Name("sqrt"),
             [
                 ast.BinOp(
-                    ast.BinOp(ast.Name("x"), ast.Pow(), ast.Num(2)),
+                    ast.BinOp(ast.Name("x"), ast.Pow(), ast_utils.make_constant(2)),
                     ast.Add(),
-                    ast.BinOp(ast.Name("y"), ast.Pow(), ast.Num(2)),
+                    ast.BinOp(ast.Name("y"), ast.Pow(), ast_utils.make_constant(2)),
                 )
             ],
         ),
     )
-    transformed = FunctionExpander(["hypot"]).visit(parser.parse_function(f))
+    transformed = FunctionExpander({"hypot"}).visit(parser.parse_function(f))
+    test_utils.assert_ast_equal(transformed, expected)
+
+
+def test_expand_hypot_no_args() -> None:
+    def f():
+        return math.hypot()
+
+    expected = _make_ast(
+        [],
+        ast_utils.make_constant(0),
+    )
+    transformed = FunctionExpander({"hypot"}).visit(parser.parse_function(f))
     test_utils.assert_ast_equal(transformed, expected)

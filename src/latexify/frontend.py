@@ -13,7 +13,7 @@ def get_latex(
     fn: Callable[..., Any],
     *,
     identifiers: dict[str, str] | None = None,
-    expand_functions: tuple[str] = None,
+    expand_functions: set[str] | None = None,
     reduce_assignments: bool = False,
     use_math_symbols: bool = False,
     use_raw_function_name: bool = False,
