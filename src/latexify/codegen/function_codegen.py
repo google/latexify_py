@@ -253,7 +253,7 @@ class FunctionCodegen(ast.NodeVisitor):
 
         # Assignment statements (if any): x = ...
         for child in node.body[:-1]:
-            if ast_utils.is_constant(child):
+            if isinstance(child, ast.Expr) and ast_utils.is_constant(child.value):
                 continue
 
             if not isinstance(child, ast.Assign):

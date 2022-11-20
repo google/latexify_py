@@ -51,19 +51,12 @@ def is_constant(node: ast.AST) -> bool:
         True if the node is a constant, False otherwise.
     """
     if sys.version_info.minor < 8:
-        if isinstance(
+        return isinstance(
             node,
             (ast.Bytes, ast.Constant, ast.Ellipsis, ast.NameConstant, ast.Num, ast.Str),
-        ):
-            return True
+        )
     else:
-        if isinstance(node, ast.Constant):
-            return True
-
-    if isinstance(node, ast.Expr):
-        return is_constant(node.value)
-
-    return False
+        return isinstance(node, ast.Constant)
 
 
 def extract_int_or_none(node: ast.expr) -> int | None:

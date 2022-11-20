@@ -37,11 +37,15 @@ def f(x):
 
 
 def test_visit_functiondef_ignore_docstring() -> None:
-    tree = ast.parse(textwrap.dedent("""
+    tree = ast.parse(
+        textwrap.dedent(
+            """
         def f(x):
             '''docstring'''
             return x
-        """)).body[0]
+        """
+        )
+    ).body[0]
     assert isinstance(tree, ast.FunctionDef)
 
     latex = r"\mathrm{f}(x) = x"
@@ -49,13 +53,17 @@ def test_visit_functiondef_ignore_docstring() -> None:
 
 
 def test_visit_functiondef_ignore_multiple_constants() -> None:
-    tree = ast.parse(textwrap.dedent("""
+    tree = ast.parse(
+        textwrap.dedent(
+            """
         def f(x):
             '''docstring'''
             3
             True
             return x
-        """)).body[0]
+            """
+        )
+    ).body[0]
     assert isinstance(tree, ast.FunctionDef)
 
     latex = r"\mathrm{f}(x) = x"

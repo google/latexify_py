@@ -69,11 +69,11 @@ def test_make_constant_invalid() -> None:
         (ast.NameConstant(value=None), True),
         (ast.Num(n=123), True),
         (ast.Str(s="baz"), True),
-        (ast.Expr(value=ast.Num(456)), True),
+        (ast.Expr(value=ast.Num(456)), False),
         (ast.Global("qux"), False),
     ],
 )
-def test_is_constant_legacy(value: Any, expected: ast.Constant) -> None:
+def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_constant(value) is expected
 
 
@@ -82,11 +82,11 @@ def test_is_constant_legacy(value: Any, expected: ast.Constant) -> None:
     "value,expected",
     [
         (ast.Constant("foo"), True),
-        (ast.Expr(value=ast.Constant(123)), True),
+        (ast.Expr(value=ast.Constant(123)), False),
         (ast.Global("bar"), False),
     ],
 )
-def test_is_constant(value: Any, expected: ast.Constant) -> None:
+def test_is_constant(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_constant(value) is expected
 
 
