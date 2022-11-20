@@ -59,6 +59,37 @@ def test_make_constant_invalid() -> None:
         ast_utils.make_constant(object())
 
 
+@test_utils.require_at_most(7)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Bytes(s=b"foo"), True),
+        (ast.Constant("bar"), True),
+        (ast.Ellipsis(), True),
+        (ast.NameConstant(value=None), True),
+        (ast.Num(n=123), True),
+        (ast.Str(s="baz"), True),
+        (ast.Expr(value=ast.Num(456)), False),
+        (ast.Global("qux"), False),
+    ],
+)
+def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
+    assert ast_utils.is_constant(value) is expected
+
+
+@test_utils.require_at_least(8)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Constant("foo"), True),
+        (ast.Expr(value=ast.Constant(123)), False),
+        (ast.Global("bar"), False),
+    ],
+)
+def test_is_constant(value: ast.AST, expected: bool) -> None:
+    assert ast_utils.is_constant(value) is expected
+
+
 def test_extract_int_or_none() -> None:
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(-123)) == -123
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(0)) == 0

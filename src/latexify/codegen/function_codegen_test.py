@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import textwrap
 
 import pytest
 
@@ -22,22 +23,55 @@ def test_generic_visit() -> None:
 
 
 def test_visit_functiondef_use_signature() -> None:
-    tree = ast.FunctionDef(
-        name="f",
-        args=ast.arguments(
-            args=[ast.arg(arg="x")],
-            kwonlyargs=[],
-            kw_defaults=[],
-            defaults=[],
-        ),
-        body=[ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
-        decorator_list=[],
-    )
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+        def f(x):
+            return x
+            """
+        )
+    ).body[0]
+    assert isinstance(tree, ast.FunctionDef)
+
     latex_without_flag = "x"
     latex_with_flag = r"\mathrm{f}(x) = x"
     assert FunctionCodegen().visit(tree) == latex_with_flag
     assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
     assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
+
+
+def test_visit_functiondef_ignore_docstring() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+        def f(x):
+            '''docstring'''
+            return x
+            """
+        )
+    ).body[0]
+    assert isinstance(tree, ast.FunctionDef)
+
+    latex = r"\mathrm{f}(x) = x"
+    assert FunctionCodegen().visit(tree) == latex
+
+
+def test_visit_functiondef_ignore_multiple_constants() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+        def f(x):
+            '''docstring'''
+            3
+            True
+            return x
+            """
+        )
+    ).body[0]
+    assert isinstance(tree, ast.FunctionDef)
+
+    latex = r"\mathrm{f}(x) = x"
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(

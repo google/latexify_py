@@ -7,7 +7,7 @@ import dataclasses
 import sys
 from typing import Any
 
-from latexify import analyzers, constants, exceptions, math_symbols
+from latexify import analyzers, ast_utils, constants, exceptions, math_symbols
 
 # Precedences of operators for BoolOp, BinOp, UnaryOp, and Compare nodes.
 # Note that this value affects only the appearance of surrounding parentheses for each
@@ -253,6 +253,9 @@ class FunctionCodegen(ast.NodeVisitor):
 
         # Assignment statements (if any): x = ...
         for child in node.body[:-1]:
+            if isinstance(child, ast.Expr) and ast_utils.is_constant(child.value):
+                continue
+
             if not isinstance(child, ast.Assign):
                 raise exceptions.LatexifyNotSupportedError(
                     "Codegen supports only Assign nodes in multiline functions, "
