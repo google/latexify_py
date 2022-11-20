@@ -41,7 +41,7 @@ class FunctionExpander(ast.NodeTransformer):
 def _hypot_expander(node: ast.Call, function_expander: FunctionExpander) -> ast.AST:
     if len(node.args) == 0:
         raise exceptions.LatexifyNotSupportedError(
-            "AssignmentReducer does not support expanding 'hypot' with zero arguments."
+            "FunctionExpander does not support expanding 'hypot' with zero arguments."
         )
 
     args = []
