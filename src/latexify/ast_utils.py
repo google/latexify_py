@@ -97,10 +97,9 @@ def extract_function_name_or_none(node: ast.Call) -> str | None:
     Returns:
         Extracted function name, or None if not found.
     """
-    func_node = node.func
-    if isinstance(func_node, ast.Name):
-        return func_node.id
-    if isinstance(func_node, ast.Attribute):
-        return func_node.attr
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
 
     return None
