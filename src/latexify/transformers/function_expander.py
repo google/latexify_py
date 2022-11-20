@@ -28,7 +28,7 @@ class FunctionExpander(ast.NodeTransformer):
         self._functions = functions
 
     def visit_Call(self, node: ast.Call) -> ast.AST:
-        """Visitor of FunctionDef nodes."""
+        """Visitor of Call nodes."""
         func_name = ast_utils.extract_function_name_or_none(node)
         if (
             func_name is not None
