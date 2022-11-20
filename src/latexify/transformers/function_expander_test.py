@@ -36,7 +36,7 @@ def _make_ast(args: list[str], body: ast.AST) -> ast.Module:
     )
 
 
-def test_unchanged_without_attribute_access() -> None:
+def test_hypot_unchanged_without_attribute_access() -> None:
     from math import hypot
 
     def f(x, y):
@@ -49,7 +49,7 @@ def test_unchanged_without_attribute_access() -> None:
     test_utils.assert_ast_equal(transformed, expected)
 
 
-def test_unchanged() -> None:
+def test_hypot_unchanged() -> None:
     def f(x, y):
         return math.hypot(x, y)
 
@@ -64,7 +64,7 @@ def test_unchanged() -> None:
     test_utils.assert_ast_equal(transformed, expected)
 
 
-def test_expand_hypot() -> None:
+def test_hypot_expanded() -> None:
     def f(x, y):
         return math.hypot(x, y)
 
@@ -85,7 +85,7 @@ def test_expand_hypot() -> None:
     test_utils.assert_ast_equal(transformed, expected)
 
 
-def test_expand_hypot_no_args() -> None:
+def test_hypot_expanded_no_args() -> None:
     def f():
         return math.hypot()
 
