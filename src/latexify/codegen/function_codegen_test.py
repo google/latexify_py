@@ -6,7 +6,7 @@ import ast
 
 import pytest
 
-from latexify import ast_utils, exceptions, test_utils
+from latexify import exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
 
@@ -22,16 +22,11 @@ def test_generic_visit() -> None:
 
 
 def test_visit_functiondef_use_signature() -> None:
-    tree = ast.FunctionDef(
-        name="f",
-        args=ast.arguments(
-            args=[ast.arg(arg="x")],
-            kwonlyargs=[],
-            kw_defaults=[],
-            defaults=[],
-        ),
-        body=[ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
-        decorator_list=[],
+    tree = ast.parse(
+        """
+def f(x):
+    return x
+    """
     )
     latex_without_flag = "x"
     latex_with_flag = r"\mathrm{f}(x) = x"
@@ -41,40 +36,24 @@ def test_visit_functiondef_use_signature() -> None:
 
 
 def test_visit_functiondef_ignore_docstring() -> None:
-    tree = ast.FunctionDef(
-        name="f",
-        args=ast.arguments(
-            args=[ast.arg(arg="x")],
-            kwonlyargs=[],
-            kw_defaults=[],
-            defaults=[],
-        ),
-        body=[
-            ast.Expr(ast_utils.make_constant("docstring")),
-            ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
-        ],
-        decorator_list=[],
+    tree = ast.parse(
+        """
+def f(x):
+    '''docstring'''
+    return x"""
     )
     latex = r"\mathrm{f}(x) = x"
     assert FunctionCodegen().visit(tree) == latex
 
 
 def test_visit_functiondef_ignore_multiple_constants() -> None:
-    tree = ast.FunctionDef(
-        name="f",
-        args=ast.arguments(
-            args=[ast.arg(arg="x")],
-            kwonlyargs=[],
-            kw_defaults=[],
-            defaults=[],
-        ),
-        body=[
-            ast.Expr(ast_utils.make_constant("docstring" "")),
-            ast.Expr(ast_utils.make_constant(3)),
-            ast.Expr(ast_utils.make_constant(True)),
-            ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
-        ],
-        decorator_list=[],
+    tree = ast.parse(
+        """
+def f(x):
+    '''docstring'''
+    3
+    True
+    return x"""
     )
     latex = r"\mathrm{f}(x) = x"
     assert FunctionCodegen().visit(tree) == latex
