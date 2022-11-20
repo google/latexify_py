@@ -7,6 +7,7 @@ from collections.abc import Callable
 from typing import Any
 
 from latexify import frontend
+from latexify.test_stubs import hypot
 
 
 def _check_function(

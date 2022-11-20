@@ -1,0 +1,2 @@
+def hypot(*_):
+    return

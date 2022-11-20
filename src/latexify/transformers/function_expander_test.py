@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 
 from latexify import parser, test_utils
+from latexify.test_stubs import hypot
 from latexify.transformers.function_expander import FunctionExpander
 
 
