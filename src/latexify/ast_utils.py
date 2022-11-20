@@ -41,6 +41,31 @@ def make_constant(value: Any) -> ast.expr:
     raise ValueError(f"Unsupported type to generate Constant: {type(value).__name__}")
 
 
+def is_constant(node: ast.AST) -> bool:
+    """Checks if the node is a constant.
+
+    Args:
+        node: The node to examine.
+
+    Returns:
+        True if the node is a constant, False otherwise.
+    """
+    if sys.version_info.minor < 8:
+        if isinstance(
+            node,
+            (ast.Bytes, ast.Constant, ast.Ellipsis, ast.NameConstant, ast.Num, ast.Str),
+        ):
+            return True
+    else:
+        if isinstance(node, ast.Constant):
+            return True
+
+    if isinstance(node, ast.Expr):
+        return is_constant(node.value)
+
+    return False
+
+
 def extract_int_or_none(node: ast.expr) -> int | None:
     """Extracts int constant from the given Constant node.
 

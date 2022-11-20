@@ -50,13 +50,34 @@ def test_visit_functiondef_ignore_docstring() -> None:
             defaults=[],
         ),
         body=[
-            ast.Expr(ast_utils.make_constant("""docstring""")),
+            ast.Expr(ast_utils.make_constant("docstring")),
             ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
         ],
         decorator_list=[],
     )
-    latex_with_flag = r"\mathrm{f}(x) = x"
-    assert FunctionCodegen().visit(tree) == latex_with_flag
+    latex = r"\mathrm{f}(x) = x"
+    assert FunctionCodegen().visit(tree) == latex
+
+
+def test_visit_functiondef_ignore_multiple_constants() -> None:
+    tree = ast.FunctionDef(
+        name="f",
+        args=ast.arguments(
+            args=[ast.arg(arg="x")],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[],
+        ),
+        body=[
+            ast.Expr(ast_utils.make_constant("docstring" "")),
+            ast.Expr(ast_utils.make_constant(3)),
+            ast.Expr(ast_utils.make_constant(True)),
+            ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
+        ],
+        decorator_list=[],
+    )
+    latex = r"\mathrm{f}(x) = x"
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(

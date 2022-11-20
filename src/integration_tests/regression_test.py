@@ -288,3 +288,14 @@ def test_docstring_allowed() -> None:
 
     latex = r"\mathrm{solve}(x) = x"
     _check_function(solve, latex)
+
+
+def test_multiple_constants_allowed() -> None:
+    def solve(x):
+        """The identity function."""
+        123
+        True
+        return x
+
+    latex = r"\mathrm{solve}(x) = x"
+    _check_function(solve, latex)
