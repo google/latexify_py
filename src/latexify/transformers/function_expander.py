@@ -18,7 +18,7 @@ class FunctionExpander(ast.NodeTransformer):
         def f(x, y):
             return hypot(x, y)
 
-        FunctionExpander(["hypot"]) will modify the AST of the function above to below:
+        FunctionExpander({"hypot"}) will modify the AST of the function above to below:
 
         def f(x, y):
             return sqrt(x**2, y**2)
