@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import textwrap
 
 import pytest
 
@@ -36,25 +37,27 @@ def f(x):
 
 
 def test_visit_functiondef_ignore_docstring() -> None:
-    tree = ast.parse(
-        """
-def f(x):
-    '''docstring'''
-    return x"""
-    )
+    tree = ast.parse(textwrap.dedent("""
+        def f(x):
+            '''docstring'''
+            return x
+        """)).body[0]
+    assert isinstance(tree, ast.FunctionDef)
+
     latex = r"\mathrm{f}(x) = x"
     assert FunctionCodegen().visit(tree) == latex
 
 
 def test_visit_functiondef_ignore_multiple_constants() -> None:
-    tree = ast.parse(
-        """
-def f(x):
-    '''docstring'''
-    3
-    True
-    return x"""
-    )
+    tree = ast.parse(textwrap.dedent("""
+        def f(x):
+            '''docstring'''
+            3
+            True
+            return x
+        """)).body[0]
+    assert isinstance(tree, ast.FunctionDef)
+
     latex = r"\mathrm{f}(x) = x"
     assert FunctionCodegen().visit(tree) == latex
 
