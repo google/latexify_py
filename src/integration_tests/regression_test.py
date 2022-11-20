@@ -279,3 +279,23 @@ def test_sub_bracket() -> None:
         r"a - b \mathclose{}\right) - a b"
     )
     _check_function(solve, latex)
+
+
+def test_docstring_allowed() -> None:
+    def solve(x):
+        """The identity function."""
+        return x
+
+    latex = r"\mathrm{solve}(x) = x"
+    _check_function(solve, latex)
+
+
+def test_multiple_constants_allowed() -> None:
+    def solve(x):
+        """The identity function."""
+        123
+        True
+        return x
+
+    latex = r"\mathrm{solve}(x) = x"
+    _check_function(solve, latex)
