@@ -151,15 +151,31 @@ def test_extract_int_invalid() -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Call(ast.Name("hypot"), ast.Constant("foo")), "hypot"),
         (
             ast.Call(
-                ast.Attribute(ast.Name("math"), "hypot", ast.Load()),
-                ast.Constant("foo"),
+                func=ast.Name(id="hypot", ctx=ast.Load()),
+                args=[],
             ),
             "hypot",
         ),
-        (ast.Call(ast.Constant(123), ast.Constant("foo")), None),
+        (
+            ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id="math", ctx=ast.Load()),
+                    attr="hypot",
+                    ctx=ast.Load(),
+                ),
+                args=[],
+            ),
+            "hypot",
+        ),
+        (
+            ast.Call(
+                func=ast.Call(func=ast.Name(id="foo", ctx=ast.Load()), args=[]),
+                args=[],
+            ),
+            None,
+        ),
     ],
 )
 def test_extract_function_name_or_none(value: ast.Call, expected: str | None) -> None:

@@ -9,7 +9,7 @@ from latexify import ast_utils, parser, test_utils
 from latexify.transformers.function_expander import FunctionExpander
 
 
-def _make_ast(args: list[str], body: ast.AST) -> ast.Module:
+def _make_ast(args: list[str], body: ast.expr) -> ast.Module:
     """Helper function to generate an AST for f(x).
 
     Args:
@@ -24,7 +24,7 @@ def _make_ast(args: list[str], body: ast.AST) -> ast.Module:
             ast.FunctionDef(
                 name="f",
                 args=ast.arguments(
-                    args=list(map(lambda arg: ast.arg(arg=arg), args)),
+                    args=[ast.arg(arg=arg) for arg in args],
                     kwonlyargs=[],
                     kw_defaults=[],
                     defaults=[],

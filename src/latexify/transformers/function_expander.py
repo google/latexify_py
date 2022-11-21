@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ast
 import functools
-from ast import Load
 from collections.abc import Callable
 
 from latexify import ast_utils
@@ -51,7 +50,7 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
 
     args_reduced = functools.reduce(lambda a, b: ast.BinOp(a, ast.Add(), b), args)
     return ast.Call(
-        func=ast.Name(id="sqrt", ctx=Load()),
+        func=ast.Name(id="sqrt", ctx=ast.Load()),
         args=[args_reduced],
     )
 
