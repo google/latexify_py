@@ -4,7 +4,7 @@ import ast
 import functools
 from collections.abc import Callable
 
-from latexify import ast_utils
+from latexify import ast_utils, constants
 
 
 # TODO(ZibingZhang): handle recursive function expansions
@@ -50,7 +50,7 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
 
     args_reduced = functools.reduce(lambda a, b: ast.BinOp(a, ast.Add(), b), args)
     return ast.Call(
-        func=ast.Name(id="sqrt", ctx=ast.Load()),
+        func=ast.Name(id=constants.BuiltinFnName.SQRT.value, ctx=ast.Load()),
         args=[args_reduced],
     )
 
