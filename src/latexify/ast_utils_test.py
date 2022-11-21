@@ -70,7 +70,7 @@ def test_make_constant_invalid() -> None:
         (ast.Num(n=123), True),
         (ast.Str(s="baz"), True),
         (ast.Expr(value=ast.Num(456)), False),
-        (ast.Global("qux"), False),
+        (ast.Global(names=["qux"]), False),
     ],
 )
 def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
@@ -81,9 +81,9 @@ def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Constant("foo"), True),
-        (ast.Expr(value=ast.Constant(123)), False),
-        (ast.Global("bar"), False),
+        (ast.Constant(value="foo"), True),
+        (ast.Expr(value=ast.Constant(value=123)), False),
+        (ast.Global(names=["bar"]), False),
     ],
 )
 def test_is_constant(value: ast.AST, expected: bool) -> None:

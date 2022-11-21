@@ -43,7 +43,8 @@ def test_hypot_unchanged_without_attribute_access() -> None:
         return hypot(x, y)
 
     expected = _make_ast(
-        ["x", "y"], ast.Call(ast.Name("hypot"), [ast.Name("x"), ast.Name("y")])
+        ["x", "y"],
+        ast.Call(func=ast.Name(id="hypot"), args=[ast.Name(id="x"), ast.Name(id="y")]),
     )
     transformed = FunctionExpander(set()).visit(parser.parse_function(f))
     test_utils.assert_ast_equal(transformed, expected)
@@ -56,8 +57,10 @@ def test_hypot_unchanged() -> None:
     expected = _make_ast(
         ["x", "y"],
         ast.Call(
-            ast.Attribute(ast.Name("math"), "hypot", ast.Load()),
-            [ast.Name("x"), ast.Name("y")],
+            func=ast.Attribute(
+                ast.Name(id="math", ctx=ast.Load()), attr="hypot", ctx=ast.Load()
+            ),
+            args=[ast.Name(id="x", ctx=ast.Load()), ast.Name(id="y", ctx=ast.Load())],
         ),
     )
     transformed = FunctionExpander(set()).visit(parser.parse_function(f))
@@ -71,12 +74,20 @@ def test_hypot_expanded() -> None:
     expected = _make_ast(
         ["x", "y"],
         ast.Call(
-            ast.Name("sqrt"),
-            [
+            func=ast.Name(id="sqrt", ctx=ast.Load()),
+            args=[
                 ast.BinOp(
-                    ast.BinOp(ast.Name("x"), ast.Pow(), ast_utils.make_constant(2)),
-                    ast.Add(),
-                    ast.BinOp(ast.Name("y"), ast.Pow(), ast_utils.make_constant(2)),
+                    left=ast.BinOp(
+                        left=ast.Name(id="x", ctx=ast.Load()),
+                        op=ast.Pow(),
+                        right=ast_utils.make_constant(2),
+                    ),
+                    op=ast.Add(),
+                    right=ast.BinOp(
+                        left=ast.Name(id="y", ctx=ast.Load()),
+                        op=ast.Pow(),
+                        right=ast_utils.make_constant(2),
+                    ),
                 )
             ],
         ),
