@@ -104,3 +104,20 @@ def extract_int(node: ast.expr) -> int:
         raise ValueError(f"Unsupported node to extract int: {type(node).__name__}")
 
     return value
+
+
+def extract_function_name_or_none(node: ast.Call) -> str | None:
+    """Extracts function name from the given Call node.
+
+    Args:
+        node: ast.Call.
+
+    Returns:
+        Extracted function name, or None if not found.
+    """
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+
+    return None

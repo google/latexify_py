@@ -281,6 +281,37 @@ def test_sub_bracket() -> None:
     _check_function(solve, latex)
 
 
+def test_expand_hypot_function_without_attribute_access() -> None:
+    from math import hypot
+
+    def solve(x, y, z):
+        return hypot(x, y, z)
+
+    latex = r"\mathrm{solve}(x, y, z) = \sqrt{x^{{2}} + y^{{2}} + z^{{2}}}"
+    _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_expand_hypot_function() -> None:
+    def solve(x, y, z):
+        return math.hypot(x, y, z)
+
+    latex = r"\mathrm{solve}(x, y, z) = \sqrt{x^{{2}} + y^{{2}} + z^{{2}}}"
+    _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_expand_nested_function() -> None:
+    def solve(a, b, x, y):
+        return math.hypot(math.hypot(a, b), x, y)
+
+    latex = (
+        r"\mathrm{solve}(a, b, x, y) = "
+        r"\sqrt{"
+        r"\sqrt{a^{{2}} + b^{{2}}}^{{2}} + "
+        r"x^{{2}} + y^{{2}}}"
+    )
+    _check_function(solve, latex, expand_functions={"hypot"})
+
+
 def test_docstring_allowed() -> None:
     def solve(x):
         """The identity function."""
