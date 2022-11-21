@@ -44,11 +44,17 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
         return ast_utils.make_constant(0)
 
     args = [
-        ast.BinOp(function_expander.visit(arg), ast.Pow(), ast_utils.make_constant(2))
+        ast.BinOp(
+            left=function_expander.visit(arg),
+            op=ast.Pow(),
+            right=ast_utils.make_constant(2),
+        )
         for arg in node.args
     ]
 
-    args_reduced = functools.reduce(lambda a, b: ast.BinOp(a, ast.Add(), b), args)
+    args_reduced = functools.reduce(
+        lambda a, b: ast.BinOp(left=a, op=ast.Add(), right=b), args
+    )
     return ast.Call(
         func=ast.Name(id=constants.BuiltinFnName.SQRT.value, ctx=ast.Load()),
         args=[args_reduced],

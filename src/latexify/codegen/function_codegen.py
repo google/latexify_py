@@ -545,15 +545,19 @@ class FunctionCodegen(ast.NodeVisitor):
                     if node.right.n == 1:
                         upper = "{" + self.visit(node.left) + "}"
                     else:
-                        reduced_constant = ast.Num(node.right.n - 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        reduced_constant = ast.Num(n=node.right.n - 1)
+                        new_node = ast.BinOp(
+                            left=node.left, op=node.op, right=reduced_constant
+                        )
                         upper = "{" + self.visit(new_node) + "}"
                 else:
                     if node.right.n == -1:
                         upper = "{" + self.visit(node.left) + "}"
                     else:
-                        reduced_constant = ast.Num(node.right.n + 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        reduced_constant = ast.Num(n=node.right.n + 1)
+                        new_node = ast.BinOp(
+                            left=node.left, op=node.op, right=reduced_constant
+                        )
                         upper = "{" + self.visit(new_node) + "}"
             else:
                 upper = "{" + self.visit(node) + "}"
@@ -563,15 +567,19 @@ class FunctionCodegen(ast.NodeVisitor):
                     if node.right.value == 1:
                         upper = "{" + self.visit(node.left) + "}"
                     else:
-                        reduced_constant = ast.Constant(node.right.value - 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        reduced_constant = ast.Constant(value=node.right.value - 1)
+                        new_node = ast.BinOp(
+                            left=node.left, op=node.op, right=reduced_constant
+                        )
                         upper = "{" + self.visit(new_node) + "}"
                 else:
                     if node.right.value == -1:
                         upper = "{" + self.visit(node.left) + "}"
                     else:
-                        reduced_constant = ast.Constant(node.right.value + 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        reduced_constant = ast.Constant(value=node.right.value + 1)
+                        new_node = ast.BinOp(
+                            left=node.left, op=node.op, right=reduced_constant
+                        )
                         upper = "{" + self.visit(new_node) + "}"
             else:
                 upper = "{" + self.visit(node) + "}"
