@@ -545,7 +545,7 @@ class FunctionCodegen(ast.NodeVisitor):
                     if node.right.n == 1:
                         upper = "{" + self.visit(node.left) + "}"
                     else:
-                        reduced_constant = ast.Num(value=node.right.n - 1)
+                        reduced_constant = ast.Num(n=node.right.n - 1)
                         new_node = ast.BinOp(
                             left=node.left, op=node.op, right=reduced_constant
                         )
@@ -554,7 +554,7 @@ class FunctionCodegen(ast.NodeVisitor):
                     if node.right.n == -1:
                         upper = "{" + self.visit(node.left) + "}"
                     else:
-                        reduced_constant = ast.Num(value=node.right.n + 1)
+                        reduced_constant = ast.Num(n=node.right.n + 1)
                         new_node = ast.BinOp(
                             left=node.left, op=node.op, right=reduced_constant
                         )
