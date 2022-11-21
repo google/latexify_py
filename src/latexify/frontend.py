@@ -15,7 +15,8 @@ from latexify import config as cfg
 
 # TODO(odashi): move expand_functions to Config.
 def get_latex(
-    fn: Callable[..., Any], *,
+    fn: Callable[..., Any],
+    *,
     config: cfg.Config | None = None,
     expand_functions: set[str] | None = None,
     **kwargs,
