@@ -6,39 +6,30 @@ import warnings
 from collections.abc import Callable
 from typing import Any
 
-from latexify import codegen, exceptions, parser, transformers
+from latexify import codegen
+from latexify import exceptions
+from latexify import parser
+from latexify import transformers
+from latexify import config as cfg
 
 
+# TODO(odashi): move expand_functions to Config.
 def get_latex(
     fn: Callable[..., Any],
     *,
-    identifiers: dict[str, str] | None = None,
+    config: cfg.Config | None = None,
     expand_functions: set[str] | None = None,
-    reduce_assignments: bool = False,
-    use_math_symbols: bool = False,
-    use_raw_function_name: bool = False,
-    use_signature: bool = True,
-    use_set_symbols: bool = False,
+    **kwargs,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
     Args:
         fn: Reference to a function to analyze.
-        identifiers: If set, the mapping to replace identifier names in the function.
-            Keys are the original names of the identifiers, and corresponding values are
-            the replacements.
-            Both keys and values have to represent valid Python identifiers:
-            ^[A-Za-z_][A-Za-z0-9_]*$
+        config: use defined Config object, if it is None, it will be automatic assigned
+            with default value.
         expand_functions: If set, the names of the functions to expand.
-        reduce_assignments: If True, assignment statements are used to synthesize
-            the final expression.
-        use_math_symbols: Whether to convert identifiers with a math symbol surface
-            (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-        use_raw_function_name: Whether to keep underscores "_" in the function name,
-            or convert it to subscript.
-        use_signature: Whether to add the function signature before the expression or
-            not.
-        use_set_symbols: Whether to use set symbols or not.
+        **kwargs: dict of Config field values that could be defined individually
+            by users.
 
     Returns:
         Generatee LaTeX description.
@@ -46,23 +37,25 @@ def get_latex(
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
+    merged_config = cfg.Config.defaults().merge(config=config, **kwargs)
+
     # Obtains the source AST.
     tree = parser.parse_function(fn)
 
     # Applies AST transformations.
-    if identifiers is not None:
-        tree = transformers.IdentifierReplacer(identifiers).visit(tree)
-    if reduce_assignments:
+    if merged_config.identifiers is not None:
+        tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
+    if merged_config.reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
     if expand_functions is not None:
         tree = transformers.FunctionExpander(expand_functions).visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
-        use_math_symbols=use_math_symbols,
-        use_raw_function_name=use_raw_function_name,
-        use_signature=use_signature,
-        use_set_symbols=use_set_symbols,
+        use_math_symbols=merged_config.use_math_symbols,
+        use_raw_function_name=merged_config.use_raw_function_name,
+        use_signature=merged_config.use_signature,
+        use_set_symbols=merged_config.use_set_symbols,
     ).visit(tree)
 
 
