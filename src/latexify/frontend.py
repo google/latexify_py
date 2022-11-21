@@ -20,7 +20,8 @@ def get_latex(fn: Callable[..., Any], *, config: Config | None = None, **kwargs)
         fn: Reference to a function to analyze.
         config: use defined Config object, if it is None, it will be automatic assigned
             with default value.
-        **kwargs: dict of Config field values that could be defined individually by uses.
+        **kwargs: dict of Config field values that could be defined individually
+            by users.
 
     Returns:
         Generatee LaTeX description.
