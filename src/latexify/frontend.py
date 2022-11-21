@@ -10,10 +10,12 @@ from latexify import codegen
 from latexify import exceptions
 from latexify import parser
 from latexify import transformers
-from latexify.config import Config
+from latexify import config as cfg
 
 
-def get_latex(fn: Callable[..., Any], *, config: Config | None = None, **kwargs) -> str:
+def get_latex(
+    fn: Callable[..., Any], *, config: cfg.Config | None = None, **kwargs
+) -> str:
     """Obtains LaTeX description from the function's source.
 
     Args:
@@ -29,7 +31,7 @@ def get_latex(fn: Callable[..., Any], *, config: Config | None = None, **kwargs)
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
-    merged_config = Config.defaults().merge(config=config, **kwargs)
+    merged_config = cfg.Config.defaults().merge(config=config, **kwargs)
 
     # Obtains the source AST.
     tree = parser.parse_function(fn)
