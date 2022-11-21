@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import ast
 import dataclasses
+import sys
 from typing import Any
 
-from latexify import analyzers
-from latexify import constants
-from latexify import math_symbols
-from latexify import exceptions
-
+from latexify import analyzers, ast_utils, constants, exceptions, math_symbols
 
 # Precedences of operators for BoolOp, BinOp, UnaryOp, and Compare nodes.
 # Note that this value affects only the appearance of surrounding parentheses for each
@@ -256,6 +253,9 @@ class FunctionCodegen(ast.NodeVisitor):
 
         # Assignment statements (if any): x = ...
         for child in node.body[:-1]:
+            if isinstance(child, ast.Expr) and ast_utils.is_constant(child.value):
+                continue
+
             if not isinstance(child, ast.Assign):
                 raise exceptions.LatexifyNotSupportedError(
                     "Codegen supports only Assign nodes in multiline functions, "
@@ -296,7 +296,11 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\left( " + r"\space,\space ".join(elts) + r"\right) "
+        return (
+            r"\mathopen{}\left( "
+            + r"\space,\space ".join(elts)
+            + r"\mathclose{}\right) "
+        )
 
     def visit_List(self, node: ast.List) -> str:
         elts = [self.visit(i) for i in node.elts]
@@ -334,7 +338,7 @@ class FunctionCodegen(ast.NodeVisitor):
             return target
 
         conds = [target] + [self.visit(cond) for cond in node.ifs]
-        wrapped = [r"\left( " + s + r" \right)" for s in conds]
+        wrapped = [r"\mathopen{}\left( " + s + r" \mathclose{}\right)" for s in conds]
         return r" \land ".join(wrapped)
 
     def visit_Call(self, node: ast.Call) -> str:
@@ -352,13 +356,16 @@ class FunctionCodegen(ast.NodeVisitor):
         # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
         lstr, rstr = constants.BUILTIN_FUNCS.get(
             func_str,
-            (r"\mathrm{" + func_str + r"}\left(", r"\right)"),
+            (r"\mathrm{" + func_str + r"}\mathopen{}\left(", r"\mathclose{}\right)"),
         )
 
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
             elt, scripts = self._get_sum_prod_info(node.args[0])
             scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-            return " ".join(scripts_str) + rf" \left({{{elt}}}\right)"
+            return (
+                " ".join(scripts_str)
+                + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+            )
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
@@ -432,7 +439,7 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = self.visit(child)
         if _get_precedence(child) >= parent_prec:
             return latex
-        return rf"\left( {latex} \right)"
+        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
     def _wrap_binop_operand(
         self,
@@ -468,7 +475,7 @@ class FunctionCodegen(ast.NodeVisitor):
         ):
             return latex
 
-        return rf"\left( {latex} \right)"
+        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
     def visit_BinOp(self, node: ast.BinOp) -> str:
         """Visit a BinOp node."""
@@ -517,6 +524,60 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
+    def visit_IfExp(self, node: ast.IfExp) -> str:
+        """Visit an ifexp node"""
+        latex = r"\left\{ \begin{array}{ll} "
+        while isinstance(node, ast.IfExp):
+            cond_latex = self.visit(node.test)
+            true_latex = self.visit(node.body)
+            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
+            node = node.orelse
+
+        latex += self.visit(node)
+        return latex + r", & \mathrm{otherwise} \end{array} \right."
+
+    def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
+        # ast.Constant class is added in Python 3.8
+        # ast.Num is the relevant node type in previous versions
+        if sys.version_info.minor < 8:
+            if isinstance(node.right, ast.Num):
+                if isinstance(node.op, ast.Add):
+                    if node.right.n == 1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Num(node.right.n - 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+                else:
+                    if node.right.n == -1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Num(node.right.n + 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(node) + "}"
+        else:
+            if isinstance(node.right, ast.Constant):
+                if isinstance(node.op, ast.Add):
+                    if node.right.value == 1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(node.right.value - 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+                else:
+                    if node.right.value == -1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(node.right.value + 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(node) + "}"
+
+        return upper
+
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.
 
@@ -558,7 +619,13 @@ class FunctionCodegen(ast.NodeVisitor):
             lower_rhs = f"{{{range_info.start_int}}}"
 
         if range_info.stop_int is None:
-            upper = "{" + self.visit(range_info.stop) + " - 1}"
+            # use special processing if range_info.stop involves addition or subtraction
+            if isinstance(range_info.stop, ast.BinOp) and isinstance(
+                range_info.stop.op, (ast.Add, ast.Sub)
+            ):
+                upper = self._reduce_stop_parameter(range_info.stop)
+            else:
+                upper = "{" + self.visit(range_info.stop) + " - 1}"
         else:
             upper = f"{{{range_info.stop_int - 1}}}"
 

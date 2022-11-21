@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 import math
+from collections.abc import Callable
 from typing import Any
 
 from latexify import frontend
@@ -89,7 +89,8 @@ def test_sum_with_limit_1arg() -> None:
         return sum(i**2 for i in range(n))
 
     latex = (
-        r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n - 1}} \left({i^{{2}}}\right)"
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n - 1}}"
+        r" \mathopen{}\left({i^{{2}}}\mathclose{}\right)"
     )
     _check_function(sum_with_limit, latex)
 
@@ -99,7 +100,30 @@ def test_sum_with_limit_2args() -> None:
         return sum(i**2 for i in range(a, n))
 
     latex = (
-        r"\mathrm{sum_with_limit}(a, n) = \sum_{i = a}^{{n - 1}} \left({i^{{2}}}\right)"
+        r"\mathrm{sum_with_limit}(a, n) = \sum_{i = a}^{{n - 1}} "
+        r"\mathopen{}\left({i^{{2}}}\mathclose{}\right)"
+    )
+    _check_function(sum_with_limit, latex)
+
+
+def test_sum_with_reducible_limit() -> None:
+    def sum_with_limit(n):
+        return sum(i for i in range(n + 1))
+
+    latex = (
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n}} "
+        r"\mathopen{}\left({i}\mathclose{}\right)"
+    )
+    _check_function(sum_with_limit, latex)
+
+
+def test_sum_with_irreducible_limit() -> None:
+    def sum_with_limit(n):
+        return sum(i for i in range(n * 3))
+
+    latex = (
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = {0}}^{{n {3} - 1}} "
+        r"\mathopen{}\left({i}\mathclose{}\right)"
     )
     _check_function(sum_with_limit, latex)
 
@@ -110,7 +134,7 @@ def test_prod_with_limit_1arg() -> None:
 
     latex = (
         r"\mathrm{prod_with_limit}(n) = "
-        r"\prod_{i = {0}}^{{n - 1}} \left({i^{{2}}}\right)"
+        r"\prod_{i = {0}}^{{n - 1}} \mathopen{}\left({i^{{2}}}\mathclose{}\right)"
     )
     _check_function(prod_with_limit, latex)
 
@@ -121,7 +145,29 @@ def test_prod_with_limit_2args() -> None:
 
     latex = (
         r"\mathrm{prod_with_limit}(a, n) = "
-        r"\prod_{i = a}^{{n - 1}} \left({i^{{2}}}\right)"
+        r"\prod_{i = a}^{{n - 1}} \mathopen{}\left({i^{{2}}}\mathclose{}\right)"
+    )
+    _check_function(prod_with_limit, latex)
+
+
+def test_prod_with_reducible_limits() -> None:
+    def prod_with_limit(n):
+        return math.prod(i for i in range(n - 1))
+
+    latex = (
+        r"\mathrm{prod_with_limit}(n) = "
+        r"\prod_{i = {0}}^{{n - {2}}} \mathopen{}\left({i}\mathclose{}\right)"
+    )
+    _check_function(prod_with_limit, latex)
+
+
+def test_prod_with_irreducible_limit() -> None:
+    def prod_with_limit(n):
+        return math.prod(i for i in range(n * 3))
+
+    latex = (
+        r"\mathrm{prod_with_limit}(n) = "
+        r"\prod_{i = {0}}^{{n {3} - 1}} \mathopen{}\left({i}\mathclose{}\right)"
     )
     _check_function(prod_with_limit, latex)
 
@@ -171,7 +217,7 @@ def test_reduce_assignments() -> None:
     )
     _check_function(
         f,
-        r"\mathrm{f}(x) = {3} \left( x + x \right)",
+        r"\mathrm{f}(x) = {3} \mathopen{}\left( x + x \mathclose{}\right)",
         reduce_assignments=True,
     )
 
@@ -194,7 +240,7 @@ def test_reduce_assignments_double() -> None:
     _check_function(f, latex_without_option, reduce_assignments=False)
     _check_function(
         f,
-        r"\mathrm{f}(x) = {3} \left( x^{{2}} + x^{{2}} \right)",
+        r"\mathrm{f}(x) = {3} \mathopen{}\left( x^{{2}} + x^{{2}} \mathclose{}\right)",
         reduce_assignments=True,
     )
 
@@ -228,6 +274,59 @@ def test_sub_bracket() -> None:
 
     latex = (
         r"\mathrm{solve}(a, b) = "
-        r"\frac{a + b - b}{a - b} - \left( a + b \right) - \left( a - b \right) - a b"
+        r"\frac{a + b - b}{a - b} - \mathopen{}\left( "
+        r"a + b \mathclose{}\right) - \mathopen{}\left( "
+        r"a - b \mathclose{}\right) - a b"
     )
+    _check_function(solve, latex)
+
+
+def test_expand_hypot_function_without_attribute_access() -> None:
+    from math import hypot
+
+    def solve(x, y, z):
+        return hypot(x, y, z)
+
+    latex = r"\mathrm{solve}(x, y, z) = \sqrt{x^{{2}} + y^{{2}} + z^{{2}}}"
+    _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_expand_hypot_function() -> None:
+    def solve(x, y, z):
+        return math.hypot(x, y, z)
+
+    latex = r"\mathrm{solve}(x, y, z) = \sqrt{x^{{2}} + y^{{2}} + z^{{2}}}"
+    _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_expand_nested_function() -> None:
+    def solve(a, b, x, y):
+        return math.hypot(math.hypot(a, b), x, y)
+
+    latex = (
+        r"\mathrm{solve}(a, b, x, y) = "
+        r"\sqrt{"
+        r"\sqrt{a^{{2}} + b^{{2}}}^{{2}} + "
+        r"x^{{2}} + y^{{2}}}"
+    )
+    _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_docstring_allowed() -> None:
+    def solve(x):
+        """The identity function."""
+        return x
+
+    latex = r"\mathrm{solve}(x) = x"
+    _check_function(solve, latex)
+
+
+def test_multiple_constants_allowed() -> None:
+    def solve(x):
+        """The identity function."""
+        123
+        True
+        return x
+
+    latex = r"\mathrm{solve}(x) = x"
     _check_function(solve, latex)

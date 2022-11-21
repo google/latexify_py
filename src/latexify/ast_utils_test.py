@@ -7,8 +7,7 @@ from typing import Any
 
 import pytest
 
-from latexify import ast_utils
-from latexify import test_utils
+from latexify import ast_utils, test_utils
 
 
 @test_utils.require_at_most(7)
@@ -58,6 +57,37 @@ def test_make_constant(value: Any, expected: ast.Constant) -> None:
 def test_make_constant_invalid() -> None:
     with pytest.raises(ValueError, match=r"^Unsupported type to generate"):
         ast_utils.make_constant(object())
+
+
+@test_utils.require_at_most(7)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Bytes(s=b"foo"), True),
+        (ast.Constant("bar"), True),
+        (ast.Ellipsis(), True),
+        (ast.NameConstant(value=None), True),
+        (ast.Num(n=123), True),
+        (ast.Str(s="baz"), True),
+        (ast.Expr(value=ast.Num(456)), False),
+        (ast.Global("qux"), False),
+    ],
+)
+def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
+    assert ast_utils.is_constant(value) is expected
+
+
+@test_utils.require_at_least(8)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Constant("foo"), True),
+        (ast.Expr(value=ast.Constant(123)), False),
+        (ast.Global("bar"), False),
+    ],
+)
+def test_is_constant(value: ast.AST, expected: bool) -> None:
+    assert ast_utils.is_constant(value) is expected
 
 
 def test_extract_int_or_none() -> None:
@@ -116,3 +146,37 @@ def test_extract_int_invalid() -> None:
         ast_utils.extract_int(ast_utils.make_constant("123"))
     with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
         ast_utils.extract_int(ast_utils.make_constant(b"123"))
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (
+            ast.Call(
+                func=ast.Name(id="hypot", ctx=ast.Load()),
+                args=[],
+            ),
+            "hypot",
+        ),
+        (
+            ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id="math", ctx=ast.Load()),
+                    attr="hypot",
+                    ctx=ast.Load(),
+                ),
+                args=[],
+            ),
+            "hypot",
+        ),
+        (
+            ast.Call(
+                func=ast.Call(func=ast.Name(id="foo", ctx=ast.Load()), args=[]),
+                args=[],
+            ),
+            None,
+        ),
+    ],
+)
+def test_extract_function_name_or_none(value: ast.Call, expected: str | None) -> None:
+    assert ast_utils.extract_function_name_or_none(value) == expected
