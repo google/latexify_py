@@ -1,5 +1,5 @@
 # latexify
-[![Python](https://img.shields.io/pypi/pyversions/latexify-py.svg?style=plastic)](https://badge.fury.io/py/latexify-py)
+[![Python](https://img.shields.io/pypi/pyversions/latexify-py.svg)](https://pypi.org/project/latexify-py/)
 [![PyPI Latest Release](https://img.shields.io/pypi/v/latexify-py.svg)](https://pypi.org/project/latexify-py/)
 [![License](https://img.shields.io/pypi/l/latexify-py.svg)](https://github.com/google/latexify_py/blob/main/LICENSE)
 [![Downloads](https://pepy.tech/badge/latexify-py/month)](https://pepy.tech/project/latexify-py)
