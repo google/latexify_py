@@ -281,6 +281,17 @@ def test_sub_bracket() -> None:
     _check_function(solve, latex)
 
 
+def test_expand_atan2_function() -> None:
+    def solve(x, y):
+        return math.atan2(y, x)
+
+    latex = (
+        r"\mathrm{solve}(x, y) = "
+        r"\mathrm{atan2}\mathopen{}\left(y, x\mathclose{}\right)"
+    )
+    _check_function(solve, latex, expand_functions={"atan"})
+
+
 def test_expand_exp_function() -> None:
     def solve(x):
         return math.exp(x)
@@ -329,6 +340,14 @@ def test_expand_log1p_function() -> None:
 
     latex = r"\mathrm{solve}(x) = \log{\left({{1} + x}\right)}"
     _check_function(solve, latex, expand_functions={"log1p"})
+
+
+def test_expand_pow_function() -> None:
+    def solve(x, y):
+        return math.pow(x, y)
+
+    latex = r"\mathrm{solve}(x, y) = x^{y}"
+    _check_function(solve, latex, expand_functions={"pow"})
 
 
 def test_expand_nested_function() -> None:
