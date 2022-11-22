@@ -281,6 +281,30 @@ def test_sub_bracket() -> None:
     _check_function(solve, latex)
 
 
+def test_expand_exp_function() -> None:
+    def solve(x):
+        return math.exp(x)
+
+    latex = r"\mathrm{solve}(x) = e^{x}"
+    _check_function(solve, latex, expand_functions={"exp"})
+
+
+def test_expand_exp2_function() -> None:
+    def solve(x):
+        return math.exp2(x)
+
+    latex = r"\mathrm{solve}(x) = {2}^{x}"
+    _check_function(solve, latex, expand_functions={"exp2"})
+
+
+def test_expand_expm1_function() -> None:
+    def solve(x):
+        return math.expm1(x)
+
+    latex = r"\mathrm{solve}(x) = \exp{\left({x}\right)} - {1}"
+    _check_function(solve, latex, expand_functions={"expm1"})
+
+
 def test_expand_hypot_function_without_attribute_access() -> None:
     from math import hypot
 
@@ -297,6 +321,14 @@ def test_expand_hypot_function() -> None:
 
     latex = r"\mathrm{solve}(x, y, z) = \sqrt{x^{{2}} + y^{{2}} + z^{{2}}}"
     _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_expand_log1p_function() -> None:
+    def solve(x):
+        return math.log1p(x)
+
+    latex = r"\mathrm{solve}(x) = \log{\left({{1} + x}\right)}"
+    _check_function(solve, latex, expand_functions={"log1p"})
 
 
 def test_expand_nested_function() -> None:

@@ -4,7 +4,7 @@ import ast
 import functools
 from collections.abc import Callable
 
-from latexify import ast_utils, constants
+from latexify import ast_utils, constants, exceptions
 
 
 # TODO(ZibingZhang): handle recursive function expansions
@@ -39,6 +39,48 @@ class FunctionExpander(ast.NodeTransformer):
         return node
 
 
+def _exp_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    if len(node.args) != 1:
+        raise exceptions.LatexifyNotSupportedError(
+            "FunctionExpander only supports expanding 'exp' with one argument"
+        )
+
+    return ast.BinOp(
+        left=ast.Name(id="e", ctx=ast.Load()),
+        op=ast.Pow(),
+        right=function_expander.visit(node.args[0]),
+    )
+
+
+def _exp2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    if len(node.args) != 1:
+        raise exceptions.LatexifyNotSupportedError(
+            "FunctionExpander only supports expanding 'exp2' with one argument"
+        )
+
+    return ast.BinOp(
+        left=ast_utils.make_constant(2),
+        op=ast.Pow(),
+        right=function_expander.visit(node.args[0]),
+    )
+
+
+def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    if len(node.args) != 1:
+        raise exceptions.LatexifyNotSupportedError(
+            "FunctionExpander only supports expanding 'expm1' with one argument"
+        )
+
+    return ast.BinOp(
+        left=ast.Call(
+            func=ast.Name(id=constants.BuiltinFnName.EXP.value, ctx=ast.Load()),
+            args=[function_expander.visit(node.args[0])],
+        ),
+        op=ast.Sub(),
+        right=ast_utils.make_constant(1),
+    )
+
+
 def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
     if len(node.args) == 0:
         return ast_utils.make_constant(0)
@@ -61,6 +103,28 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
     )
 
 
+def _log1p_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    if len(node.args) != 1:
+        raise exceptions.LatexifyNotSupportedError(
+            "FunctionExpander only supports expanding 'log1p' with one argument"
+        )
+
+    return ast.Call(
+        func=ast.Name(id=constants.BuiltinFnName.LOG.value, ctx=ast.Load()),
+        args=[
+            ast.BinOp(
+                left=ast_utils.make_constant(1),
+                op=ast.Add(),
+                right=function_expander.visit(node.args[0]),
+            )
+        ],
+    )
+
+
 _FUNCTION_EXPANDERS: dict[str, Callable[[FunctionExpander, ast.Call], ast.AST]] = {
-    "hypot": _hypot_expander
+    "exp": _exp_expander,
+    "exp2": _exp2_expander,
+    "expm1": _expm1_expander,
+    "hypot": _hypot_expander,
+    "log1p": _log1p_expander,
 }
