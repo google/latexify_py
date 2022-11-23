@@ -12,6 +12,7 @@ class Config:
     """Configurations to control the behavior of latexify.
 
     Attributes:
+        expand_functions: If set, the names of the functions to expand.
         identifiers: If set, the mapping to replace identifier names in the
             function. Keys are the original names of the identifiers,
             and corresponding values are the replacements.
@@ -23,17 +24,18 @@ class Config:
             (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
         use_raw_function_name: Whether to keep underscores "_" in the function name,
             or convert it to subscript.
+        use_set_symbols: Whether to use set symbols or not.
         use_signature: Whether to add the function signature before the expression
             or not.
-        use_set_symbols: Whether to use set symbols or not.
     """
 
+    expand_functions: set[str] | None
     identifiers: dict[str, str] | None
     reduce_assignments: bool
     use_math_symbols: bool
     use_raw_function_name: bool
-    use_signature: bool
     use_set_symbols: bool
+    use_signature: bool
 
     def merge(self, *, config: Config | None = None, **kwargs) -> Config:
         """Merge configuration based on old configuration and field values.
@@ -67,10 +69,11 @@ class Config:
             A new Config with default values
         """
         return Config(
+            expand_functions=None,
             identifiers=None,
             reduce_assignments=False,
             use_math_symbols=False,
             use_raw_function_name=False,
-            use_signature=True,
             use_set_symbols=False,
+            use_signature=True,
         )

@@ -18,7 +18,6 @@ def get_latex(
     fn: Callable[..., Any],
     *,
     config: cfg.Config | None = None,
-    expand_functions: set[str] | None = None,
     **kwargs,
 ) -> str:
     """Obtains LaTeX description from the function's source.
@@ -27,7 +26,6 @@ def get_latex(
         fn: Reference to a function to analyze.
         config: use defined Config object, if it is None, it will be automatic assigned
             with default value.
-        expand_functions: If set, the names of the functions to expand.
         **kwargs: dict of Config field values that could be defined individually
             by users.
 
@@ -47,8 +45,8 @@ def get_latex(
         tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
     if merged_config.reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
-    if expand_functions is not None:
-        tree = transformers.FunctionExpander(expand_functions).visit(tree)
+    if merged_config.expand_functions is not None:
+        tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
