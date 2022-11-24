@@ -336,7 +336,7 @@ def test_multiple_constants_allowed() -> None:
 def test_generate_ndarray() -> None:
     def solve(a):
         """A 2x3 numpy matrix"""
-        return np.ndarray([1,2,3],[4,5,6])
+        return np.ndarray([1, 2, 3], [4, 5, 6])
 
     latex = "\\mathrm{solve}(a) = \\begin{bmatrix} {1} & {2} & {3}  \\\\ {4} & {5} & {6}  \\end{bmatrix}"
     _check_function(solve, latex)

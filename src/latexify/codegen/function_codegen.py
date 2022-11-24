@@ -378,7 +378,6 @@ class FunctionCodegen(ast.NodeVisitor):
                 matrix_str = matrix_str[:-2] + r" \\ "
             matrix_str = matrix_str[:-3] + r"\end{bmatrix}"
             return matrix_str
-        
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
