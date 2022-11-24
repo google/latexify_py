@@ -746,7 +746,7 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
-def test_special_arrays():
+def test_generate_ndarrays():
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -756,8 +756,6 @@ def test_special_arrays():
         )
     ).body[0]
 
+    latex = "\\mathrm{numpy}(a) = \\begin{bmatrix} {1} & {2} & {3}  \\\\ {4} & {5} & {6}  \\end{bmatrix}"
     assert isinstance(tree, ast.FunctionDef)
-    assert (
-        FunctionCodegen().visit(tree)
-        == "\\mathrm{numpy}(a) = \\begin{bmatrix} {1} & {2} & {3}  \\\\ {4} & {5} & {6}  \\end{bmatrix}"
-    )
+    assert FunctionCodegen().visit(tree) == latex
