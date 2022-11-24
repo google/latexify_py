@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import numpy as np
 from collections.abc import Callable
 from typing import Any
 
@@ -329,4 +330,13 @@ def test_multiple_constants_allowed() -> None:
         return x
 
     latex = r"\mathrm{solve}(x) = x"
+    _check_function(solve, latex)
+
+
+def test_generate_ndarray() -> None:
+    def solve(a):
+        """A 2x3 numpy matrix"""
+        return np.ndarray([1,2,3],[4,5,6])
+
+    latex = "\\mathrm{solve}(a) = \\begin{bmatrix} {1} & {2} & {3}  \\\\ {4} & {5} & {6}  \\end{bmatrix}"
     _check_function(solve, latex)

@@ -367,6 +367,19 @@ class FunctionCodegen(ast.NodeVisitor):
                 + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
             )
 
+        # Render NDarray method for numpy
+        if func_str == "ndarray":
+            # construct matrix
+            matrix_str = r"\begin{bmatrix} "
+            # iterate over rows
+            for row in node.args:
+                for col in row.elts:
+                    matrix_str += self.visit(col) + r" & "
+                matrix_str = matrix_str[:-2] + r" \\ "
+            matrix_str = matrix_str[:-3] + r"\end{bmatrix}"
+            return matrix_str
+        
+
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
 

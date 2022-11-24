@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 import textwrap
-
+import numpy as np
 import pytest
 
 from latexify import exceptions, test_utils
@@ -31,6 +31,7 @@ def test_visit_functiondef_use_signature() -> None:
             """
         )
     ).body[0]
+    breakpoint()
     assert isinstance(tree, ast.FunctionDef)
 
     latex_without_flag = "x"
@@ -298,6 +299,7 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     ],
 )
 def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
+    breakpoint()
     for src_fn, dest_fn in [("sum", r"\sum"), ("math.prod", r"\prod")]:
         node = ast.parse(src_fn + src_suffix).body[0].value
         assert isinstance(node, ast.Call)
@@ -744,3 +746,15 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+
+
+def test_special_arrays():
+    tree = ast.parse(textwrap.dedent(
+        """
+    def numpy(a):
+        return np.ndarray([1,2,3],[4,5,6])
+        """
+    )).body[0]
+
+    assert isinstance(tree, ast.FunctionDef)
+    assert FunctionCodegen().visit(tree) == "\\mathrm{numpy}(a) = \\begin{bmatrix} {1} & {2} & {3}  \\\\ {4} & {5} & {6}  \\end{bmatrix}"
