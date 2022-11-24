@@ -619,13 +619,17 @@ class FunctionCodegen(ast.NodeVisitor):
             lower_rhs = f"{{{range_info.start_int}}}"
 
         if range_info.stop_int is None:
-            # use special processing if range_info.stop involves addition or subtraction
-            if isinstance(range_info.stop, ast.BinOp) and isinstance(
-                range_info.stop.op, (ast.Add, ast.Sub)
+            stop = range_info.stop
+            # use special processing if stop is infinity
+            if isinstance(range_info.stop, ast.Name) and str(stop.id) == "infty":
+                upper = "{" + self.visit(stop) + "}"
+            # use special processing if stop involves addition or subtraction
+            elif isinstance(stop, ast.BinOp) and isinstance(
+                stop.op, (ast.Add, ast.Sub)
             ):
-                upper = self._reduce_stop_parameter(range_info.stop)
+                upper = self._reduce_stop_parameter(stop)
             else:
-                upper = "{" + self.visit(range_info.stop) + " - 1}"
+                upper = "{" + self.visit(stop) + " - 1}"
         else:
             upper = f"{{{range_info.stop_int - 1}}}"
 

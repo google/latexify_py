@@ -128,6 +128,17 @@ def test_sum_with_irreducible_limit() -> None:
     _check_function(sum_with_limit, latex)
 
 
+def test_sum_with_infty_limit() -> None:
+    def sum_with_limit(n):
+        return sum(i for i in range(n, infty))
+
+    latex = (
+        r"\mathrm{sum_with_limit}(n) = \sum_{i = n}^{{{\infty}}} "
+        r"\mathopen{}\left({i}\mathclose{}\right)"
+    )
+    _check_function(sum_with_limit, latex, use_math_symbols=True)
+
+
 def test_prod_with_limit_1arg() -> None:
     def prod_with_limit(n):
         return math.prod(i**2 for i in range(n))

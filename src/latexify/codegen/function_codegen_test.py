@@ -198,6 +198,10 @@ def test_visit_setcomp(code: str, latex: str) -> None:
             r"_{i = {0}}^{{n - 1}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
+            "(i for i in range(infty))",
+            r"_{i = {0}}^{{infty}} \mathopen{}\left({i}\mathclose{}\right)",
+        ),
+        (
             "(i for i in range(3))",
             r"_{i = {0}}^{{2}} \mathopen{}\left({i}\mathclose{}\right)",
         ),

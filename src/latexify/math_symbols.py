@@ -49,6 +49,7 @@ _MATH_SYMBOLS = {
     "Theta",
     "Upsilon",
     "Xi",
+    "infty",
 }
 
 
