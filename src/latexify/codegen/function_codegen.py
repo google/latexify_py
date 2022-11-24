@@ -360,7 +360,7 @@ class FunctionCodegen(ast.NodeVisitor):
             if not isinstance(arg, ast.List) or not arg.elts:
                 return None
 
-            row0 = node.elts[0]
+            row0 = arg.elts[0]
 
             if not isinstance(row0, ast.List):
                 return self._generate_ndarray([self.visit(x) for x in arg.elts])
