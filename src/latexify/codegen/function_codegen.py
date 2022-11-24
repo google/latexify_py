@@ -370,7 +370,9 @@ class FunctionCodegen(ast.NodeVisitor):
 
             nCols = len(row0.elts)
 
-            if not all(isinstance(row, ast.List) and len(row.elts) == nCols for row in arg.elts):
+            if not all(
+                isinstance(row, ast.List) and len(row.elts) == nCols for row in arg.elts
+            ):
                 return None
 
             return self._generate_ndarray(
