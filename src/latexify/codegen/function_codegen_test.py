@@ -593,3 +593,18 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("np.ndarray([1])", r"\begin{bmatrix} 1 \end{bmatrix}"),
+        ("np.ndarray([1, 2])", r"\begin{bmatrix} 1 & 2 \end{bmatrix}"),
+        ("np.ndarray([[1, 2], [3, 4]])", r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}"),
+        ("np.ndarray([[1,2], [3,4], [5,6]])", r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \\ 5 & 6 \end{bmatrix}"),
+        ("np.ndarray([[1], [2], [3]])", r"\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}")
+    ]
+)
+def test_numpy_array(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.Call)
+    assert function_codegen.FunctionCodegen().visit(tree) == latex

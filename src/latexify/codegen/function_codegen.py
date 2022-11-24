@@ -355,8 +355,27 @@ class FunctionCodegen(ast.NodeVisitor):
             (r"\mathrm{" + func_str + r"}\left(", r"\right)"),
         )
 
-        if func_str == "ndarray" or func_str == "array":
-            return self._generate_matrix(node)
+        if func_str in ("ndarray", "array"):
+            arg = node.args[0]
+            if not isinstance(arg, ast.List) or not arg.elts:
+                return None
+
+            row0 = node.elts[0]
+
+            if not isinstance(row0, ast.List):
+                return self._generate_ndarray([self.visit(x) for x in arg.elts])
+
+            if not row0.elts:
+                return None
+
+            nCols = len(row0.elts)
+
+            if not all(isinstance(row, ast.List) and len(row.elts) == nCols for row in arg.elts):
+                return None
+
+            return self._generate_ndarray(
+                [[self.visit(x) for x in row.elts] for row in arg.elts]
+            )
 
         if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
             elt, scripts = self._get_sum_prod_info(node.args[0])
@@ -366,34 +385,17 @@ class FunctionCodegen(ast.NodeVisitor):
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
 
-    def _generate_matrix(self, node: ast.Call) -> str:
-        """Generates a matrix from numpy.matrix."""
-        if len(node.args) != 1:
-            # raise with function name
-            raise ValueError(
-                f"Invalid number of arguments {len(node.args)}"
-            )
-        
-        arg = node.args[0]
-        # TODO: Support string being passed to numpy.matrix.
-        if not isinstance(arg, ast.List):
-            raise exceptions.LatexifyNotSupportedError(
-                "Only matrices represented by lists are supported."
-            )
+    def _generate_ndarray(self, data: list[list[str]]) -> str:
+        """Generates a latex matrix from a 2d list of strings.
 
-        # TODO: Support other types of matrix environments like (pmatrix, matrix, Bmatrix, etc.)
-        latex = r"\begin{bmatrix}"
-        if type(arg) == ast.List:
-            for elt in arg.elts:
-                if type(elt) == ast.List:
-                    for sub_elt in elt.elts:
-                        latex += self.visit(sub_elt) + r" & "
-                    latex = latex[:-2] + r" \\ "
-                else:
-                    latex += self.visit(elt) + r" & "
-            latex = latex[:-3] + r"\end{bmatrix}"
+        Args:
+            data: A 2d list of strings.
 
-        return latex
+        Returns:
+            Generated LaTeX expression.
+        """
+        contents = r" \\ ".join(" & ".join(row) for row in data)
+        return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
