@@ -7,10 +7,8 @@ from collections.abc import Callable
 from typing import Any
 
 from latexify import codegen
-from latexify import exceptions
-from latexify import parser
-from latexify import transformers
 from latexify import config as cfg
+from latexify import exceptions, parser, transformers
 
 
 # TODO(odashi): move expand_functions to Config.
