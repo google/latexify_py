@@ -396,7 +396,10 @@ def test_expand_pow_nested_function() -> None:
     def solve(w, x, y, z):
         return math.pow(math.pow(w, x), math.pow(y, z))
 
-    latex = r"\mathrm{solve}(w, x, y, z) = \mathopen{}\left( w^{x} \mathclose{}\right)^{y^{z}}"
+    latex = (
+        r"\mathrm{solve}(w, x, y, z) = "
+        r"\mathopen{}\left( w^{x} \mathclose{}\right)^{y^{z}}"
+    )
     _check_function(solve, latex, expand_functions={"pow"})
 
 
