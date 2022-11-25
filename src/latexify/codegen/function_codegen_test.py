@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import textwrap
-import numpy as np
 import pytest
 
 from latexify import exceptions, test_utils

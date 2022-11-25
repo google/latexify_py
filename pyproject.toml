@@ -50,6 +50,7 @@ dev = [
     "pytest>=7.1",
     "twine>=4.0",
     "isort>=5.10",
+    "numpy>=1.23.4",
 ]
 
 [project.urls]
