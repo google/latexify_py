@@ -285,11 +285,16 @@ def test_expand_atan2_function() -> None:
     def solve(x, y):
         return math.atan2(y, x)
 
-    latex = (
-        r"\mathrm{solve}(x, y) = "
-        r"\mathrm{atan2}\mathopen{}\left(y, x\mathclose{}\right)"
-    )
-    _check_function(solve, latex, expand_functions={"atan"})
+    latex = r"\mathrm{solve}(x, y) = \arctan{\left({\frac{y}{x}}\right)}"
+    _check_function(solve, latex, expand_functions={"atan2"})
+
+
+def test_expand_atan2_nested_function() -> None:
+    def solve(x, y):
+        return math.atan2(math.exp(y), math.exp(x))
+
+    latex = r"\mathrm{solve}(x, y) = \arctan{\left({\frac{e^{y}}{e^{x}}}\right)}"
+    _check_function(solve, latex, expand_functions={"atan2", "exp"})
 
 
 def test_expand_exp_function() -> None:
@@ -297,6 +302,14 @@ def test_expand_exp_function() -> None:
         return math.exp(x)
 
     latex = r"\mathrm{solve}(x) = e^{x}"
+    _check_function(solve, latex, expand_functions={"exp"})
+
+
+def test_expand_exp_nested_function() -> None:
+    def solve(x):
+        return math.exp(math.exp(x))
+
+    latex = r"\mathrm{solve}(x) = e^{e^{x}}"
     _check_function(solve, latex, expand_functions={"exp"})
 
 
@@ -308,12 +321,28 @@ def test_expand_exp2_function() -> None:
     _check_function(solve, latex, expand_functions={"exp2"})
 
 
+def test_expand_exp2_nested_function() -> None:
+    def solve(x):
+        return math.exp2(math.exp2(x))
+
+    latex = r"\mathrm{solve}(x) = {2}^{{2}^{x}}"
+    _check_function(solve, latex, expand_functions={"exp2"})
+
+
 def test_expand_expm1_function() -> None:
     def solve(x):
         return math.expm1(x)
 
     latex = r"\mathrm{solve}(x) = \exp{\left({x}\right)} - {1}"
     _check_function(solve, latex, expand_functions={"expm1"})
+
+
+def test_expand_expm1_nested_function() -> None:
+    def solve(x, y, z):
+        return math.expm1(math.pow(y, z))
+
+    latex = r"\mathrm{solve}(x, y, z) = e^{y^{z}} - {1}"
+    _check_function(solve, latex, expand_functions={"expm1", "exp", "pow"})
 
 
 def test_expand_hypot_function_without_attribute_access() -> None:
@@ -334,23 +363,7 @@ def test_expand_hypot_function() -> None:
     _check_function(solve, latex, expand_functions={"hypot"})
 
 
-def test_expand_log1p_function() -> None:
-    def solve(x):
-        return math.log1p(x)
-
-    latex = r"\mathrm{solve}(x) = \log{\left({{1} + x}\right)}"
-    _check_function(solve, latex, expand_functions={"log1p"})
-
-
-def test_expand_pow_function() -> None:
-    def solve(x, y):
-        return math.pow(x, y)
-
-    latex = r"\mathrm{solve}(x, y) = x^{y}"
-    _check_function(solve, latex, expand_functions={"pow"})
-
-
-def test_expand_nested_function() -> None:
+def test_expand_hypot_nested_function() -> None:
     def solve(a, b, x, y):
         return math.hypot(math.hypot(a, b), x, y)
 
@@ -361,6 +374,38 @@ def test_expand_nested_function() -> None:
         r"x^{{2}} + y^{{2}}}"
     )
     _check_function(solve, latex, expand_functions={"hypot"})
+
+
+def test_expand_log1p_function() -> None:
+    def solve(x):
+        return math.log1p(x)
+
+    latex = r"\mathrm{solve}(x) = \log{\left({{1} + x}\right)}"
+    _check_function(solve, latex, expand_functions={"log1p"})
+
+
+def test_expand_log1p_nested_function() -> None:
+    def solve(x):
+        return math.log1p(math.exp(x))
+
+    latex = r"\mathrm{solve}(x) = \log{\left({{1} + e^{x}}\right)}"
+    _check_function(solve, latex, expand_functions={"log1p", "exp"})
+
+
+def test_expand_pow_nested_function() -> None:
+    def solve(w, x, y, z):
+        return math.pow(math.pow(w, x), math.pow(y, z))
+
+    latex = r"\mathrm{solve}(w, x, y, z) = \mathopen{}\left( w^{x} \mathclose{}\right)^{y^{z}}"
+    _check_function(solve, latex, expand_functions={"pow"})
+
+
+def test_expand_pow_function() -> None:
+    def solve(x, y):
+        return math.pow(x, y)
+
+    latex = r"\mathrm{solve}(x, y) = x^{y}"
+    _check_function(solve, latex, expand_functions={"pow"})
 
 
 def test_docstring_allowed() -> None:

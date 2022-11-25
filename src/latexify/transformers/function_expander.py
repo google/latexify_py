@@ -45,13 +45,16 @@ def _atan2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
             "FunctionExpander only supports expanding 'atan2' with two arguments"
         )
 
+    print(node.args[0])
     return ast.Call(
         func=ast.Name(id=constants.BuiltinFnName.ATAN.value, ctx=ast.Load()),
         args=[
-            ast.BinOp(
-                left=function_expander.visit(node.args[0]),
-                op=ast.Div(),
-                right=function_expander.visit(node.args[1]),
+            function_expander.visit(
+                ast.BinOp(
+                    left=node.args[0],
+                    op=ast.Div(),
+                    right=node.args[1],
+                )
             )
         ],
     )
@@ -90,9 +93,11 @@ def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
         )
 
     return ast.BinOp(
-        left=ast.Call(
-            func=ast.Name(id=constants.BuiltinFnName.EXP.value, ctx=ast.Load()),
-            args=[function_expander.visit(node.args[0])],
+        left=function_expander.visit(
+            ast.Call(
+                func=ast.Name(id=constants.BuiltinFnName.EXP.value, ctx=ast.Load()),
+                args=[node.args[0]],
+            )
         ),
         op=ast.Sub(),
         right=ast_utils.make_constant(1),
