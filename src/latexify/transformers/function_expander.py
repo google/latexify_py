@@ -4,10 +4,10 @@ import ast
 import functools
 from collections.abc import Callable
 
-from latexify import ast_utils, constants
+from latexify import ast_utils, constants, exceptions
 
 
-# TODO(ZibingZhang): handle recursive function expansions
+# TODO(ZibingZhang): handle mutually recursive function expansions
 class FunctionExpander(ast.NodeTransformer):
     """NodeTransformer to expand functions.
 
@@ -39,6 +39,52 @@ class FunctionExpander(ast.NodeTransformer):
         return node
 
 
+def _atan2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    _check_num_args(node, 2)
+    return ast.Call(
+        func=ast.Name(id=constants.BuiltinFnName.ATAN.value, ctx=ast.Load()),
+        args=[
+            ast.BinOp(
+                left=function_expander.visit(node.args[0]),
+                op=ast.Div(),
+                right=function_expander.visit(node.args[1]),
+            )
+        ],
+    )
+
+
+def _exp_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    _check_num_args(node, 1)
+    return ast.BinOp(
+        left=ast.Name(id="e", ctx=ast.Load()),
+        op=ast.Pow(),
+        right=function_expander.visit(node.args[0]),
+    )
+
+
+def _exp2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    _check_num_args(node, 1)
+    return ast.BinOp(
+        left=ast_utils.make_constant(2),
+        op=ast.Pow(),
+        right=function_expander.visit(node.args[0]),
+    )
+
+
+def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    _check_num_args(node, 1)
+    return ast.BinOp(
+        left=function_expander.visit(
+            ast.Call(
+                func=ast.Name(id=constants.BuiltinFnName.EXP.value, ctx=ast.Load()),
+                args=[node.args[0]],
+            )
+        ),
+        op=ast.Sub(),
+        right=ast_utils.make_constant(1),
+    )
+
+
 def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
     if len(node.args) == 0:
         return ast_utils.make_constant(0)
@@ -61,6 +107,44 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
     )
 
 
+def _log1p_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    _check_num_args(node, 1)
+    return ast.Call(
+        func=ast.Name(id=constants.BuiltinFnName.LOG.value, ctx=ast.Load()),
+        args=[
+            ast.BinOp(
+                left=ast_utils.make_constant(1),
+                op=ast.Add(),
+                right=function_expander.visit(node.args[0]),
+            )
+        ],
+    )
+
+
+def _pow_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
+    _check_num_args(node, 2)
+    return ast.BinOp(
+        left=function_expander.visit(node.args[0]),
+        op=ast.Pow(),
+        right=function_expander.visit(node.args[1]),
+    )
+
+
+def _check_num_args(node: ast.Call, nargs: int) -> None:
+    if len(node.args) != nargs:
+        fn_name = ast_utils.extract_function_name_or_none(node)
+        raise exceptions.LatexifySyntaxError(
+            f"Incorrect number of arguments for {fn_name}."
+            f" expected: {nargs}, but got {len(node.args)}"
+        )
+
+
 _FUNCTION_EXPANDERS: dict[str, Callable[[FunctionExpander, ast.Call], ast.AST]] = {
-    "hypot": _hypot_expander
+    "atan2": _atan2_expander,
+    "exp": _exp_expander,
+    "exp2": _exp2_expander,
+    "expm1": _expm1_expander,
+    "hypot": _hypot_expander,
+    "log1p": _log1p_expander,
+    "pow": _pow_expander,
 }
