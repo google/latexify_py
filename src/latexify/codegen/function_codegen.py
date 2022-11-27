@@ -346,13 +346,6 @@ class FunctionCodegen(ast.NodeVisitor):
         # Function signature (possibly an expression).
         func_str = self.visit(node.func)
 
-        # Removes common prefixes: math.sqrt -> sqrt
-        # TODO(odashi): This process can be implemented as a NodeTransformer.
-        for prefix in constants.PREFIXES:
-            if func_str.startswith(f"{prefix}."):
-                func_str = func_str[len(prefix) + 1 :]
-                break
-
         # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
         lstr, rstr = constants.BUILTIN_FUNCS.get(
             func_str,
