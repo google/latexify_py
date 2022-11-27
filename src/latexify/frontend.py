@@ -53,7 +53,6 @@ def get_latex(
     # Generates LaTeX.
     return codegen.FunctionCodegen(
         use_math_symbols=merged_config.use_math_symbols,
-        use_raw_function_name=merged_config.use_raw_function_name,
         use_signature=merged_config.use_signature,
         use_set_symbols=merged_config.use_set_symbols,
     ).visit(tree)

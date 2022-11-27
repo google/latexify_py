@@ -112,8 +112,8 @@ _BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
         operand_left=BinOperandRule(force=True),
         operand_right=BinOperandRule(wrap=False),
     ),
-    ast.Mult: BinOpRule("", " ", ""),
-    ast.MatMult: BinOpRule("", " ", ""),
+    ast.Mult: BinOpRule("", " \cdot ", ""),
+    ast.MatMult: BinOpRule("", " \cdot ", ""),
     ast.Div: BinOpRule(
         r"\frac{",
         "}{",
@@ -195,7 +195,6 @@ class FunctionCodegen(ast.NodeVisitor):
     """
 
     _math_symbol_converter: math_symbols.MathSymbolConverter
-    _use_raw_function_name: bool
     _use_signature: bool
 
     _bin_op_rules: dict[type[ast.operator], BinOpRule]
@@ -205,7 +204,6 @@ class FunctionCodegen(ast.NodeVisitor):
         self,
         *,
         use_math_symbols: bool = False,
-        use_raw_function_name: bool = False,
         use_signature: bool = True,
         use_set_symbols: bool = False,
     ) -> None:
@@ -214,8 +212,6 @@ class FunctionCodegen(ast.NodeVisitor):
         Args:
             use_math_symbols: Whether to convert identifiers with a math symbol surface
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-            use_raw_function_name: Whether to keep underscores "_" in the function name,
-                or convert it to subscript.
             use_signature: Whether to add the function signature before the expression
                 or not.
             use_set_symbols: Whether to use set symbols or not.
@@ -223,11 +219,28 @@ class FunctionCodegen(ast.NodeVisitor):
         self._math_symbol_converter = math_symbols.MathSymbolConverter(
             enabled=use_math_symbols
         )
-        self._use_raw_function_name = use_raw_function_name
         self._use_signature = use_signature
 
         self._bin_op_rules = _SET_BIN_OP_RULES if use_set_symbols else _BIN_OP_RULES
         self._compare_ops = _SET_COMPARE_OPS if use_set_symbols else _COMPARE_OPS
+
+    def _convert_identifier(self, name: str) -> str:
+        """Converts identifier string to LaTeX.
+
+        Args:
+            name: Original identifier name in AST.
+
+        Returns:
+            LaTeX expression representing the `name`.
+        """
+        math_symbol = self._math_symbol_converter.convert(name)
+        if math_symbol != name:
+            return "{" + math_symbol + "}"
+
+        if len(name) == 1:
+            return "{" + name + "}"
+
+        return r"\mathrm{" + name.replace("_", r"\_") + "}"
 
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
@@ -239,15 +252,10 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         # Function name
-        name_str = str(node.name)
-        if self._use_raw_function_name:
-            name_str = name_str.replace(r"_", r"\_")
-        name_str = r"\mathrm{" + name_str + "}"
+        name_str = self._convert_identifier(node.name)
 
         # Arguments
-        arg_strs = [
-            self._math_symbol_converter.convert(str(arg.arg)) for arg in node.args.args
-        ]
+        arg_strs = [self._convert_identifier(arg.arg) for arg in node.args.args]
 
         body_strs: list[str] = []
 
@@ -372,11 +380,11 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
-        astr = str(node.attr)
+        astr = self._convert_identifier(node.attr)
         return vstr + "." + astr
 
     def visit_Name(self, node: ast.Name) -> str:
-        return self._math_symbol_converter.convert(str(node.id))
+        return self._convert_identifier(node.id)
 
     def _convert_constant(self, value: Any) -> str:
         """Helper to convert constant values to LaTeX.

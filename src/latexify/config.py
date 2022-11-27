@@ -21,8 +21,6 @@ class Config:
             the final expression.
         use_math_symbols: Whether to convert identifiers with a math symbol surface
             (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-        use_raw_function_name: Whether to keep underscores "_" in the function name,
-            or convert it to subscript.
         use_signature: Whether to add the function signature before the expression
             or not.
         use_set_symbols: Whether to use set symbols or not.
@@ -31,7 +29,6 @@ class Config:
     identifiers: dict[str, str] | None
     reduce_assignments: bool
     use_math_symbols: bool
-    use_raw_function_name: bool
     use_signature: bool
     use_set_symbols: bool
 
@@ -70,7 +67,6 @@ class Config:
             identifiers=None,
             reduce_assignments=False,
             use_math_symbols=False,
-            use_raw_function_name=False,
             use_signature=True,
             use_set_symbols=False,
         )

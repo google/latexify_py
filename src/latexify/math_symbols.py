@@ -79,6 +79,6 @@ class MathSymbolConverter:
             return name
 
         if name in _MATH_SYMBOLS:
-            return "{\\" + name + "}"
+            return "\\" + name
 
         return name
