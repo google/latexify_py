@@ -29,7 +29,9 @@ def test_trim_basic_prefix():
 def test_trim_complex_prefix():
     prefix = ast.Attribute(
         value=ast.Attribute(
-            value=ast.Name(id="multiple", ctx=ast.Load()), attr="prefixes", ctx=ast.Load()
+            value=ast.Name(id="multiple", ctx=ast.Load()),
+            attr="prefixes",
+            ctx=ast.Load(),
         ),
         attr="sin",
         ctx=ast.Load(),

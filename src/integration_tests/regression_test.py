@@ -278,5 +278,8 @@ def test_complex_prefix_trimmed() -> None:
     def solve(x):
         return multiple.prefixes.sin(x)
 
-    latex = r"\mathrm{solve}(x) = \mathrm{prefixes.sin}\mathopen{}\left(x\mathclose{}\right)"
+    latex = (
+        r"\mathrm{solve}(x) = "
+        r"\mathrm{prefixes.sin}\mathopen{}\left(x\mathclose{}\right)"
+    )
     utils.check_function(solve, latex, prefixes={"multiple"})
