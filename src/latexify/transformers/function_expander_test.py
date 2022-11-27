@@ -202,3 +202,19 @@ def test_log1p_expanded() -> None:
     )
     transformed = FunctionExpander({"log1p"}).visit(parser.parse_function(f))
     test_utils.assert_ast_equal(transformed, expected)
+
+
+def test_pow_expanded() -> None:
+    def f(x, y):
+        return math.pow(x, y)
+
+    expected = _make_ast(
+        ["x", "y"],
+        ast.BinOp(
+            left=ast.Name(id="x", ctx=ast.Load()),
+            op=ast.Pow(),
+            right=ast.Name(id="y", ctx=ast.Load()),
+        ),
+    )
+    transformed = FunctionExpander({"pow"}).visit(parser.parse_function(f))
+    test_utils.assert_ast_equal(transformed, expected)

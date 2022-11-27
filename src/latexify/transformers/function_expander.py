@@ -40,32 +40,21 @@ class FunctionExpander(ast.NodeTransformer):
 
 
 def _atan2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) != 2:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander only supports expanding 'atan2' with two arguments"
-        )
-
-    print(node.args[0])
+    _check_num_args(node, 2)
     return ast.Call(
         func=ast.Name(id=constants.BuiltinFnName.ATAN.value, ctx=ast.Load()),
         args=[
-            function_expander.visit(
-                ast.BinOp(
-                    left=node.args[0],
-                    op=ast.Div(),
-                    right=node.args[1],
-                )
+            ast.BinOp(
+                left=function_expander.visit(node.args[0]),
+                op=ast.Div(),
+                right=function_expander.visit(node.args[1]),
             )
         ],
     )
 
 
 def _exp_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) != 1:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander only supports expanding 'exp' with one argument"
-        )
-
+    _check_num_args(node, 1)
     return ast.BinOp(
         left=ast.Name(id="e", ctx=ast.Load()),
         op=ast.Pow(),
@@ -74,11 +63,7 @@ def _exp_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AS
 
 
 def _exp2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) != 1:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander only supports expanding 'exp2' with one argument"
-        )
-
+    _check_num_args(node, 1)
     return ast.BinOp(
         left=ast_utils.make_constant(2),
         op=ast.Pow(),
@@ -87,11 +72,7 @@ def _exp2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.A
 
 
 def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) != 1:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander only supports expanding 'expm1' with one argument"
-        )
-
+    _check_num_args(node, 1)
     return ast.BinOp(
         left=function_expander.visit(
             ast.Call(
@@ -127,11 +108,7 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
 
 
 def _log1p_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) != 1:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander only supports expanding 'log1p' with one argument"
-        )
-
+    _check_num_args(node, 1)
     return ast.Call(
         func=ast.Name(id=constants.BuiltinFnName.LOG.value, ctx=ast.Load()),
         args=[
@@ -145,16 +122,21 @@ def _log1p_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
 
 
 def _pow_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) != 2:
-        raise exceptions.LatexifyNotSupportedError(
-            "FunctionExpander only supports expanding 'pow' with two arguments"
-        )
-
+    _check_num_args(node, 2)
     return ast.BinOp(
         left=function_expander.visit(node.args[0]),
         op=ast.Pow(),
         right=function_expander.visit(node.args[1]),
     )
+
+
+def _check_num_args(node: ast.Call, nargs: int) -> None:
+    if len(node.args) != nargs:
+        fn_name = ast_utils.extract_function_name_or_none(node)
+        raise exceptions.LatexifySyntaxError(
+            f"Incorrect number of arguments for {fn_name}."
+            f" expected: {nargs}, but got {len(node.args)}"
+        )
 
 
 _FUNCTION_EXPANDERS: dict[str, Callable[[FunctionExpander, ast.Call], ast.AST]] = {
