@@ -16,6 +16,14 @@ PrefixTrimmer = prefix_trimmer.PrefixTrimmer
 
 
 @pytest.mark.parametrize(
+    "prefix", [".x", "1", "1x", "x.1", "x.1x", "x.x.1", "x.x.1x" "x..x", "x.x..x"]
+)
+def test_invalid_prefix(prefix: str) -> None:
+    with pytest.raises(ValueError, match=rf"^Invalid prefix: {prefix}$"):
+        PrefixTrimmer({prefix})
+
+
+@pytest.mark.parametrize(
     "prefixes,expected",
     [
         (set(), make_name("foo")),
