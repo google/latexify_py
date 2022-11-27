@@ -11,7 +11,7 @@ class PrefixTrimmer(ast.NodeTransformer):
         PrefixTrimmer({"math"}) will modify the AST of the function above to below:
 
         def f(x, y):
-            return hypot(x**2, y**2)
+            return hypot(x, y)
     """
 
     def __init__(self, prefixes: set[str]) -> None:
@@ -21,7 +21,6 @@ class PrefixTrimmer(ast.NodeTransformer):
         """Visitor of Attribute nodes."""
         if issubclass(node.value.__class__, ast.Name):
             if node.value.id in self._prefixes:
-                print("!!!!!!!!!!!!!!!")
                 return ast.Name(id=node.attr, ctx=node.ctx)
         if issubclass(node.value.__class__, ast.Attribute):
             kwargs = node.__dict__
