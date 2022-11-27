@@ -10,6 +10,12 @@ from latexify import codegen
 from latexify import config as cfg
 from latexify import exceptions, parser, transformers
 
+# NOTE(odashi):
+# These prefixes are trimmed by default.
+# This behavior shouldn't be controlled by users in the current implementation because
+# some processes expects absense of these prefixes.
+_COMMON_PREFIXES = {"math", "numpy", "np"}
+
 
 # TODO(odashi): move expand_functions to Config.
 def get_latex(
@@ -39,6 +45,10 @@ def get_latex(
     tree = parser.parse_function(fn)
 
     # Applies AST transformations.
+
+    prefixes = _COMMON_PREFIXES | (merged_config.prefixes or set())
+    tree = transformers.PrefixTrimmer(prefixes).visit(tree)
+
     if merged_config.identifiers is not None:
         tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
     if merged_config.reduce_assignments:

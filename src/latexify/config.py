@@ -17,6 +17,8 @@ class Config:
             and corresponding values are the replacements.
             Both keys and values have to represent valid Python identifiers:
             ^[A-Za-z_][A-Za-z0-9_]*$
+        prefixes: Prefixes of identifiers to trim. E.g., if "foo.bar" in prefixes, all
+            identifiers with the form "foo.bar.suffix" will be replaced to "suffix"
         reduce_assignments: If True, assignment statements are used to synthesize
             the final expression.
         use_math_symbols: Whether to convert identifiers with a math symbol surface
@@ -30,6 +32,7 @@ class Config:
 
     expand_functions: set[str] | None
     identifiers: dict[str, str] | None
+    prefixes: set[str] | None
     reduce_assignments: bool
     use_math_symbols: bool
     use_raw_function_name: bool
@@ -70,6 +73,7 @@ class Config:
         return Config(
             expand_functions=None,
             identifiers=None,
+            prefixes=None,
             reduce_assignments=False,
             use_math_symbols=False,
             use_raw_function_name=False,

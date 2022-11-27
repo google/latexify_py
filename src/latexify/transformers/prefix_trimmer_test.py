@@ -16,7 +16,7 @@ PrefixTrimmer = prefix_trimmer.PrefixTrimmer
 
 
 @pytest.mark.parametrize(
-    "prefix", [".x", "1", "1x", "x.1", "x.1x", "x.x.1", "x.x.1x" "x..x", "x.x..x"]
+    "prefix", [".x", "x.", "1", "1x", "x.1", "x.1x", "x.x.1", "x.x.1x" "x..x", "x.x..x"]
 )
 def test_invalid_prefix(prefix: str) -> None:
     with pytest.raises(ValueError, match=rf"^Invalid prefix: {prefix}$"):
@@ -44,6 +44,7 @@ def test_name(prefixes: set[str], expected: ast.expr) -> None:
     "prefixes,expected",
     [
         (set(), make_attr(make_name("foo"), "bar")),
+        ({"fo"}, make_attr(make_name("foo"), "bar")),
         ({"foo"}, make_name("bar")),
         ({"bar"}, make_attr(make_name("foo"), "bar")),
         ({"baz"}, make_attr(make_name("foo"), "bar")),
@@ -62,9 +63,11 @@ def test_attr_1(prefixes: set[str], expected: ast.expr) -> None:
     "prefixes,expected",
     [
         (set(), make_attr(make_attr(make_name("foo"), "bar"), "baz")),
+        ({"fo"}, make_attr(make_attr(make_name("foo"), "bar"), "baz")),
         ({"foo"}, make_attr(make_name("bar"), "baz")),
         ({"bar"}, make_attr(make_attr(make_name("foo"), "bar"), "baz")),
         ({"baz"}, make_attr(make_attr(make_name("foo"), "bar"), "baz")),
+        ({"foo.ba"}, make_attr(make_attr(make_name("foo"), "bar"), "baz")),
         ({"foo.bar"}, make_name("baz")),
         ({"foo.bar.baz"}, make_attr(make_attr(make_name("foo"), "bar"), "baz")),
         ({"foo", "bar"}, make_attr(make_name("bar"), "baz")),
