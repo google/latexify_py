@@ -7,7 +7,7 @@ from collections.abc import Callable
 from latexify import ast_utils, constants, exceptions
 
 
-# TODO(ZibingZhang): handle recursive function expansions
+# TODO(ZibingZhang): handle mutually recursive function expansions
 class FunctionExpander(ast.NodeTransformer):
     """NodeTransformer to expand functions.
 
