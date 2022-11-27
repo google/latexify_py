@@ -7,10 +7,8 @@ from collections.abc import Callable
 from typing import Any
 
 from latexify import codegen
-from latexify import exceptions
-from latexify import parser
-from latexify import transformers
 from latexify import config as cfg
+from latexify import exceptions, parser, transformers
 
 
 # TODO(odashi): move expand_functions to Config.
@@ -30,7 +28,7 @@ def get_latex(
             by users.
 
     Returns:
-        Generatee LaTeX description.
+        Generated LaTeX description.
 
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
@@ -45,6 +43,8 @@ def get_latex(
         tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
     if merged_config.reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
+    if merged_config.prefixes:
+        tree = transformers.PrefixTrimmer(merged_config.prefixes).visit(tree)
     if merged_config.expand_functions is not None:
         tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
 

@@ -330,3 +330,24 @@ def test_multiple_constants_allowed() -> None:
 
     latex = r"\mathrm{solve}(x) = x"
     _check_function(solve, latex)
+
+
+def test_prefix_trimmed() -> None:
+    import math as prefix
+
+    def solve(x):
+        return prefix.sin(x)
+
+    latex = r"\mathrm{solve}(x) = \sin{\left({x}\right)}"
+    _check_function(solve, latex, prefixes={"prefix"})
+
+
+def test_complex_prefix_trimmed() -> None:
+    class multiple:
+        prefixes = math
+
+    def solve(x):
+        return multiple.prefixes.sin(x)
+
+    latex = r"\mathrm{solve}(x) = \mathrm{prefixes.sin}\mathopen{}\left(x\mathclose{}\right)"
+    _check_function(solve, latex, prefixes={"multiple"})
