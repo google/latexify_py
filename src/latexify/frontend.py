@@ -34,7 +34,7 @@ def get_latex(
             by users.
 
     Returns:
-        Generatee LaTeX description.
+        Generate LaTeX description.
 
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
