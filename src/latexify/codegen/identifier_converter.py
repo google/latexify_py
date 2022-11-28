@@ -1,15 +1,19 @@
 """Utility to convert identifiers."""
 
+from __future__ import annotations
+
+from typing import final
 
 from latexify import math_symbols
 
 
+@final
 class IdentifierConverter:
     """Converts Python identifiers to appropriate LaTeX expression."""
 
     _use_math_symbols: bool
 
-    def __init__(self, use_math_symbols: bool) -> None:
+    def __init__(self, *, use_math_symbols: bool) -> None:
         """Initializer.
 
         Args:

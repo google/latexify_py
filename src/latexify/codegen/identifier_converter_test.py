@@ -1,5 +1,7 @@
 """Tests for latexify.codegen.identifier_converter."""
 
+from __future__ import annotations
+
 import pytest
 
 from latexify.codegen import identifier_converter
@@ -21,6 +23,8 @@ from latexify.codegen import identifier_converter
         ("a_1", False, (r"\mathrm{a\_1}", False)),
         ("alpha", False, (r"\mathrm{alpha}", False)),
         ("alpha", True, (r"\alpha", True)),
+        ("foo", False, (r"\mathrm{foo}", False)),
+        ("foo", True, (r"\mathrm{foo}", False)),
     ],
 )
 def test_identifier_converter(

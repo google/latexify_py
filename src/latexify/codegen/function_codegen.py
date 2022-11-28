@@ -7,7 +7,8 @@ import dataclasses
 import sys
 from typing import Any
 
-from latexify import analyzers, ast_utils, constants, exceptions, math_symbols
+from latexify import analyzers, ast_utils, constants, exceptions
+from latexify.codegen import identifier_converter
 
 # Precedences of operators for BoolOp, BinOp, UnaryOp, and Compare nodes.
 # Note that this value affects only the appearance of surrounding parentheses for each
@@ -194,8 +195,7 @@ class FunctionCodegen(ast.NodeVisitor):
     LaTeX expression of the given function.
     """
 
-    _math_symbol_converter: math_symbols.MathSymbolConverter
-    _use_raw_function_name: bool
+    _identifier_converter: identifier_converter.IdentifierConverter
     _use_signature: bool
 
     _bin_op_rules: dict[type[ast.operator], BinOpRule]
@@ -205,7 +205,6 @@ class FunctionCodegen(ast.NodeVisitor):
         self,
         *,
         use_math_symbols: bool = False,
-        use_raw_function_name: bool = False,
         use_signature: bool = True,
         use_set_symbols: bool = False,
     ) -> None:
@@ -214,16 +213,13 @@ class FunctionCodegen(ast.NodeVisitor):
         Args:
             use_math_symbols: Whether to convert identifiers with a math symbol surface
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-            use_raw_function_name: Whether to keep underscores "_" in the function name,
-                or convert it to subscript.
             use_signature: Whether to add the function signature before the expression
                 or not.
             use_set_symbols: Whether to use set symbols or not.
         """
-        self._math_symbol_converter = math_symbols.MathSymbolConverter(
-            enabled=use_math_symbols
+        self._identifier_converter = identifier_converter.IdentifierConverter(
+            use_math_symbols=use_math_symbols
         )
-        self._use_raw_function_name = use_raw_function_name
         self._use_signature = use_signature
 
         self._bin_op_rules = _SET_BIN_OP_RULES if use_set_symbols else _BIN_OP_RULES
@@ -239,14 +235,11 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         # Function name
-        name_str = str(node.name)
-        if self._use_raw_function_name:
-            name_str = name_str.replace(r"_", r"\_")
-        name_str = r"\mathrm{" + name_str + "}"
+        name_str = self._identifier_converter.convert(node.name)[0]
 
         # Arguments
         arg_strs = [
-            self._math_symbol_converter.convert(str(arg.arg)) for arg in node.args.args
+            self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
         ]
 
         body_strs: list[str] = []
@@ -343,33 +336,36 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
-        # Function signature (possibly an expression).
-        func_str = self.visit(node.func)
+        func_name = ast_utils.extract_function_name_or_none(node)
 
-        # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
-        lstr, rstr = constants.BUILTIN_FUNCS.get(
-            func_str,
-            (r"\mathrm{" + func_str + r"}\mathopen{}\left(", r"\mathclose{}\right)"),
-        )
-
-        if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
+        # Special processing for sum and prod.
+        if func_name in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
             elt, scripts = self._get_sum_prod_info(node.args[0])
-            scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
+            scripts_str = [rf"\{func_name}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
             return (
                 " ".join(scripts_str)
                 + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
             )
+
+        # Function signature (possibly an expression).
+        default_func_str = self.visit(node.func)
+
+        # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
+        lstr, rstr = constants.BUILTIN_FUNCS.get(
+            func_name,
+            (default_func_str + r"\mathopen{}\left(", r"\mathclose{}\right)"),
+        )
 
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
-        astr = str(node.attr)
+        astr = self._identifier_converter.convert(node.attr)[0]
         return vstr + "." + astr
 
     def visit_Name(self, node: ast.Name) -> str:
-        return self._math_symbol_converter.convert(str(node.id))
+        return self._identifier_converter.convert(node.id)[0]
 
     def _convert_constant(self, value: Any) -> str:
         """Helper to convert constant values to LaTeX.
