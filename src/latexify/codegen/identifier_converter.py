@@ -9,7 +9,14 @@ from latexify import math_symbols
 
 @final
 class IdentifierConverter:
-    """Converts Python identifiers to appropriate LaTeX expression."""
+    r"""Converts Python identifiers to appropriate LaTeX expression.
+
+    This converter applies following rules:
+        - `foo` --> `\foo`, if `use_math_symbols == True` and the given identifier
+          matches a supported math symbol name.
+        - `x` --> `x`, if the given identifier is exactly 1 character (except `_`)
+        - `foo_bar` --> `\mathrm{foo\_bar}`, otherwise.
+    """
 
     _use_math_symbols: bool
 
