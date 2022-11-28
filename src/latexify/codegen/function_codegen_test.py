@@ -34,7 +34,7 @@ def test_visit_functiondef_use_signature() -> None:
     assert isinstance(tree, ast.FunctionDef)
 
     latex_without_flag = "x"
-    latex_with_flag = r"\mathrm{f}(x) = x"
+    latex_with_flag = r"f(x) = x"
     assert FunctionCodegen().visit(tree) == latex_with_flag
     assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
     assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
@@ -52,7 +52,7 @@ def test_visit_functiondef_ignore_docstring() -> None:
     ).body[0]
     assert isinstance(tree, ast.FunctionDef)
 
-    latex = r"\mathrm{f}(x) = x"
+    latex = r"f(x) = x"
     assert FunctionCodegen().visit(tree) == latex
 
 
@@ -70,7 +70,7 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
     ).body[0]
     assert isinstance(tree, ast.FunctionDef)
 
-    latex = r"\mathrm{f}(x) = x"
+    latex = r"f(x) = x"
     assert FunctionCodegen().visit(tree) == latex
 
 
@@ -90,7 +90,7 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
             r"\left[ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r" \land \mathopen{}\left( f\mathopen{}\left("
             r"i\mathclose{}\right) \mathclose{}\right)"
             r" \right]",
         ),
@@ -107,7 +107,7 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
             "[i for k in n if f(k) for i in k if i > 0]",
             r"\left[ i \mid"
             r" \mathopen{}\left( k \in n \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r" \land \mathopen{}\left( f\mathopen{}\left("
             r"k\mathclose{}\right) \mathclose{}\right),"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
@@ -137,7 +137,7 @@ def test_visit_listcomp(code: str, latex: str) -> None:
             r"\left\{ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r" \land \mathopen{}\left( f\mathopen{}\left("
             r"i\mathclose{}\right) \mathclose{}\right)"
             r" \right\}",
         ),
@@ -154,7 +154,7 @@ def test_visit_listcomp(code: str, latex: str) -> None:
             "{i for k in n if f(k) for i in k if i > 0}",
             r"\left\{ i \mid"
             r" \mathopen{}\left( k \in n \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r" \land \mathopen{}\left( f\mathopen{}\left("
             r"k\mathclose{}\right) \mathclose{}\right),"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
@@ -175,7 +175,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ("(x)", r" \left({x}\right)"),
         ("([1, 2])", r" \left({\left[ {1}\space,\space {2}\right] }\right)"),
         ("({1, 2})", r" \left({\left\{ {1}\space,\space {2}\right\} }\right)"),
-        ("(f(x))", r" \left({\mathrm{f}\mathopen{}\left(x\mathclose{}\right)}\right)"),
+        ("(f(x))", r" \left({f\mathopen{}\left(x\mathclose{}\right)}\right)"),
         # Single comprehension
         ("(i for i in x)", r"_{i \in x}^{} \mathopen{}\left({i}\mathclose{}\right)"),
         (
@@ -190,7 +190,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ),
         (
             "(i for i in f(x))",
-            r"_{i \in \mathrm{f}\mathopen{}\left(x\mathclose{}\right)}^{} "
+            r"_{i \in f\mathopen{}\left(x\mathclose{}\right)}^{} "
             r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
@@ -291,7 +291,7 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
             "(i for i in x if i < y if f(i))",
             r"_{\mathopen{}\left( i \in x \mathclose{}\right) "
             r"\land \mathopen{}\left( {i < y} \mathclose{}\right)"
-            r" \land \mathopen{}\left( \mathrm{f}\mathopen{}\left("
+            r" \land \mathopen{}\left( f\mathopen{}\left("
             r"i\mathclose{}\right) \mathclose{}\right)}^{}"
             r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
@@ -469,14 +469,14 @@ def test_if_then_else(code: str, latex: str) -> None:
         # is_wrapped
         ("(x // y)**z", r"\left\lfloor\frac{x}{y}\right\rfloor^{z}"),
         # With Call
-        ("x**f(y)", r"x^{\mathrm{f}\mathopen{}\left(y\mathclose{}\right)}"),
-        ("f(x)**y", r"\mathrm{f}\mathopen{}\left(x\mathclose{}\right)^{y}"),
-        ("x * f(y)", r"x \mathrm{f}\mathopen{}\left(y\mathclose{}\right)"),
-        ("f(x) * y", r"\mathrm{f}\mathopen{}\left(x\mathclose{}\right) y"),
-        ("x / f(y)", r"\frac{x}{\mathrm{f}\mathopen{}\left(y\mathclose{}\right)}"),
-        ("f(x) / y", r"\frac{\mathrm{f}\mathopen{}\left(x\mathclose{}\right)}{y}"),
-        ("x + f(y)", r"x + \mathrm{f}\mathopen{}\left(y\mathclose{}\right)"),
-        ("f(x) + y", r"\mathrm{f}\mathopen{}\left(x\mathclose{}\right) + y"),
+        ("x**f(y)", r"x^{f\mathopen{}\left(y\mathclose{}\right)}"),
+        ("f(x)**y", r"f\mathopen{}\left(x\mathclose{}\right)^{y}"),
+        ("x * f(y)", r"x f\mathopen{}\left(y\mathclose{}\right)"),
+        ("f(x) * y", r"f\mathopen{}\left(x\mathclose{}\right) y"),
+        ("x / f(y)", r"\frac{x}{f\mathopen{}\left(y\mathclose{}\right)}"),
+        ("f(x) / y", r"\frac{f\mathopen{}\left(x\mathclose{}\right)}{y}"),
+        ("x + f(y)", r"x + f\mathopen{}\left(y\mathclose{}\right)"),
+        ("f(x) + y", r"f\mathopen{}\left(x\mathclose{}\right) + y"),
         # With UnaryOp
         ("x**-y", r"x^{-y}"),
         ("(-x)**y", r"\mathopen{}\left( -x \mathclose{}\right)^{y}"),
@@ -521,10 +521,10 @@ def test_visit_binop(code: str, latex: str) -> None:
         ("~x", r"\mathord{\sim} x"),
         ("not x", r"\lnot x"),
         # With Call
-        ("+f(x)", r"+\mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
-        ("-f(x)", r"-\mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
-        ("~f(x)", r"\mathord{\sim} \mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
-        ("not f(x)", r"\lnot \mathrm{f}\mathopen{}\left(x\mathclose{}\right)"),
+        ("+f(x)", r"+f\mathopen{}\left(x\mathclose{}\right)"),
+        ("-f(x)", r"-f\mathopen{}\left(x\mathclose{}\right)"),
+        ("~f(x)", r"\mathord{\sim} f\mathopen{}\left(x\mathclose{}\right)"),
+        ("not f(x)", r"\lnot f\mathopen{}\left(x\mathclose{}\right)"),
         # With BinOp
         ("+(x + y)", r"+\mathopen{}\left( x + y \mathclose{}\right)"),
         ("-(x + y)", r"-\mathopen{}\left( x + y \mathclose{}\right)"),
@@ -584,8 +584,8 @@ def test_visit_unaryop(code: str, latex: str) -> None:
         ("a <= b < c", r"{a \le b < c}"),
         ("a <= b <= c", r"{a \le b \le c}"),
         # With Call
-        ("a == f(b)", r"{a = \mathrm{f}\mathopen{}\left(b\mathclose{}\right)}"),
-        ("f(a) == b", r"{\mathrm{f}\mathopen{}\left(a\mathclose{}\right) = b}"),
+        ("a == f(b)", r"{a = f\mathopen{}\left(b\mathclose{}\right)}"),
+        ("f(a) == b", r"{f\mathopen{}\left(a\mathclose{}\right) = b}"),
         # With BinOp
         ("a == b + c", r"{a = b + c}"),
         ("a + b == c", r"{a + b = c}"),
@@ -624,10 +624,10 @@ def test_visit_compare(code: str, latex: str) -> None:
             r"{a \land \mathopen{}\left( {b \lor c} \mathclose{}\right)}",
         ),
         # With Call
-        ("a and f(b)", r"{a \land \mathrm{f}\mathopen{}\left(b\mathclose{}\right)}"),
-        ("f(a) and b", r"{\mathrm{f}\mathopen{}\left(a\mathclose{}\right) \land b}"),
-        ("a or f(b)", r"{a \lor \mathrm{f}\mathopen{}\left(b\mathclose{}\right)}"),
-        ("f(a) or b", r"{\mathrm{f}\mathopen{}\left(a\mathclose{}\right) \lor b}"),
+        ("a and f(b)", r"{a \land f\mathopen{}\left(b\mathclose{}\right)}"),
+        ("f(a) and b", r"{f\mathopen{}\left(a\mathclose{}\right) \land b}"),
+        ("a or f(b)", r"{a \lor f\mathopen{}\left(b\mathclose{}\right)}"),
+        ("f(a) or b", r"{f\mathopen{}\left(a\mathclose{}\right) \lor b}"),
         # With BinOp
         ("a and b + c", r"{a \land b + c}"),
         ("a + b and c", r"{a + b \land c}"),
@@ -706,7 +706,7 @@ def test_visit_constant(code: str, latex: str) -> None:
         ("x[0]", "{x_{{0}}}"),
         ("x[0][1]", "{x_{{0}, {1}}}"),
         ("x[0][1][2]", "{x_{{0}, {1}, {2}}}"),
-        ("x[foo]", "{x_{foo}}"),
+        ("x[foo]", r"{x_{\mathrm{foo}}}"),
         ("x[floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
     ],
 )

@@ -21,7 +21,7 @@ def my_function(my_argument):
 my_function
 ```
 
-$$\mathrm{f}(x) = \mathrm{g}\left(x\right)$$
+$$f(x) = \mathrm{g}\left(x\right)$$
 
 
 ## `reduce_assignments: bool`
@@ -42,7 +42,7 @@ def f(a, b, c):
 f
 ```
 
-$$\mathrm{f}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}$$
+$$f(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}$$
 
 
 ## `use_math_symbols: bool`
@@ -60,22 +60,6 @@ greek
 $$\mathrm{greek}({\alpha}, {\beta}, {\gamma}, {\Omega}) = {\alpha} {\beta} + \Gamma\left({{\gamma}}\right) + {\Omega}$$
 
 
-## `use_raw_function_name: bool`
-
-Whether to use the original string as the function name or not.
-
-```python
-@latexify.function(use_raw_function_name=True)
-def quadratic_solution(a, b, c):
-    return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
-
-f
-```
-
-$$\mathrm{quadratic\_solution}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}$$
-
-(note that GitHub's LaTeX renderer does not process underscores correctly.)
-
 ## `use_set_symbols: bool`
 
 Whether to use binary operators for set operations or not.
@@ -88,7 +72,7 @@ def f(x, y):
 f
 ```
 
-$$\mathrm{f}(x, y) = \left( x \cap y\space,\space x \cup y\space,\space x \setminus y\space,\space x \mathbin{\triangle} y\space,\space {x \subset y}\space,\space {x \subseteq y}\space,\space {x \supset y}\space,\space {x \supseteq y}\right)$$
+$$f(x, y) = \left( x \cap y\space,\space x \cup y\space,\space x \setminus y\space,\space x \mathbin{\triangle} y\space,\space {x \subset y}\space,\space {x \subseteq y}\space,\space {x \supset y}\space,\space {x \supseteq y}\right)$$
 
 
 ## `use_signature: bool`
