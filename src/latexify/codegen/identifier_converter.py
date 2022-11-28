@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-from typing import final
-
 from latexify import math_symbols
 
 
-@final
 class IdentifierConverter:
     r"""Converts Python identifiers to appropriate LaTeX expression.
 
