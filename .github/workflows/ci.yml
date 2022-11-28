@@ -68,4 +68,4 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install isort
       - name: Check
-        run: python -m isort -v src
+        run: python -m isort --check src

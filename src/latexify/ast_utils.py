@@ -7,6 +7,31 @@ import sys
 from typing import Any
 
 
+def make_name(id: str) -> ast.Name:
+    """Generates a new Name node.
+
+    Args:
+        id: Name of the node.
+
+    Returns:
+        Generated ast.Name.
+    """
+    return ast.Name(id=id, ctx=ast.Load())
+
+
+def make_attribute(value: ast.Expr, attr: str):
+    """Generates a new Attribute node.
+
+    Args:
+        value: Parent value.
+        attr: Attribute name.
+
+    Returns:
+        Generated ast.Attribute.
+    """
+    return ast.Attribute(value=value, attr=attr, ctx=ast.Load())
+
+
 def make_constant(value: Any) -> ast.expr:
     """Generates a new Constant node.
 

@@ -221,7 +221,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
     ],
 )
 def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
-    for src_fn, dest_fn in [("sum", r"\sum"), ("math.prod", r"\prod")]:
+    for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast.parse(src_fn + src_suffix).body[0].value
         assert isinstance(node, ast.Call)
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
@@ -243,12 +243,12 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
         ),
         # 3 clauses
         (
-            "math.prod(i for y in x for i in y)",
+            "prod(i for y in x for i in y)",
             r"\prod_{y \in x}^{} \prod_{i \in y}^{} "
             r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
-            "math.prod(i for y in x for z in y for i in z)",
+            "prod(i for y in x for z in y for i in z)",
             r"\prod_{y \in x}^{} \prod_{z \in y}^{} \prod_{i \in z}^{} "
             r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
@@ -258,7 +258,7 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
             r"\sum_{i = {0}}^{{n}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
-            "math.prod(i for i in range(n-1))",
+            "prod(i for i in range(n-1))",
             r"\prod_{i = {0}}^{{n - {2}}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         # reduce stop parameter
@@ -267,7 +267,7 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
             r"\sum_{i = {0}}^{{n}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
-            "math.prod(i for i in range(n-1))",
+            "prod(i for i in range(n-1))",
             r"\prod_{i = {0}}^{{n - {2}}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
@@ -298,7 +298,7 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
     ],
 )
 def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
-    for src_fn, dest_fn in [("sum", r"\sum"), ("math.prod", r"\prod")]:
+    for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast.parse(src_fn + src_suffix).body[0].value
         assert isinstance(node, ast.Call)
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
@@ -707,7 +707,7 @@ def test_visit_constant(code: str, latex: str) -> None:
         ("x[0][1]", "{x_{{0}, {1}}}"),
         ("x[0][1][2]", "{x_{{0}, {1}, {2}}}"),
         ("x[foo]", "{x_{foo}}"),
-        ("x[math.floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
+        ("x[floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
     ],
 )
 def test_visit_subscript(code: str, latex: str) -> None:

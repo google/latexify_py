@@ -18,6 +18,27 @@ def test_get_latex_identifiers() -> None:
     assert frontend.get_latex(myfn, identifiers=identifiers) == latex_with_flag
 
 
+def test_get_latex_prefixes() -> None:
+    math = numpy = np = abc = object()
+
+    def f(x):
+        return math.foo + numpy.bar + np.baz + abc.qux + x.y.z.quux
+
+    latex_without_flag = r"\mathrm{f}(x) = foo + bar + baz + abc.qux + x.y.z.quux"
+    latex_with_flag1 = r"\mathrm{f}(x) = foo + bar + baz + qux + x.y.z.quux"
+    latex_with_flag2 = r"\mathrm{f}(x) = foo + bar + baz + abc.qux + y.z.quux"
+    latex_with_flag3 = r"\mathrm{f}(x) = foo + bar + baz + abc.qux + z.quux"
+    latex_with_flag4 = r"\mathrm{f}(x) = foo + bar + baz + qux + quux"
+
+    assert frontend.get_latex(f) == latex_without_flag
+    assert frontend.get_latex(f, prefixes=set()) == latex_without_flag
+    assert frontend.get_latex(f, prefixes={"abc"}) == latex_with_flag1
+    assert frontend.get_latex(f, prefixes={"x"}) == latex_with_flag2
+    assert frontend.get_latex(f, prefixes={"x.y"}) == latex_with_flag3
+    assert frontend.get_latex(f, prefixes={"abc", "x.y.z"}) == latex_with_flag4
+    assert frontend.get_latex(f, prefixes={"abc", "x", "x.y.z"}) == latex_with_flag4
+
+
 def test_get_latex_reduce_assignments() -> None:
     def f(x):
         y = 3 * x

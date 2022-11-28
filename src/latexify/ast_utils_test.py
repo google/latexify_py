@@ -10,6 +10,19 @@ import pytest
 from latexify import ast_utils, test_utils
 
 
+def test_make_name() -> None:
+    test_utils.assert_ast_equal(
+        ast_utils.make_name("foo"), ast.Name(id="foo", ctx=ast.Load())
+    )
+
+
+def test_make_attribute() -> None:
+    test_utils.assert_ast_equal(
+        ast_utils.make_attribute(ast_utils.make_name("foo"), "bar"),
+        ast.Attribute(ast.Name(id="foo", ctx=ast.Load()), attr="bar", ctx=ast.Load()),
+    )
+
+
 @test_utils.require_at_most(7)
 @pytest.mark.parametrize(
     "value,expected",
