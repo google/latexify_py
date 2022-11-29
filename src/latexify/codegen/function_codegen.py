@@ -621,8 +621,8 @@ class FunctionCodegen(ast.NodeVisitor):
         if range_info.stop_int is None:
             stop = range_info.stop
             # use special processing if stop is infinity
-            if isinstance(range_info.stop, ast.Name) and str(stop.id) == "infty":
-                upper = "{" + self.visit(stop) + "}"
+            if isinstance(range_info.stop, ast.Name) and self.visit_Name(stop) == "{\\infty}":
+                upper = self.visit(stop)
             # use special processing if stop involves addition or subtraction
             elif isinstance(stop, ast.BinOp) and isinstance(
                 stop.op, (ast.Add, ast.Sub)

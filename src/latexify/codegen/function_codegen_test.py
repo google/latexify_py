@@ -199,7 +199,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ),
         (
             "(i for i in range(infty))",
-            r"_{i = {0}}^{{infty}} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = {0}}^{{infty - 1}} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in range(3))",
@@ -748,3 +748,23 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "src_suffix,dest_suffix",
+    [
+        (
+            "(i for i in range(infty))",
+            r"_{i = {0}}^{{\infty}} \mathopen{}\left({i}\mathclose{}\right)",
+        ),
+        (
+            "(i for i in range(infty - 1))",
+            r"_{i = {0}}^{{{\infty} - {2}}} \mathopen{}\left({i}\mathclose{}\right)",
+        ),
+    ]
+)
+def test_visit_call_sum_prod_infty(src_suffix: str, dest_suffix: str) -> None:
+    for src_fn, dest_fn in [("sum", r"\sum"), ("math.prod", r"\prod")]:
+        node = ast.parse(src_fn + src_suffix).body[0].value
+        assert isinstance(node, ast.Call)
+        assert FunctionCodegen(use_math_symbols=True).visit(node) == dest_fn + dest_suffix
