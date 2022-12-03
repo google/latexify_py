@@ -356,8 +356,52 @@ class FunctionCodegen(ast.NodeVisitor):
             (default_func_str + r"\mathopen{}\left(", r"\mathclose{}\right)"),
         )
 
+<<<<<<< HEAD
+=======
+        if func_str in ("ndarray", "array"):
+            arg = node.args[0]
+            if not isinstance(arg, ast.List) or not arg.elts:
+                return None
+
+            row0 = arg.elts[0]
+
+            if not isinstance(row0, ast.List):
+                return self._generate_ndarray([self.visit(x) for x in arg.elts])
+
+            if not row0.elts:
+                return None
+
+            nCols = len(row0.elts)
+
+            if not all(
+                isinstance(row, ast.List) and len(row.elts) == nCols for row in arg.elts
+            ):
+                return None
+
+            return self._generate_ndarray(
+                [[self.visit(x) for x in row.elts] for row in arg.elts]
+            )
+
+        if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
+            elt, scripts = self._get_sum_prod_info(node.args[0])
+            scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
+            return " ".join(scripts_str) + rf" \left({{{elt}}}\right)"
+
+>>>>>>> aaa/np-ndarray
         arg_strs = [self.visit(arg) for arg in node.args]
         return lstr + ", ".join(arg_strs) + rstr
+
+    def _generate_ndarray(self, data: list[list[str]]) -> str:
+        """Generates a latex matrix from a 2d list of strings.
+
+        Args:
+            data: A 2d list of strings.
+
+        Returns:
+            Generated LaTeX expression.
+        """
+        contents = r" \\ ".join(" & ".join(row) for row in data)
+        return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
