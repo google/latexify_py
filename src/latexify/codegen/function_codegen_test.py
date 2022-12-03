@@ -7,7 +7,7 @@ import textwrap
 
 import pytest
 
-from latexify import exceptions, test_utils
+from latexify import ast_utils, exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
 
@@ -116,7 +116,7 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
     ],
 )
 def test_visit_listcomp(code: str, latex: str) -> None:
-    node = ast.parse(code).body[0].value
+    node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.ListComp)
     assert FunctionCodegen().visit(node) == latex
 
@@ -163,7 +163,7 @@ def test_visit_listcomp(code: str, latex: str) -> None:
     ],
 )
 def test_visit_setcomp(code: str, latex: str) -> None:
-    node = ast.parse(code).body[0].value
+    node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.SetComp)
     assert FunctionCodegen().visit(node) == latex
 
@@ -222,7 +222,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
 )
 def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
     for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
-        node = ast.parse(src_fn + src_suffix).body[0].value
+        node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
@@ -273,7 +273,7 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
     ],
 )
 def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> None:
-    node = ast.parse(code).body[0].value
+    node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
     assert FunctionCodegen().visit(node) == latex
 
@@ -299,7 +299,7 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
 )
 def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
     for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
-        node = ast.parse(src_fn + src_suffix).body[0].value
+        node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
@@ -331,7 +331,7 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
     ],
 )
 def test_if_then_else(code: str, latex: str) -> None:
-    node = ast.parse(code).body[0].value
+    node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.IfExp)
     assert FunctionCodegen().visit(node) == latex
 
@@ -507,7 +507,7 @@ def test_if_then_else(code: str, latex: str) -> None:
     ],
 )
 def test_visit_binop(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
@@ -546,7 +546,7 @@ def test_visit_binop(code: str, latex: str) -> None:
     ],
 )
 def test_visit_unaryop(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.UnaryOp)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
@@ -600,7 +600,7 @@ def test_visit_unaryop(code: str, latex: str) -> None:
     ],
 )
 def test_visit_compare(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
@@ -646,7 +646,7 @@ def test_visit_compare(code: str, latex: str) -> None:
     ],
 )
 def test_visit_boolop(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BoolOp)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
@@ -671,7 +671,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
     ],
 )
 def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, cls)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
@@ -696,7 +696,7 @@ def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> No
     ],
 )
 def test_visit_constant(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Constant)
 
 
@@ -711,7 +711,7 @@ def test_visit_constant(code: str, latex: str) -> None:
     ],
 )
 def test_visit_subscript(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Subscript)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
 
@@ -726,7 +726,7 @@ def test_visit_subscript(code: str, latex: str) -> None:
     ],
 )
 def test_use_set_symbols_binop(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
@@ -741,7 +741,7 @@ def test_use_set_symbols_binop(code: str, latex: str) -> None:
     ],
 )
 def test_use_set_symbols_compare(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
@@ -784,6 +784,6 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     ],
 )
 def test_numpy_array(code: str, latex: str) -> None:
-    tree = ast.parse(code).body[0].value
+    tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
