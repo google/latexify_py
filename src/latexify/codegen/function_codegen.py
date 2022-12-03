@@ -369,7 +369,7 @@ class FunctionCodegen(ast.NodeVisitor):
         def generate_matrix_from_array(data: list[list[str]]) -> str:
             """Helper to generate a bmatrix environment."""
             contents = r" \\ ".join(" & ".join(row) for row in data)
-            return r"\begin{bmatrix} " + contents + r"\end{bmatrix}"
+            return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
 
         arg = node.args[0]
         if not isinstance(arg, ast.List) or not arg.elts:
@@ -380,7 +380,7 @@ class FunctionCodegen(ast.NodeVisitor):
 
         if not isinstance(row0, ast.List):
             # Maybe 1 x N array
-            return generate_matrix_from_array([self.visit(x) for x in arg.elts])
+            return generate_matrix_from_array([[self.visit(x) for x in arg.elts]])
 
         if not row0.elts:
             # No columns

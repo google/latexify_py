@@ -749,18 +749,38 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("np.ndarray([1])", r"\begin{bmatrix} 1 \end{bmatrix}"),
-        ("np.ndarray([1, 2])", r"\begin{bmatrix} 1 & 2 \end{bmatrix}"),
+        ("array(1)", r"\mathrm{array}\mathopen{}\left({1}\mathclose{}\right)"),
         (
-            "np.ndarray([[1, 2], [3, 4]])",
-            r"\begin{bmatrix} 1 & 2 \\" r"3 & 4 \end{bmatrix}",
+            "array([])",
+            r"\mathrm{array}\mathopen{}\left(\left[ \right] \mathclose{}\right)",
+        ),
+        ("array([1])", r"\begin{bmatrix} {1} \end{bmatrix}"),
+        ("array([1, 2, 3])", r"\begin{bmatrix} {1} & {2} & {3} \end{bmatrix}"),
+        (
+            "array([[]])",
+            r"\mathrm{array}\mathopen{}\left("
+            r"\left[ \left[ \right] \right] "
+            r"\mathclose{}\right)",
+        ),
+        ("array([[1]])", r"\begin{bmatrix} {1} \end{bmatrix}"),
+        ("array([[1], [2], [3]])", r"\begin{bmatrix} {1} \\ {2} \\ {3} \end{bmatrix}"),
+        (
+            "array([[1], [2], [3, 4]])",
+            r"\mathrm{array}\mathopen{}\left("
+            r"\left[ "
+            r"\left[ {1}\right] \space,\space "
+            r"\left[ {2}\right] \space,\space "
+            r"\left[ {3}\space,\space {4}\right] "
+            r"\right] "
+            r"\mathclose{}\right)",
         ),
         (
-            "np.ndarray([[1,2], [3,4], [5,6]])",
-            r"\begin{bmatrix}"
-            r"1 & 2 \\" r"3 & 4 \\" r"5 & 6 " r"\end{bmatrix}"
+            "array([[1, 2], [3, 4], [5, 6]])",
+            r"\begin{bmatrix} {1} & {2} \\ {3} & {4} \\ {5} & {6} \end{bmatrix}",
         ),
-        ("np.ndarray([[1], [2], [3]])", r"\begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}"),
+        # Only checks two cases for ndarray.
+        ("ndarray(1)", r"\mathrm{ndarray}\mathopen{}\left({1}\mathclose{}\right)"),
+        ("ndarray([1])", r"\begin{bmatrix} {1} \end{bmatrix}"),
     ],
 )
 def test_numpy_array(code: str, latex: str) -> None:
