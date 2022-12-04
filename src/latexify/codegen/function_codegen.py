@@ -559,6 +559,16 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a MatchValue node"""
         latex = self.visit(node.value)
         return r" = " + latex
+    
+    def visit_MatchAs(self, node: ast.MatchAs) -> str:
+        """Visit a MatchAs node"""
+        """If MatchAs is a wildcard, return 'otherwise' case, else throw error"""
+        if not(node.pattern):
+            return ''
+        else:
+            raise exceptions.LatexifySyntaxError(
+                "Nonempty as-patterns are not supported in MatchAs nodes."
+            )
 
     def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
         # ast.Constant class is added in Python 3.8
