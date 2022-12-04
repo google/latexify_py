@@ -75,3 +75,6 @@ path = "src/latexify/_version.py"
 [tool.flake8]
 max-line-length = 88
 extend-ignore = "E203"
+
+[tool.isort]
+profile = "black"

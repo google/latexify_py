@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import enum
 
-PREFIXES = ["math", "numpy", "np"]
-
 
 class BuiltinFnName(str, enum.Enum):
     """Built-in function name."""

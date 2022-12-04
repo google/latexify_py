@@ -11,11 +11,32 @@ def test_get_latex_identifiers() -> None:
 
     identifiers = {"myfn": "f", "myvar": "x"}
 
-    latex_without_flag = r"\mathrm{myfn}(myvar) = {3} myvar"
-    latex_with_flag = r"\mathrm{f}(x) = {3} x"
+    latex_without_flag = r"\mathrm{myfn}(\mathrm{myvar}) = {3} \mathrm{myvar}"
+    latex_with_flag = r"f(x) = {3} x"
 
     assert frontend.get_latex(myfn) == latex_without_flag
     assert frontend.get_latex(myfn, identifiers=identifiers) == latex_with_flag
+
+
+def test_get_latex_prefixes() -> None:
+    math = numpy = np = abc = object()
+
+    def f(x):
+        return math.a + numpy.b + np.c + abc.d + x.y.z.e
+
+    latex_without_flag = r"f(x) = a + b + c + \mathrm{abc}.d + x.y.z.e"
+    latex_with_flag1 = r"f(x) = a + b + c + d + x.y.z.e"
+    latex_with_flag2 = r"f(x) = a + b + c + \mathrm{abc}.d + y.z.e"
+    latex_with_flag3 = r"f(x) = a + b + c + \mathrm{abc}.d + z.e"
+    latex_with_flag4 = r"f(x) = a + b + c + d + e"
+
+    assert frontend.get_latex(f) == latex_without_flag
+    assert frontend.get_latex(f, prefixes=set()) == latex_without_flag
+    assert frontend.get_latex(f, prefixes={"abc"}) == latex_with_flag1
+    assert frontend.get_latex(f, prefixes={"x"}) == latex_with_flag2
+    assert frontend.get_latex(f, prefixes={"x.y"}) == latex_with_flag3
+    assert frontend.get_latex(f, prefixes={"abc", "x.y.z"}) == latex_with_flag4
+    assert frontend.get_latex(f, prefixes={"abc", "x", "x.y.z"}) == latex_with_flag4
 
 
 def test_get_latex_reduce_assignments() -> None:
@@ -23,8 +44,8 @@ def test_get_latex_reduce_assignments() -> None:
         y = 3 * x
         return y
 
-    latex_without_flag = r"\begin{array}{l} y = {3} x \\ \mathrm{f}(x) = y \end{array}"
-    latex_with_flag = r"\mathrm{f}(x) = {3} x"
+    latex_without_flag = r"\begin{array}{l} y = {3} x \\ f(x) = y \end{array}"
+    latex_with_flag = r"f(x) = {3} x"
 
     assert frontend.get_latex(f) == latex_without_flag
     assert frontend.get_latex(f, reduce_assignments=False) == latex_without_flag
@@ -35,26 +56,12 @@ def test_get_latex_use_math_symbols() -> None:
     def f(alpha):
         return alpha
 
-    latex_without_flag = r"\mathrm{f}(alpha) = alpha"
-    latex_with_flag = r"\mathrm{f}({\alpha}) = {\alpha}"
+    latex_without_flag = r"f(\mathrm{alpha}) = \mathrm{alpha}"
+    latex_with_flag = r"f(\alpha) = \alpha"
 
     assert frontend.get_latex(f) == latex_without_flag
     assert frontend.get_latex(f, use_math_symbols=False) == latex_without_flag
     assert frontend.get_latex(f, use_math_symbols=True) == latex_with_flag
-
-
-def test_get_latex_use_raw_function_name() -> None:
-    def foo_bar(x):
-        return x
-
-    latex_without_flag = r"\mathrm{foo_bar}(x) = x"
-    latex_with_flag = r"\mathrm{foo\_bar}(x) = x"
-
-    assert frontend.get_latex(foo_bar) == latex_without_flag
-    assert (
-        frontend.get_latex(foo_bar, use_raw_function_name=False) == latex_without_flag
-    )
-    assert frontend.get_latex(foo_bar, use_raw_function_name=True) == latex_with_flag
 
 
 def test_get_latex_use_signature() -> None:
@@ -62,7 +69,7 @@ def test_get_latex_use_signature() -> None:
         return x
 
     latex_without_flag = "x"
-    latex_with_flag = r"\mathrm{f}(x) = x"
+    latex_with_flag = r"f(x) = x"
 
     assert frontend.get_latex(f) == latex_with_flag
     assert frontend.get_latex(f, use_signature=False) == latex_without_flag
@@ -73,8 +80,8 @@ def test_get_latex_use_set_symbols() -> None:
     def f(x, y):
         return x & y
 
-    latex_without_flag = r"\mathrm{f}(x, y) = x \mathbin{\&} y"
-    latex_with_flag = r"\mathrm{f}(x, y) = x \cap y"
+    latex_without_flag = r"f(x, y) = x \mathbin{\&} y"
+    latex_with_flag = r"f(x, y) = x \cap y"
 
     assert frontend.get_latex(f) == latex_without_flag
     assert frontend.get_latex(f, use_set_symbols=False) == latex_without_flag
@@ -86,7 +93,7 @@ def test_function() -> None:
         return x
 
     latex_without_flag = "x"
-    latex_with_flag = r"\mathrm{f}(x) = x"
+    latex_with_flag = r"f(x) = x"
 
     # Checks the syntax:
     #     @function
@@ -118,7 +125,7 @@ def test_expression() -> None:
         return x
 
     latex_without_flag = "x"
-    latex_with_flag = r"\mathrm{f}(x) = x"
+    latex_with_flag = r"f(x) = x"
 
     # Checks the syntax:
     #     @expression

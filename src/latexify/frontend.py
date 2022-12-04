@@ -7,10 +7,14 @@ from collections.abc import Callable
 from typing import Any
 
 from latexify import codegen
-from latexify import exceptions
-from latexify import parser
-from latexify import transformers
 from latexify import config as cfg
+from latexify import exceptions, parser, transformers
+
+# NOTE(odashi):
+# These prefixes are trimmed by default.
+# This behavior shouldn't be controlled by users in the current implementation because
+# some processes expects absense of these prefixes.
+_COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
 # TODO(odashi): move expand_functions to Config.
@@ -18,7 +22,6 @@ def get_latex(
     fn: Callable[..., Any],
     *,
     config: cfg.Config | None = None,
-    expand_functions: set[str] | None = None,
     **kwargs,
 ) -> str:
     """Obtains LaTeX description from the function's source.
@@ -27,12 +30,11 @@ def get_latex(
         fn: Reference to a function to analyze.
         config: use defined Config object, if it is None, it will be automatic assigned
             with default value.
-        expand_functions: If set, the names of the functions to expand.
         **kwargs: dict of Config field values that could be defined individually
             by users.
 
     Returns:
-        Generatee LaTeX description.
+        Generated LaTeX description.
 
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
@@ -43,17 +45,20 @@ def get_latex(
     tree = parser.parse_function(fn)
 
     # Applies AST transformations.
+
+    prefixes = _COMMON_PREFIXES | (merged_config.prefixes or set())
+    tree = transformers.PrefixTrimmer(prefixes).visit(tree)
+
     if merged_config.identifiers is not None:
         tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
     if merged_config.reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
-    if expand_functions is not None:
-        tree = transformers.FunctionExpander(expand_functions).visit(tree)
+    if merged_config.expand_functions is not None:
+        tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
 
     # Generates LaTeX.
     return codegen.FunctionCodegen(
         use_math_symbols=merged_config.use_math_symbols,
-        use_raw_function_name=merged_config.use_raw_function_name,
         use_signature=merged_config.use_signature,
         use_set_symbols=merged_config.use_set_symbols,
     ).visit(tree)
