@@ -536,6 +536,14 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
+    def visit_Match(self, node: ast.Match) -> str:
+        print(ast.dump(node))
+        return "Match" 
+    
+    def visit_MatchValue(self, node: ast.MatchValue) -> str:
+        print(ast.dump(node))
+        return "MatchValue" 
+    
     def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
         # ast.Constant class is added in Python 3.8
         # ast.Num is the relevant node type in previous versions

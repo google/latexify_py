@@ -10,6 +10,25 @@ import pytest
 from latexify import exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
+def test_matchvalue() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                return 1
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\mathrm{f}(x) = x"
+
+
+
+
+
+
+
 
 def test_generic_visit() -> None:
     class UnknownNode(ast.AST):
