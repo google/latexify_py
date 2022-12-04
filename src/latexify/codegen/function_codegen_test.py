@@ -10,27 +10,6 @@ import pytest
 from latexify import exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
-def test_matchvalue() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-        """
-        match x:
-            case 0:
-                return 1
-        """
-        )
-    ).body[0]
-
-    assert FunctionCodegen().visit(tree) == r"\mathrm{f}(x) = x"
-
-
-
-
-
-
-
-
-
 def test_generic_visit() -> None:
     class UnknownNode(ast.AST):
         pass
@@ -764,3 +743,35 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+
+
+def test_matchvalue() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                return 1
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ \end{array} \right."
+
+
+def test_multiple_matchvalue() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                return 1
+            case 1:
+                return 2
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{if} \ x = {1} \\ \end{array} \right."
+
+
