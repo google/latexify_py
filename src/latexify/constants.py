@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import enum
 
 
@@ -42,37 +43,63 @@ class BuiltinFnName(str, enum.Enum):
     SUM = "sum"
 
 
-BUILTIN_FUNCS: dict[BuiltinFnName, tuple[str, str]] = {
-    BuiltinFnName.ABS: (r"\left|{", r"}\right|"),
-    BuiltinFnName.ACOS: (r"\arccos{\left({", r"}\right)}"),
-    BuiltinFnName.ACOSH: (r"\mathrm{arccosh}{\left({", r"}\right)}"),
-    BuiltinFnName.ARCCOS: (r"\arccos{\left({", r"}\right)}"),
-    BuiltinFnName.ARCCOSH: (r"\mathrm{arccosh}{\left({", r"}\right)}"),
-    BuiltinFnName.ARCSIN: (r"\arcsin{\left({", r"}\right)}"),
-    BuiltinFnName.ARCSINH: (r"\mathrm{arcsinh}{\left({", r"}\right)}"),
-    BuiltinFnName.ARCTAN: (r"\arctan{\left({", r"}\right)}"),
-    BuiltinFnName.ARCTANH: (r"\mathrm{arctanh}{\left({", r"}\right)}"),
-    BuiltinFnName.ASIN: (r"\arcsin{\left({", r"}\right)}"),
-    BuiltinFnName.ASINH: (r"\mathrm{arcsinh}{\left({", r"}\right)}"),
-    BuiltinFnName.ATAN: (r"\arctan{\left({", r"}\right)}"),
-    BuiltinFnName.ATANH: (r"\mathrm{arctanh}{\left({", r"}\right)}"),
-    BuiltinFnName.CEIL: (r"\left\lceil{", r"}\right\rceil"),
-    BuiltinFnName.COS: (r"\cos{\left({", r"}\right)}"),
-    BuiltinFnName.COSH: (r"\cosh{\left({", r"}\right)}"),
-    BuiltinFnName.EXP: (r"\exp{\left({", r"}\right)}"),
-    BuiltinFnName.FABS: (r"\left|{", r"}\right|"),
-    BuiltinFnName.FACTORIAL: (r"\left({", r"}\right)!"),
-    BuiltinFnName.FLOOR: (r"\left\lfloor{", r"}\right\rfloor"),
-    BuiltinFnName.FSUM: (r"\sum\left({", r"}\right)"),
-    BuiltinFnName.GAMMA: (r"\Gamma\left({", r"}\right)"),
-    BuiltinFnName.LOG: (r"\log{\left({", r"}\right)}"),
-    BuiltinFnName.LOG10: (r"\log_{10}{\left({", r"}\right)}"),
-    BuiltinFnName.LOG2: (r"\log_{2}{\left({", r"}\right)}"),
-    BuiltinFnName.PROD: (r"\prod \left({", r"}\right)"),
-    BuiltinFnName.SIN: (r"\sin{\left({", r"}\right)}"),
-    BuiltinFnName.SINH: (r"\sinh{\left({", r"}\right)}"),
-    BuiltinFnName.SQRT: (r"\sqrt{", "}"),
-    BuiltinFnName.TAN: (r"\tan{\left({", r"}\right)}"),
-    BuiltinFnName.TANH: (r"\tanh{\left({", r"}\right)}"),
-    BuiltinFnName.SUM: (r"\sum \left({", r"}\right)"),
+@dataclasses.dataclass(frozen=True)
+class FunctionRule:
+    """Codegen rules for functions.
+
+    Attributes:
+        left: LaTeX expression concatenated to the left-hand side of the arguments.
+        right: LaTeX expression concatenated to the right-hand side of the arguments.
+        is_unary: Whether the function is treated as a unary operator or not.
+        is_wrapped: Whether the resulting syntax is wrapped by brackets or not.
+    """
+
+    left: str
+    right: str = ""
+    is_unary: bool = False
+    is_wrapped: bool = False
+
+
+# name => left_syntax, right_syntax, is_wrapped
+BUILTIN_FUNCS: dict[BuiltinFnName, FunctionRule] = {
+    BuiltinFnName.ABS: FunctionRule(
+        r"\mathropen{}\left|", r"\mathclose{}\right|", is_wrapped=True
+    ),
+    BuiltinFnName.ACOS: FunctionRule(r"\arccos", is_unary=True),
+    BuiltinFnName.ACOSH: FunctionRule(r"\mathrm{arccosh}", is_unary=True),
+    BuiltinFnName.ARCCOS: FunctionRule(r"\arccos", is_unary=True),
+    BuiltinFnName.ARCCOSH: FunctionRule(r"\mathrm{arccosh}", is_unary=True),
+    BuiltinFnName.ARCSIN: FunctionRule(r"\arcsin", is_unary=True),
+    BuiltinFnName.ARCSINH: FunctionRule(r"\mathrm{arcsinh}", is_unary=True),
+    BuiltinFnName.ARCTAN: FunctionRule(r"\arctan", is_unary=True),
+    BuiltinFnName.ARCTANH: FunctionRule(r"\mathrm{arctanh}", is_unary=True),
+    BuiltinFnName.ASIN: FunctionRule(r"\arcsin", is_unary=True),
+    BuiltinFnName.ASINH: FunctionRule(r"\mathrm{arcsinh}", is_unary=True),
+    BuiltinFnName.ATAN: FunctionRule(r"\arctan", is_unary=True),
+    BuiltinFnName.ATANH: FunctionRule(r"\mathrm{arctanh}", is_unary=True),
+    BuiltinFnName.CEIL: FunctionRule(
+        r"\mathopen{}\left\lceil", r"\mathclose{}\right\rceil", is_wrapped=True
+    ),
+    BuiltinFnName.COS: FunctionRule(r"\cos", is_unary=True),
+    BuiltinFnName.COSH: FunctionRule(r"\cosh", is_unary=True),
+    BuiltinFnName.EXP: FunctionRule(r"\exp", is_unary=True),
+    BuiltinFnName.FABS: FunctionRule(
+        r"\mathopen{}\left|", r"\mathclose{}\right|", is_wrapped=True
+    ),
+    BuiltinFnName.FACTORIAL: FunctionRule("", "!", is_unary=True),
+    BuiltinFnName.FLOOR: FunctionRule(
+        r"\mathopen{}\left\lfloor", r"\mathclose{}\right\rfloor", is_wrapped=True
+    ),
+    BuiltinFnName.FSUM: FunctionRule(r"\sum", is_unary=True),
+    BuiltinFnName.GAMMA: FunctionRule(r"\Gamma"),
+    BuiltinFnName.LOG: FunctionRule(r"\log", is_unary=True),
+    BuiltinFnName.LOG10: FunctionRule(r"\log_{10}", is_unary=True),
+    BuiltinFnName.LOG2: FunctionRule(r"\log_{2}", is_unary=True),
+    BuiltinFnName.PROD: FunctionRule(r"\prod", is_unary=True),
+    BuiltinFnName.SIN: FunctionRule(r"\sin", is_unary=True),
+    BuiltinFnName.SINH: FunctionRule(r"\sinh", is_unary=True),
+    BuiltinFnName.SQRT: FunctionRule(r"\sqrt{", "}", is_wrapped=True),
+    BuiltinFnName.SUM: FunctionRule(r"\sum", is_unary=True),
+    BuiltinFnName.TAN: FunctionRule(r"\tan", is_unary=True),
+    BuiltinFnName.TANH: FunctionRule(r"\tanh", is_unary=True),
 }

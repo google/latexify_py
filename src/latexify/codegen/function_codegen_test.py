@@ -77,41 +77,90 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("[i for i in n]", r"\left[ i \mid i \in n \right]"),
+        ("()", r"\mathopen{}\left(  \mathclose{}\right)"),
+        ("(x,)", r"\mathopen{}\left( x \mathclose{}\right)"),
+        ("(x, y)", r"\mathopen{}\left( x, y \mathclose{}\right)"),
+        ("(x, y, z)", r"\mathopen{}\left( x, y, z \mathclose{}\right)"),
+    ],
+)
+def test_tuple(code: str, latex: str) -> None:
+    node = ast_utils.parse_expr(code)
+    assert isinstance(node, ast.Tuple)
+    assert FunctionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("[]", r"\mathopen{}\left[  \mathclose{}\right]"),
+        ("[x]", r"\mathopen{}\left[ x \mathclose{}\right]"),
+        ("[x, y]", r"\mathopen{}\left[ x, y \mathclose{}\right]"),
+        ("[x, y, z]", r"\mathopen{}\left[ x, y, z \mathclose{}\right]"),
+    ],
+)
+def test_list(code: str, latex: str) -> None:
+    node = ast_utils.parse_expr(code)
+    assert isinstance(node, ast.List)
+    assert FunctionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        # TODO(odashi): Support set().
+        # ("set()", r"\mathopen{}\left\{  \mathclose{}\right\}"),
+        ("{x}", r"\mathopen{}\left\{ x \mathclose{}\right\}"),
+        ("{x, y}", r"\mathopen{}\left\{ x, y \mathclose{}\right\}"),
+        ("{x, y, z}", r"\mathopen{}\left\{ x, y, z \mathclose{}\right\}"),
+    ],
+)
+def test_set(code: str, latex: str) -> None:
+    node = ast_utils.parse_expr(code)
+    assert isinstance(node, ast.Set)
+    assert FunctionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("[i for i in n]", r"\mathopen{}\left[ i \mid i \in n \mathclose{}\right]"),
         (
             "[i for i in n if i > 0]",
-            r"\left[ i \mid"
+            r"\mathopen{}\left[ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \right]",
+            r" \mathclose{}\right]",
         ),
         (
             "[i for i in n if i > 0 if f(i)]",
-            r"\left[ i \mid"
+            r"\mathopen{}\left[ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \land \mathopen{}\left( f\mathopen{}\left("
-            r"i\mathclose{}\right) \mathclose{}\right)"
-            r" \right]",
+            r" \land \mathopen{}\left( f \mathopen{}\left("
+            r" i \mathclose{}\right) \mathclose{}\right)"
+            r" \mathclose{}\right]",
         ),
-        ("[i for k in n for i in k]", r"\left[ i \mid k \in n, i \in k" r" \right]"),
+        (
+            "[i for k in n for i in k]",
+            r"\mathopen{}\left[ i \mid k \in n, i \in k" r" \mathclose{}\right]",
+        ),
         (
             "[i for k in n for i in k if i > 0]",
-            r"\left[ i \mid"
+            r"\mathopen{}\left[ i \mid"
             r" k \in n,"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \right]",
+            r" \mathclose{}\right]",
         ),
         (
             "[i for k in n if f(k) for i in k if i > 0]",
-            r"\left[ i \mid"
+            r"\mathopen{}\left[ i \mid"
             r" \mathopen{}\left( k \in n \mathclose{}\right)"
-            r" \land \mathopen{}\left( f\mathopen{}\left("
-            r"k\mathclose{}\right) \mathclose{}\right),"
+            r" \land \mathopen{}\left( f \mathopen{}\left("
+            r" k \mathclose{}\right) \mathclose{}\right),"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \right]",
+            r" \mathclose{}\right]",
         ),
     ],
 )
@@ -124,41 +173,44 @@ def test_visit_listcomp(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("{i for i in n}", r"\left\{ i \mid i \in n \right\}"),
+        ("{i for i in n}", r"\mathopen{}\left\{ i \mid i \in n \mathclose{}\right\}"),
         (
             "{i for i in n if i > 0}",
-            r"\left\{ i \mid"
+            r"\mathopen{}\left\{ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \right\}",
+            r" \mathclose{}\right\}",
         ),
         (
             "{i for i in n if i > 0 if f(i)}",
-            r"\left\{ i \mid"
+            r"\mathopen{}\left\{ i \mid"
             r" \mathopen{}\left( i \in n \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \land \mathopen{}\left( f\mathopen{}\left("
-            r"i\mathclose{}\right) \mathclose{}\right)"
-            r" \right\}",
+            r" \land \mathopen{}\left( f \mathopen{}\left("
+            r" i \mathclose{}\right) \mathclose{}\right)"
+            r" \mathclose{}\right\}",
         ),
-        ("{i for k in n for i in k}", r"\left\{ i \mid k \in n, i \in k" r" \right\}"),
+        (
+            "{i for k in n for i in k}",
+            r"\mathopen{}\left\{ i \mid k \in n, i \in k" r" \mathclose{}\right\}",
+        ),
         (
             "{i for k in n for i in k if i > 0}",
-            r"\left\{ i \mid"
+            r"\mathopen{}\left\{ i \mid"
             r" k \in n,"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \right\}",
+            r" \mathclose{}\right\}",
         ),
         (
             "{i for k in n if f(k) for i in k if i > 0}",
-            r"\left\{ i \mid"
+            r"\mathopen{}\left\{ i \mid"
             r" \mathopen{}\left( k \in n \mathclose{}\right)"
-            r" \land \mathopen{}\left( f\mathopen{}\left("
-            r"k\mathclose{}\right) \mathclose{}\right),"
+            r" \land \mathopen{}\left( f \mathopen{}\left("
+            r" k \mathclose{}\right) \mathclose{}\right),"
             r" \mathopen{}\left( i \in k \mathclose{}\right)"
             r" \land \mathopen{}\left( {i > {0}} \mathclose{}\right)"
-            r" \right\}",
+            r" \mathclose{}\right\}",
         ),
     ],
 )
@@ -169,29 +221,86 @@ def test_visit_setcomp(code: str, latex: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("foo(x)", r"\mathrm{foo} \mathopen{}\left( x \mathclose{}\right)"),
+        ("f(x)", r"f \mathopen{}\left( x \mathclose{}\right)"),
+        ("f(-x)", r"f \mathopen{}\left( -x \mathclose{}\right)"),
+        ("f(x + y)", r"f \mathopen{}\left( x + y \mathclose{}\right)"),
+        (
+            "f(f(x))",
+            r"f \mathopen{}\left("
+            r" f \mathopen{}\left( x \mathclose{}\right)"
+            r" \mathclose{}\right)",
+        ),
+        ("f(sqrt(x))", r"f \mathopen{}\left( \sqrt{ x } \mathclose{}\right)"),
+        ("f(sin(x))", r"f \mathopen{}\left( \sin x \mathclose{}\right)"),
+        ("f(factorial(x))", r"f \mathopen{}\left( x ! \mathclose{}\right)"),
+        ("f(x, y)", r"f \mathopen{}\left( x, y \mathclose{}\right)"),
+        ("sqrt(x)", r"\sqrt{ x }"),
+        ("sqrt(-x)", r"\sqrt{ -x }"),
+        ("sqrt(x + y)", r"\sqrt{ x + y }"),
+        ("sqrt(f(x))", r"\sqrt{ f \mathopen{}\left( x \mathclose{}\right) }"),
+        ("sqrt(sqrt(x))", r"\sqrt{ \sqrt{ x } }"),
+        ("sqrt(sin(x))", r"\sqrt{ \sin x }"),
+        ("sqrt(factorial(x))", r"\sqrt{ x ! }"),
+        ("sin(x)", r"\sin x"),
+        ("sin(-x)", r"\sin \mathopen{}\left( -x \mathclose{}\right)"),
+        ("sin(x + y)", r"\sin \mathopen{}\left( x + y \mathclose{}\right)"),
+        ("sin(f(x))", r"\sin f \mathopen{}\left( x \mathclose{}\right)"),
+        ("sin(sqrt(x))", r"\sin \sqrt{ x }"),
+        ("sin(sin(x))", r"\sin \sin x"),
+        ("sin(factorial(x))", r"\sin \mathopen{}\left( x ! \mathclose{}\right)"),
+        ("factorial(x)", r"x !"),
+        ("factorial(-x)", r"\mathopen{}\left( -x \mathclose{}\right) !"),
+        ("factorial(x + y)", r"\mathopen{}\left( x + y \mathclose{}\right) !"),
+        (
+            "factorial(f(x))",
+            r"\mathopen{}\left("
+            r" f \mathopen{}\left( x \mathclose{}\right)"
+            r" \mathclose{}\right) !",
+        ),
+        ("factorial(sqrt(x))", r"\mathopen{}\left( \sqrt{ x } \mathclose{}\right) !"),
+        ("factorial(sin(x))", r"\mathopen{}\left( \sin x \mathclose{}\right) !"),
+        ("factorial(factorial(x))", r"\mathopen{}\left( x ! \mathclose{}\right) !"),
+    ],
+)
+def test_visit_call(code: str, latex: str) -> None:
+    node = ast_utils.parse_expr(code)
+    assert isinstance(node, ast.Call)
+    assert FunctionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
     "src_suffix,dest_suffix",
     [
         # No comprehension
-        ("(x)", r" \left({x}\right)"),
-        ("([1, 2])", r" \left({\left[ {1}\space,\space {2}\right] }\right)"),
-        ("({1, 2})", r" \left({\left\{ {1}\space,\space {2}\right\} }\right)"),
-        ("(f(x))", r" \left({f\mathopen{}\left(x\mathclose{}\right)}\right)"),
+        ("(x)", r" x"),
+        (
+            "([1, 2])",
+            r" \mathopen{}\left[ {1}, {2} \mathclose{}\right]",
+        ),
+        (
+            "({1, 2})",
+            r" \mathopen{}\left\{ {1}, {2} \mathclose{}\right\}",
+        ),
+        ("(f(x))", r" f \mathopen{}\left( x \mathclose{}\right)"),
         # Single comprehension
         ("(i for i in x)", r"_{i \in x}^{} \mathopen{}\left({i}\mathclose{}\right)"),
         (
             "(i for i in [1, 2])",
-            r"_{i \in \left[ {1}\space,\space {2}\right] }^{} "
+            r"_{i \in \mathopen{}\left[ {1}, {2} \mathclose{}\right]}^{} "
             r"\mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in {1, 2})",
-            r"_{i \in \left\{ {1}\space,\space {2}\right\} }^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in \mathopen{}\left\{ {1}, {2} \mathclose{}\right\}}^{}"
+            r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in f(x))",
-            r"_{i \in f\mathopen{}\left(x\mathclose{}\right)}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in f \mathopen{}\left( x \mathclose{}\right)}^{}"
+            r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in range(n))",
@@ -215,13 +324,13 @@ def test_visit_setcomp(code: str, latex: str) -> None:
         ),
         (
             "(i for i in range(n, m, k))",
-            r"_{i \in \mathrm{range}\mathopen{}\left(n, m, k"
-            r"\mathclose{}\right)}^{} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i \in \mathrm{range} \mathopen{}\left( n, m, k \mathclose{}\right)}^{}"
+            r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
 )
 def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
-    for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
+    for src_fn, dest_fn in [("fsum", r"\sum"), ("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
         assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
@@ -289,10 +398,10 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
         ),
         (
             "(i for i in x if i < y if f(i))",
-            r"_{\mathopen{}\left( i \in x \mathclose{}\right) "
-            r"\land \mathopen{}\left( {i < y} \mathclose{}\right)"
-            r" \land \mathopen{}\left( f\mathopen{}\left("
-            r"i\mathclose{}\right) \mathclose{}\right)}^{}"
+            r"_{\mathopen{}\left( i \in x \mathclose{}\right)"
+            r" \land \mathopen{}\left( {i < y} \mathclose{}\right)"
+            r" \land \mathopen{}\left( f \mathopen{}\left("
+            r" i \mathclose{}\right) \mathclose{}\right)}^{}"
             r" \mathopen{}\left({i}\mathclose{}\right)",
         ),
     ],
@@ -469,14 +578,21 @@ def test_if_then_else(code: str, latex: str) -> None:
         # is_wrapped
         ("(x // y)**z", r"\left\lfloor\frac{x}{y}\right\rfloor^{z}"),
         # With Call
-        ("x**f(y)", r"x^{f\mathopen{}\left(y\mathclose{}\right)}"),
-        ("f(x)**y", r"f\mathopen{}\left(x\mathclose{}\right)^{y}"),
-        ("x * f(y)", r"x f\mathopen{}\left(y\mathclose{}\right)"),
-        ("f(x) * y", r"f\mathopen{}\left(x\mathclose{}\right) y"),
-        ("x / f(y)", r"\frac{x}{f\mathopen{}\left(y\mathclose{}\right)}"),
-        ("f(x) / y", r"\frac{f\mathopen{}\left(x\mathclose{}\right)}{y}"),
-        ("x + f(y)", r"x + f\mathopen{}\left(y\mathclose{}\right)"),
-        ("f(x) + y", r"f\mathopen{}\left(x\mathclose{}\right) + y"),
+        ("x**f(y)", r"x^{f \mathopen{}\left( y \mathclose{}\right)}"),
+        (
+            "f(x)**y",
+            r"\mathopen{}\left("
+            r" f \mathopen{}\left( x \mathclose{}\right)"
+            r" \mathclose{}\right)^{y}",
+        ),
+        ("x * f(y)", r"x f \mathopen{}\left( y \mathclose{}\right)"),
+        ("f(x) * y", r"f \mathopen{}\left( x \mathclose{}\right) y"),
+        ("x / f(y)", r"\frac{x}{f \mathopen{}\left( y \mathclose{}\right)}"),
+        ("f(x) / y", r"\frac{f \mathopen{}\left( x \mathclose{}\right)}{y}"),
+        ("x + f(y)", r"x + f \mathopen{}\left( y \mathclose{}\right)"),
+        ("f(x) + y", r"f \mathopen{}\left( x \mathclose{}\right) + y"),
+        # With is_wrapped Call
+        ("sqrt(x) ** y", r"\sqrt{ x }^{y}"),
         # With UnaryOp
         ("x**-y", r"x^{-y}"),
         ("(-x)**y", r"\mathopen{}\left( -x \mathclose{}\right)^{y}"),
@@ -521,10 +637,10 @@ def test_visit_binop(code: str, latex: str) -> None:
         ("~x", r"\mathord{\sim} x"),
         ("not x", r"\lnot x"),
         # With Call
-        ("+f(x)", r"+f\mathopen{}\left(x\mathclose{}\right)"),
-        ("-f(x)", r"-f\mathopen{}\left(x\mathclose{}\right)"),
-        ("~f(x)", r"\mathord{\sim} f\mathopen{}\left(x\mathclose{}\right)"),
-        ("not f(x)", r"\lnot f\mathopen{}\left(x\mathclose{}\right)"),
+        ("+f(x)", r"+f \mathopen{}\left( x \mathclose{}\right)"),
+        ("-f(x)", r"-f \mathopen{}\left( x \mathclose{}\right)"),
+        ("~f(x)", r"\mathord{\sim} f \mathopen{}\left( x \mathclose{}\right)"),
+        ("not f(x)", r"\lnot f \mathopen{}\left( x \mathclose{}\right)"),
         # With BinOp
         ("+(x + y)", r"+\mathopen{}\left( x + y \mathclose{}\right)"),
         ("-(x + y)", r"-\mathopen{}\left( x + y \mathclose{}\right)"),
@@ -584,8 +700,8 @@ def test_visit_unaryop(code: str, latex: str) -> None:
         ("a <= b < c", r"{a \le b < c}"),
         ("a <= b <= c", r"{a \le b \le c}"),
         # With Call
-        ("a == f(b)", r"{a = f\mathopen{}\left(b\mathclose{}\right)}"),
-        ("f(a) == b", r"{f\mathopen{}\left(a\mathclose{}\right) = b}"),
+        ("a == f(b)", r"{a = f \mathopen{}\left( b \mathclose{}\right)}"),
+        ("f(a) == b", r"{f \mathopen{}\left( a \mathclose{}\right) = b}"),
         # With BinOp
         ("a == b + c", r"{a = b + c}"),
         ("a + b == c", r"{a + b = c}"),
@@ -624,10 +740,10 @@ def test_visit_compare(code: str, latex: str) -> None:
             r"{a \land \mathopen{}\left( {b \lor c} \mathclose{}\right)}",
         ),
         # With Call
-        ("a and f(b)", r"{a \land f\mathopen{}\left(b\mathclose{}\right)}"),
-        ("f(a) and b", r"{f\mathopen{}\left(a\mathclose{}\right) \land b}"),
-        ("a or f(b)", r"{a \lor f\mathopen{}\left(b\mathclose{}\right)}"),
-        ("f(a) or b", r"{f\mathopen{}\left(a\mathclose{}\right) \lor b}"),
+        ("a and f(b)", r"{a \land f \mathopen{}\left( b \mathclose{}\right)}"),
+        ("f(a) and b", r"{f \mathopen{}\left( a \mathclose{}\right) \land b}"),
+        ("a or f(b)", r"{a \lor f \mathopen{}\left( b \mathclose{}\right)}"),
+        ("f(a) or b", r"{f \mathopen{}\left( a \mathclose{}\right) \lor b}"),
         # With BinOp
         ("a and b + c", r"{a \land b + c}"),
         ("a + b and c", r"{a + b \land c}"),
@@ -707,7 +823,7 @@ def test_visit_constant(code: str, latex: str) -> None:
         ("x[0][1]", "{x_{{0}, {1}}}"),
         ("x[0][1][2]", "{x_{{0}, {1}, {2}}}"),
         ("x[foo]", r"{x_{\mathrm{foo}}}"),
-        ("x[floor(x)]", r"{x_{\left\lfloor{x}\right\rfloor}}"),
+        ("x[floor(x)]", r"{x_{\mathopen{}\left\lfloor x \mathclose{}\right\rfloor}}"),
     ],
 )
 def test_visit_subscript(code: str, latex: str) -> None:
@@ -749,37 +865,40 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("array(1)", r"\mathrm{array}\mathopen{}\left({1}\mathclose{}\right)"),
+        ("array(1)", r"\mathrm{array} \mathopen{}\left( {1} \mathclose{}\right)"),
         (
             "array([])",
-            r"\mathrm{array}\mathopen{}\left(\left[ \right] \mathclose{}\right)",
+            r"\mathrm{array} \mathopen{}\left("
+            r" \mathopen{}\left[  \mathclose{}\right]"
+            r" \mathclose{}\right)",
         ),
         ("array([1])", r"\begin{bmatrix} {1} \end{bmatrix}"),
         ("array([1, 2, 3])", r"\begin{bmatrix} {1} & {2} & {3} \end{bmatrix}"),
         (
             "array([[]])",
-            r"\mathrm{array}\mathopen{}\left("
-            r"\left[ \left[ \right] \right] "
-            r"\mathclose{}\right)",
+            r"\mathrm{array} \mathopen{}\left("
+            r" \mathopen{}\left[ \mathopen{}\left["
+            r"  \mathclose{}\right] \mathclose{}\right]"
+            r" \mathclose{}\right)",
         ),
         ("array([[1]])", r"\begin{bmatrix} {1} \end{bmatrix}"),
         ("array([[1], [2], [3]])", r"\begin{bmatrix} {1} \\ {2} \\ {3} \end{bmatrix}"),
         (
             "array([[1], [2], [3, 4]])",
-            r"\mathrm{array}\mathopen{}\left("
-            r"\left[ "
-            r"\left[ {1}\right] \space,\space "
-            r"\left[ {2}\right] \space,\space "
-            r"\left[ {3}\space,\space {4}\right] "
-            r"\right] "
-            r"\mathclose{}\right)",
+            r"\mathrm{array} \mathopen{}\left("
+            r" \mathopen{}\left["
+            r" \mathopen{}\left[ {1} \mathclose{}\right],"
+            r" \mathopen{}\left[ {2} \mathclose{}\right],"
+            r" \mathopen{}\left[ {3}, {4} \mathclose{}\right]"
+            r" \mathclose{}\right]"
+            r" \mathclose{}\right)",
         ),
         (
             "array([[1, 2], [3, 4], [5, 6]])",
             r"\begin{bmatrix} {1} & {2} \\ {3} & {4} \\ {5} & {6} \end{bmatrix}",
         ),
         # Only checks two cases for ndarray.
-        ("ndarray(1)", r"\mathrm{ndarray}\mathopen{}\left({1}\mathclose{}\right)"),
+        ("ndarray(1)", r"\mathrm{ndarray} \mathopen{}\left( {1} \mathclose{}\right)"),
         ("ndarray([1])", r"\begin{bmatrix} {1} \end{bmatrix}"),
     ],
 )

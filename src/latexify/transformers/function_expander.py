@@ -36,7 +36,17 @@ class FunctionExpander(ast.NodeTransformer):
         ):
             return _FUNCTION_EXPANDERS[func_name](self, node)
 
-        return node
+        kwargs = {
+            "func": self.visit(node.func),
+            "args": [self.visit(x) for x in node.args],
+        }
+
+        if hasattr(node, "keywords"):
+            kwargs["keywords"] = [
+                ast.keyword(arg=x.arg, value=self.visit(x.value)) for x in node.keywords
+            ]
+
+        return ast.Call(**kwargs)
 
 
 def _atan2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
@@ -86,7 +96,7 @@ def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
 
 
 def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
-    if len(node.args) == 0:
+    if not node.args:
         return ast_utils.make_constant(0)
 
     args = [
