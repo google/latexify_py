@@ -775,7 +775,7 @@ def test_multiple_matchvalue() -> None:
     assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{if} \ x = {1} \\ \end{array} \right."
 
 
-def test_matchvalue_matchas() -> None:
+def test_matchvalue_matchas_wildcard() -> None:
     tree = ast.parse(
         textwrap.dedent(
         """
@@ -791,7 +791,7 @@ def test_matchvalue_matchas() -> None:
     assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{otherwise}\end{array} \right."
 
 
-def test_matchvalue_matchas() -> None:
+def test_matchvalue_matchas_nonempty() -> None:
     tree = ast.parse(
         textwrap.dedent(
         """
