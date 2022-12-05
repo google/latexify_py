@@ -52,6 +52,14 @@ _PRECEDENCES: dict[type[ast.AST], int] = {
     ast.Or: 10,
 }
 
+# NOTE(odashi):
+# Function invocation is treated as a unary operator with a higher precedence.
+# This ensures that the argument with a unary operator is wrapped:
+#     exp(x) --> \exp x
+#     exp(-x) --> \exp (-x)
+#     -exp(x) --> - \exp x
+_CALL_PRECEDENCE = _PRECEDENCES[ast.UAdd] + 1
+
 
 def _get_precedence(node: ast.AST) -> int:
     """Obtains the precedence of the subtree.
@@ -63,6 +71,9 @@ def _get_precedence(node: ast.AST) -> int:
         If `node` is a subtree with some operator, returns the precedence of the
         operator. Otherwise, returns a number larger enough from other precedences.
     """
+    if isinstance(node, ast.Call):
+        return _CALL_PRECEDENCE
+
     if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
         return _PRECEDENCES[type(node.op)]
 
@@ -289,38 +300,34 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return (
-            r"\mathopen{}\left( "
-            + r"\space,\space ".join(elts)
-            + r"\mathclose{}\right) "
-        )
+        return r"\mathopen{}\left( " + r", ".join(elts) + r" \mathclose{}\right)"
 
     def visit_List(self, node: ast.List) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\left[ " + r"\space,\space ".join(elts) + r"\right] "
+        return r"\mathopen{}\left[ " + r", ".join(elts) + r" \mathclose{}\right]"
 
     def visit_Set(self, node: ast.Set) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\left\{ " + r"\space,\space ".join(elts) + r"\right\} "
+        return r"\mathopen{}\left\{ " + r", ".join(elts) + r" \mathclose{}\right\}"
 
     def visit_ListComp(self, node: ast.ListComp) -> str:
         generators = [self.visit(comp) for comp in node.generators]
         return (
-            r"\left[ "
+            r"\mathopen{}\left[ "
             + self.visit(node.elt)
             + r" \mid "
             + ", ".join(generators)
-            + r" \right]"
+            + r" \mathclose{}\right]"
         )
 
     def visit_SetComp(self, node: ast.SetComp) -> str:
         generators = [self.visit(comp) for comp in node.generators]
         return (
-            r"\left\{ "
+            r"\mathopen{}\left\{ "
             + self.visit(node.elt)
             + r" \mid "
             + ", ".join(generators)
-            + r" \right\}"
+            + r" \mathclose{}\right\}"
         )
 
     def visit_comprehension(self, node: ast.comprehension) -> str:
@@ -334,18 +341,121 @@ class FunctionCodegen(ast.NodeVisitor):
         wrapped = [r"\mathopen{}\left( " + s + r" \mathclose{}\right)" for s in conds]
         return r" \land ".join(wrapped)
 
+    def _generate_sum_prod(self, node: ast.Call) -> str | None:
+        """Generates sum/prod expression.
+
+        Args:
+            node: ast.Call node containing the sum/prod invocation.
+
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+        if not isinstance(node.args[0], ast.GeneratorExp):
+            return None
+
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name in ("fsum", "sum", "prod")
+
+        command = {
+            "fsum": r"\sum",
+            "sum": r"\sum",
+            "prod": r"\prod",
+        }[name]
+
+        elt, scripts = self._get_sum_prod_info(node.args[0])
+        scripts_str = [rf"{command}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
+        return (
+            " ".join(scripts_str)
+            + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+        )
+
+    def _generate_matrix(self, node: ast.Call) -> str | None:
+        """Generates matrix expression.
+
+        Args:
+            node: ast.Call node containing the ndarray invocation.
+
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+
+        def generate_matrix_from_array(data: list[list[str]]) -> str:
+            """Helper to generate a bmatrix environment."""
+            contents = r" \\ ".join(" & ".join(row) for row in data)
+            return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
+
+        arg = node.args[0]
+        if not isinstance(arg, ast.List) or not arg.elts:
+            # Not an array or no rows
+            return None
+
+        row0 = arg.elts[0]
+
+        if not isinstance(row0, ast.List):
+            # Maybe 1 x N array
+            return generate_matrix_from_array([[self.visit(x) for x in arg.elts]])
+
+        if not row0.elts:
+            # No columns
+            return None
+
+        ncols = len(row0.elts)
+
+        if not all(
+            isinstance(row, ast.List) and len(row.elts) == ncols for row in arg.elts
+        ):
+            # Length mismatch
+            return None
+
+        return generate_matrix_from_array(
+            [[self.visit(x) for x in row.elts] for row in arg.elts]
+        )
+
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
 
-        # Special processing for sum and prod.
-        if func_name in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
-            elt, scripts = self._get_sum_prod_info(node.args[0])
-            scripts_str = [rf"\{func_name}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-            return (
-                " ".join(scripts_str)
-                + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+        # Special treatments for some functions.
+        if func_name in ("fsum", "sum", "prod"):
+            special_latex = self._generate_sum_prod(node)
+        elif func_name in ("array", "ndarray"):
+            special_latex = self._generate_matrix(node)
+        else:
+            special_latex = None
+
+        if special_latex is not None:
+            return special_latex
+
+        # Obtains the codegen rule.
+        rule = constants.BUILTIN_FUNCS.get(func_name)
+        if rule is None:
+            rule = constants.FunctionRule(self.visit(node.func))
+
+        if rule.is_unary and len(node.args) == 1:
+            # Unary function. Applies the same wrapping policy with the unary operators.
+            # NOTE(odashi):
+            # Factorial "x!" is treated as a special case: it requires both inner/outer
+            # parentheses for correct interpretation.
+            precedence = _get_precedence(node)
+            arg = node.args[0]
+            force_wrap = isinstance(arg, ast.Call) and (
+                func_name == "factorial"
+                or ast_utils.extract_function_name_or_none(arg) == "factorial"
             )
+            arg_latex = self._wrap_operand(arg, precedence, force_wrap)
+            elements = [rule.left, arg_latex, rule.right]
+        else:
+            arg_latex = ", ".join(self.visit(arg) for arg in node.args)
+            if rule.is_wrapped:
+                elements = [rule.left, arg_latex, rule.right]
+            else:
+                elements = [
+                    rule.left,
+                    r"\mathopen{}\left(",
+                    arg_latex,
+                    r"\mathclose{}\right)",
+                    rule.right,
+                ]
 
         # Render NDarray method for numpy
         if func_str == "ndarray":
@@ -359,17 +469,8 @@ class FunctionCodegen(ast.NodeVisitor):
             matrix_str = matrix_str[:-3] + r"\end{bmatrix}"
             return matrix_str
 
-        # Function signature (possibly an expression).
-        default_func_str = self.visit(node.func)
+        return " ".join(x for x in elements if x)
 
-        # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
-        lstr, rstr = constants.BUILTIN_FUNCS.get(
-            func_name,
-            (default_func_str + r"\mathopen{}\left(", r"\mathclose{}\right)"),
-        )
-
-        arg_strs = [self.visit(arg) for arg in node.args]
-        return lstr + ", ".join(arg_strs) + rstr
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
@@ -427,20 +528,26 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_Ellipsis(self, node: ast.Ellipsis) -> str:
         return self._convert_constant(...)
 
-    def _wrap_operand(self, child: ast.expr, parent_prec: int) -> str:
+    def _wrap_operand(
+        self, child: ast.expr, parent_prec: int, force_wrap: bool = False
+    ) -> str:
         """Wraps the operand subtree with parentheses.
 
         Args:
             child: Operand subtree.
             parent_prec: Precedence of the parent operator.
+            force_wrap: Whether to wrap the operand or not when the precedence is equal.
 
         Returns:
             LaTeX form of `child`, with or without surrounding parentheses.
         """
         latex = self.visit(child)
-        if _get_precedence(child) >= parent_prec:
-            return latex
-        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
+        child_prec = _get_precedence(child)
+
+        if child_prec < parent_prec or force_wrap and child_prec == parent_prec:
+            return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
+
+        return latex
 
     def _wrap_binop_operand(
         self,
@@ -460,6 +567,13 @@ class FunctionCodegen(ast.NodeVisitor):
         """
         if not operand_rule.wrap:
             return self.visit(child)
+
+        if isinstance(child, ast.Call):
+            rule = constants.BUILTIN_FUNCS.get(
+                ast_utils.extract_function_name_or_none(child)
+            )
+            if rule is not None and rule.is_wrapped:
+                return self.visit(child)
 
         if not isinstance(child, ast.BinOp):
             return self._wrap_operand(child, parent_prec)

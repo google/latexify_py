@@ -10,6 +10,17 @@ import pytest
 from latexify import ast_utils, test_utils
 
 
+def test_parse_expr() -> None:
+    test_utils.assert_ast_equal(
+        ast_utils.parse_expr("a + b"),
+        ast.BinOp(
+            left=ast_utils.make_name("a"),
+            op=ast.Add(),
+            right=ast_utils.make_name("b"),
+        ),
+    )
+
+
 def test_make_name() -> None:
     test_utils.assert_ast_equal(
         ast_utils.make_name("foo"), ast.Name(id="foo", ctx=ast.Load())

@@ -52,7 +52,7 @@ def test_quadratic_solution() -> None:
     def solve(a, b, c):
         return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
-    latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}"
+    latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{ b^{{2}} - {4} a c }}{{2} a}"
     utils.check_function(solve, latex)
 
 
@@ -67,7 +67,7 @@ def test_sinc() -> None:
         r"\mathrm{sinc}(x) = "
         r"\left\{ \begin{array}{ll} "
         r"{1}, & \mathrm{if} \ "
-        r"{x = {0}} \\ \frac{\sin{\left({x}\right)}}{x}, & \mathrm{otherwise} "
+        r"{x = {0}} \\ \frac{\sin x}{x}, & \mathrm{otherwise} "
         r"\end{array} \right."
     )
     utils.check_function(sinc, latex)
@@ -242,9 +242,9 @@ def test_reduce_assignments_with_if() -> None:
         sigmoid,
         (
             r"\mathrm{sigmoid}(x) = \left\{ \begin{array}{ll} "
-            r"\frac{{1}}{{1} + \exp{\left({-x}\right)}}, & "
+            r"\frac{{1}}{{1} + \exp \mathopen{}\left( -x \mathclose{}\right)}, & "
             r"\mathrm{if} \ {x > {0}} \\ "
-            r"\frac{\exp{\left({x}\right)}}{\exp{\left({x}\right)} + {1}}, & "
+            r"\frac{\exp x}{\exp x + {1}}, & "
             r"\mathrm{otherwise} "
             r"\end{array} \right."
         ),
