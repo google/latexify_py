@@ -7,6 +7,18 @@ import sys
 from typing import Any
 
 
+def parse_expr(code: str) -> ast.expr:
+    """Parses given Python expression.
+
+    Args:
+        code: Python expression to parse.
+
+    Returns:
+        ast.expr corresponding to `code`.
+    """
+    return ast.parse(code, mode="eval").body
+
+
 def make_name(id: str) -> ast.Name:
     """Generates a new Name node.
 
