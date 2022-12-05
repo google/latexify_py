@@ -315,6 +315,11 @@ def test_visit_call(code: str, latex: str) -> None:
             r"_{i = 0}^{n + 1} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
+            # ast.parse() does not recognize negative integers.
+            "(i for i in range(n - -1))",
+            r"_{i = 0}^{n - -1 - 1} \mathopen{}\left({i}\mathclose{}\right)",
+        ),
+        (
             "(i for i in range(n - 1))",
             r"_{i = 0}^{n - 2} \mathopen{}\left({i}\mathclose{}\right)",
         ),
@@ -341,6 +346,11 @@ def test_visit_call(code: str, latex: str) -> None:
         (
             "(i for i in range(3 - 1))",
             r"_{i = 0}^{3 - 2} \mathopen{}\left({i}\mathclose{}\right)",
+        ),
+        (
+            # ast.parse() does not recognize negative integers.
+            "(i for i in range(3 - -1))",
+            r"_{i = 0}^{3 - -1 - 1} \mathopen{}\left({i}\mathclose{}\right)",
         ),
         (
             "(i for i in range(3 + m))",
