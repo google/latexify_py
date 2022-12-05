@@ -744,3 +744,46 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast.parse(code).body[0].value
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("array(1)", r"\mathrm{array}\mathopen{}\left({1}\mathclose{}\right)"),
+        (
+            "array([])",
+            r"\mathrm{array}\mathopen{}\left(\left[ \right] \mathclose{}\right)",
+        ),
+        ("array([1])", r"\begin{bmatrix} {1} \end{bmatrix}"),
+        ("array([1, 2, 3])", r"\begin{bmatrix} {1} & {2} & {3} \end{bmatrix}"),
+        (
+            "array([[]])",
+            r"\mathrm{array}\mathopen{}\left("
+            r"\left[ \left[ \right] \right] "
+            r"\mathclose{}\right)",
+        ),
+        ("array([[1]])", r"\begin{bmatrix} {1} \end{bmatrix}"),
+        ("array([[1], [2], [3]])", r"\begin{bmatrix} {1} \\ {2} \\ {3} \end{bmatrix}"),
+        (
+            "array([[1], [2], [3, 4]])",
+            r"\mathrm{array}\mathopen{}\left("
+            r"\left[ "
+            r"\left[ {1}\right] \space,\space "
+            r"\left[ {2}\right] \space,\space "
+            r"\left[ {3}\space,\space {4}\right] "
+            r"\right] "
+            r"\mathclose{}\right)",
+        ),
+        (
+            "array([[1, 2], [3, 4], [5, 6]])",
+            r"\begin{bmatrix} {1} & {2} \\ {3} & {4} \\ {5} & {6} \end{bmatrix}",
+        ),
+        # Only checks two cases for ndarray.
+        ("ndarray(1)", r"\mathrm{ndarray}\mathopen{}\left({1}\mathclose{}\right)"),
+        ("ndarray([1])", r"\begin{bmatrix} {1} \end{bmatrix}"),
+    ],
+)
+def test_numpy_array(code: str, latex: str) -> None:
+    tree = ast.parse(code).body[0].value
+    assert isinstance(tree, ast.Call)
+    assert function_codegen.FunctionCodegen().visit(tree) == latex

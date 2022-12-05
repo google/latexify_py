@@ -334,18 +334,84 @@ class FunctionCodegen(ast.NodeVisitor):
         wrapped = [r"\mathopen{}\left( " + s + r" \mathclose{}\right)" for s in conds]
         return r" \land ".join(wrapped)
 
+    def _generate_sum_prod(self, node: ast.Call) -> str | None:
+        """Generates sum/prod expression.
+
+        Args:
+            node: ast.Call node containing the sum/prod invocation.
+
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+        if not isinstance(node.args[0], ast.GeneratorExp):
+            return None
+
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name is not None
+
+        elt, scripts = self._get_sum_prod_info(node.args[0])
+        scripts_str = [rf"\{name}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
+        return (
+            " ".join(scripts_str)
+            + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
+        )
+
+    def _generate_matrix(self, node: ast.Call) -> str | None:
+        """Generates matrix expression.
+
+        Args:
+            node: ast.Call node containing the ndarray invocation.
+
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+
+        def generate_matrix_from_array(data: list[list[str]]) -> str:
+            """Helper to generate a bmatrix environment."""
+            contents = r" \\ ".join(" & ".join(row) for row in data)
+            return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
+
+        arg = node.args[0]
+        if not isinstance(arg, ast.List) or not arg.elts:
+            # Not an array or no rows
+            return None
+
+        row0 = arg.elts[0]
+
+        if not isinstance(row0, ast.List):
+            # Maybe 1 x N array
+            return generate_matrix_from_array([[self.visit(x) for x in arg.elts]])
+
+        if not row0.elts:
+            # No columns
+            return None
+
+        ncols = len(row0.elts)
+
+        if not all(
+            isinstance(row, ast.List) and len(row.elts) == ncols for row in arg.elts
+        ):
+            # Length mismatch
+            return None
+
+        return generate_matrix_from_array(
+            [[self.visit(x) for x in row.elts] for row in arg.elts]
+        )
+
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
 
-        # Special processing for sum and prod.
-        if func_name in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
-            elt, scripts = self._get_sum_prod_info(node.args[0])
-            scripts_str = [rf"\{func_name}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-            return (
-                " ".join(scripts_str)
-                + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
-            )
+        # Special treatments for some functions.
+        if func_name in ("sum", "prod"):
+            special_latex = self._generate_sum_prod(node)
+        elif func_name in ("array", "ndarray"):
+            special_latex = self._generate_matrix(node)
+        else:
+            special_latex = None
+
+        if special_latex is not None:
+            return special_latex
 
         # Function signature (possibly an expression).
         default_func_str = self.visit(node.func)
