@@ -53,7 +53,7 @@ print(solve)
 ```
 
 ```
-f(n) = \\frac{-b + \\sqrt{b^{{2}} - {4}ac}}{{2}a}
+f(n) = \\frac{-b + \\sqrt{b^{2} - 4ac}}{2a}
 ```
 
 `latexify.expression` works similarly to `latexify.function`,
@@ -85,5 +85,5 @@ latexify.get_latex(solve)
 ```
 
 ```
-f(n) = \\frac{-b + \\sqrt{b^{{2}} - {4}ac}}{{2}a}
+f(n) = \\frac{-b + \\sqrt{b^{2} - 4ac}}{2a}
 ```
