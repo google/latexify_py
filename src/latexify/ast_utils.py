@@ -31,7 +31,7 @@ def make_name(id: str) -> ast.Name:
     return ast.Name(id=id, ctx=ast.Load())
 
 
-def make_attribute(value: ast.Expr, attr: str):
+def make_attribute(value: ast.expr, attr: str):
     """Generates a new Attribute node.
 
     Args:
