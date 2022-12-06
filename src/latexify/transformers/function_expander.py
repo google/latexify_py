@@ -4,7 +4,7 @@ import ast
 import functools
 from collections.abc import Callable
 
-from latexify import ast_utils, constants, exceptions
+from latexify import ast_utils, exceptions
 
 
 # TODO(ZibingZhang): handle mutually recursive function expansions
