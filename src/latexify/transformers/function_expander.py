@@ -4,7 +4,7 @@ import ast
 import functools
 from collections.abc import Callable
 
-from latexify import ast_utils, constants, exceptions
+from latexify import ast_utils, exceptions
 
 
 # TODO(ZibingZhang): handle mutually recursive function expansions
@@ -52,7 +52,7 @@ class FunctionExpander(ast.NodeTransformer):
 def _atan2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
     _check_num_args(node, 2)
     return ast.Call(
-        func=ast.Name(id=constants.BuiltinFnName.ATAN.value, ctx=ast.Load()),
+        func=ast.Name(id="atan", ctx=ast.Load()),
         args=[
             ast.BinOp(
                 left=function_expander.visit(node.args[0]),
@@ -86,7 +86,7 @@ def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
     return ast.BinOp(
         left=function_expander.visit(
             ast.Call(
-                func=ast.Name(id=constants.BuiltinFnName.EXP.value, ctx=ast.Load()),
+                func=ast.Name(id="exp", ctx=ast.Load()),
                 args=[node.args[0]],
             )
         ),
@@ -112,7 +112,7 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
         lambda a, b: ast.BinOp(left=a, op=ast.Add(), right=b), args
     )
     return ast.Call(
-        func=ast.Name(id=constants.BuiltinFnName.SQRT.value, ctx=ast.Load()),
+        func=ast.Name(id="sqrt", ctx=ast.Load()),
         args=[args_reduced],
     )
 
@@ -120,7 +120,7 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
 def _log1p_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.AST:
     _check_num_args(node, 1)
     return ast.Call(
-        func=ast.Name(id=constants.BuiltinFnName.LOG.value, ctx=ast.Load()),
+        func=ast.Name(id="log", ctx=ast.Load()),
         args=[
             ast.BinOp(
                 left=ast_utils.make_constant(1),
