@@ -562,8 +562,11 @@ class FunctionCodegen(ast.NodeVisitor):
             return self.visit(child)
 
         if isinstance(child, ast.Call):
-            rule = constants.BUILTIN_FUNCS.get(
-                ast_utils.extract_function_name_or_none(child)
+            child_fn_name = ast_utils.extract_function_name_or_none(child)
+            rule = (
+                constants.BUILTIN_FUNCS.get(child_fn_name)
+                if child_fn_name is not None
+                else None
             )
             if rule is not None and rule.is_wrapped:
                 return self.visit(child)
@@ -618,30 +621,35 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit an if node."""
         latex = r"\left\{ \begin{array}{ll} "
 
-        while isinstance(node, ast.If):
-            if len(node.body) != 1 or len(node.orelse) != 1:
+        current_stmt: ast.stmt = node
+
+        while isinstance(current_stmt, ast.If):
+            if len(current_stmt.body) != 1 or len(current_stmt.orelse) != 1:
                 raise exceptions.LatexifySyntaxError(
                     "Multiple statements are not supported in If nodes."
                 )
 
-            cond_latex = self.visit(node.test)
-            true_latex = self.visit(node.body[0])
+            cond_latex = self.visit(current_stmt.test)
+            true_latex = self.visit(current_stmt.body[0])
             latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-            node = node.orelse[0]
+            current_stmt = current_stmt.orelse[0]
 
-        latex += self.visit(node)
+        latex += self.visit(current_stmt)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_IfExp(self, node: ast.IfExp) -> str:
         """Visit an ifexp node"""
         latex = r"\left\{ \begin{array}{ll} "
-        while isinstance(node, ast.IfExp):
-            cond_latex = self.visit(node.test)
-            true_latex = self.visit(node.body)
-            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-            node = node.orelse
 
-        latex += self.visit(node)
+        current_expr: ast.expr = node
+
+        while isinstance(current_expr, ast.IfExp):
+            cond_latex = self.visit(current_expr.test)
+            true_latex = self.visit(current_expr.body)
+            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
+            current_expr = current_expr.orelse
+
+        latex += self.visit(current_expr)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def _reduce_stop_parameter(self, node: ast.expr) -> ast.expr:
@@ -774,7 +782,7 @@ class FunctionCodegen(ast.NodeVisitor):
     # Until 3.8
     def visit_Index(self, node: ast.Index) -> str:
         """Visitor for the Index nodes."""
-        return self.visit(node.value)
+        return self.visit(node.value)  # type: ignore[attr-defined]
 
     def _convert_nested_subscripts(self, node: ast.Subscript) -> tuple[str, list[str]]:
         """Helper function to convert nested subscription.

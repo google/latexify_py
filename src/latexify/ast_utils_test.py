@@ -121,15 +121,6 @@ def test_extract_int_or_none() -> None:
 
 
 def test_extract_int_or_none_invalid() -> None:
-    # Not a subtree.
-    assert ast_utils.extract_int_or_none(123) is None
-
-    # Not a direct Constant node.
-    assert (
-        ast_utils.extract_int_or_none(ast.Expr(value=ast_utils.make_constant(123)))
-        is None
-    )
-
     # Not a Constant node with int.
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(None)) is None
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(True)) is None
@@ -147,14 +138,6 @@ def test_extract_int() -> None:
 
 
 def test_extract_int_invalid() -> None:
-    # Not a subtree.
-    with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
-        ast_utils.extract_int(123)
-
-    # Not a direct Constant node.
-    with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
-        ast_utils.extract_int(ast.Expr(value=ast_utils.make_constant(123)))
-
     # Not a Constant node with int.
     with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
         ast_utils.extract_int(ast_utils.make_constant(None))
