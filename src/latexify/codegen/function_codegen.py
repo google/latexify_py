@@ -296,7 +296,11 @@ class FunctionCodegen(ast.NodeVisitor):
         return " = ".join(operands)
 
     def visit_Return(self, node: ast.Return) -> str:
-        return self.visit(node.value)
+        return (
+            self.visit(node.value)
+            if node.value is not None
+            else self._convert_constant(None)
+        )
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
         elts = [self.visit(i) for i in node.elts]
@@ -401,15 +405,16 @@ class FunctionCodegen(ast.NodeVisitor):
 
         ncols = len(row0.elts)
 
-        if not all(
-            isinstance(row, ast.List) and len(row.elts) == ncols for row in arg.elts
-        ):
-            # Length mismatch
-            return None
+        rows: list[list[str]] = []
 
-        return generate_matrix_from_array(
-            [[self.visit(x) for x in row.elts] for row in arg.elts]
-        )
+        for row in arg.elts:
+            if not isinstance(row, ast.List) or len(row.elts) != ncols:
+                # Length mismatch
+                return None
+
+            rows.append([self.visit(x) for x in row.elts])
+
+        return generate_matrix_from_array(rows)
 
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
@@ -427,7 +432,8 @@ class FunctionCodegen(ast.NodeVisitor):
             return special_latex
 
         # Obtains the codegen rule.
-        rule = constants.BUILTIN_FUNCS.get(func_name)
+        rule = constants.BUILTIN_FUNCS.get(func_name) if func_name is not None else None
+
         if rule is None:
             rule = constants.FunctionRule(self.visit(node.func))
 
