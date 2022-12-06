@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import dataclasses
-import enum
 
 
 @dataclasses.dataclass(frozen=True)
