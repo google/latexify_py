@@ -480,13 +480,13 @@ class FunctionCodegen(ast.NodeVisitor):
             return r"\mathrm{" + str(value) + "}"
         if isinstance(value, (int, float, complex)):
             # TODO(odashi): Support other symbols for the imaginary unit than j.
-            return "{" + str(value) + "}"
+            return str(value)
         if isinstance(value, str):
             return r'\textrm{"' + value + '"}'
         if isinstance(value, bytes):
             return r"\textrm{" + str(value) + "}"
         if value is ...:
-            return r"{\cdots}"
+            return r"\cdots"
         raise exceptions.LatexifyNotSupportedError(
             f"Unrecognized constant: {type(value).__name__}"
         )
@@ -599,14 +599,14 @@ class FunctionCodegen(ast.NodeVisitor):
         ops = [self._compare_ops[type(x)] for x in node.ops]
         rhs = [self._wrap_operand(x, parent_prec) for x in node.comparators]
         ops_rhs = [f" {o} {r}" for o, r in zip(ops, rhs)]
-        return "{" + lhs + "".join(ops_rhs) + "}"
+        return lhs + "".join(ops_rhs)
 
     def visit_BoolOp(self, node: ast.BoolOp) -> str:
         """Visit a BoolOp node."""
         parent_prec = _get_precedence(node)
         values = [self._wrap_operand(x, parent_prec) for x in node.values]
         op = f" {_BOOL_OPS[type(node.op)]} "
-        return "{" + op.join(values) + "}"
+        return op.join(values)
 
     def visit_If(self, node: ast.If) -> str:
         """Visit an if node."""
@@ -638,55 +638,45 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(node)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
-    def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
-        # ast.Constant class is added in Python 3.8
-        # ast.Num is the relevant node type in previous versions
-        if sys.version_info.minor < 8:
-            if isinstance(node.right, ast.Num):
-                if isinstance(node.op, ast.Add):
-                    if node.right.n == 1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Num(n=node.right.n - 1)
-                        new_node = ast.BinOp(
-                            left=node.left, op=node.op, right=reduced_constant
-                        )
-                        upper = "{" + self.visit(new_node) + "}"
-                else:
-                    if node.right.n == -1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Num(n=node.right.n + 1)
-                        new_node = ast.BinOp(
-                            left=node.left, op=node.op, right=reduced_constant
-                        )
-                        upper = "{" + self.visit(new_node) + "}"
-            else:
-                upper = "{" + self.visit(node) + "}"
-        else:
-            if isinstance(node.right, ast.Constant):
-                if isinstance(node.op, ast.Add):
-                    if node.right.value == 1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Constant(value=node.right.value - 1)
-                        new_node = ast.BinOp(
-                            left=node.left, op=node.op, right=reduced_constant
-                        )
-                        upper = "{" + self.visit(new_node) + "}"
-                else:
-                    if node.right.value == -1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Constant(value=node.right.value + 1)
-                        new_node = ast.BinOp(
-                            left=node.left, op=node.op, right=reduced_constant
-                        )
-                        upper = "{" + self.visit(new_node) + "}"
-            else:
-                upper = "{" + self.visit(node) + "}"
+    def _reduce_stop_parameter(self, node: ast.expr) -> ast.expr:
+        """Adjusts the stop expression of the range.
 
-        return upper
+        This function tries to convert the syntax as follows:
+            * n + 1 --> n
+            * n + 2 --> n + 1
+            * n - (-1) --> n
+            * n - 1 --> n - 2
+
+        Args:
+            node: The target expression.
+
+        Returns:
+            Converted expression.
+        """
+        if not (
+            isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub))
+        ):
+            return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
+
+        # Treatment for Python 3.7.
+        rhs = (
+            ast.Constant(value=node.right.n)
+            if sys.version_info.minor < 8 and isinstance(node.right, ast.Num)
+            else node.right
+        )
+
+        if not isinstance(rhs, ast.Constant):
+            return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
+
+        shift = 1 if isinstance(node.op, ast.Add) else -1
+
+        return (
+            node.left
+            if rhs.value == shift
+            else ast.BinOp(
+                left=node.left, op=node.op, right=ast.Constant(value=rhs.value - shift)
+            )
+        )
 
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.
@@ -726,18 +716,12 @@ class FunctionCodegen(ast.NodeVisitor):
         if range_info.start_int is None:
             lower_rhs = self.visit(range_info.start)
         else:
-            lower_rhs = f"{{{range_info.start_int}}}"
+            lower_rhs = str(range_info.start_int)
 
         if range_info.stop_int is None:
-            # use special processing if range_info.stop involves addition or subtraction
-            if isinstance(range_info.stop, ast.BinOp) and isinstance(
-                range_info.stop.op, (ast.Add, ast.Sub)
-            ):
-                upper = self._reduce_stop_parameter(range_info.stop)
-            else:
-                upper = "{" + self.visit(range_info.stop) + " - 1}"
+            upper = self.visit(self._reduce_stop_parameter(range_info.stop))
         else:
-            upper = f"{{{range_info.stop_int - 1}}}"
+            upper = str(range_info.stop_int - 1)
 
         return lower_rhs, upper
 
@@ -814,6 +798,6 @@ class FunctionCodegen(ast.NodeVisitor):
 
         # TODO(odashi):
         # "[i][j][...]" may be a possible representation as well as "i, j. ..."
-        indices_str = "{" + ", ".join(indices) + "}"
+        indices_str = ", ".join(indices)
 
-        return f"{{{value}_{indices_str}}}"
+        return f"{value}_{{{indices_str}}}"

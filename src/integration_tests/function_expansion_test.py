@@ -45,7 +45,7 @@ def test_exp2() -> None:
     def solve(x):
         return math.exp2(x)
 
-    latex = r"\mathrm{solve}(x) = {2}^{x}"
+    latex = r"\mathrm{solve}(x) = 2^{x}"
     utils.check_function(solve, latex, expand_functions={"exp2"})
 
 
@@ -53,7 +53,7 @@ def test_exp2_nested() -> None:
     def solve(x):
         return math.exp2(math.exp2(x))
 
-    latex = r"\mathrm{solve}(x) = {2}^{{2}^{x}}"
+    latex = r"\mathrm{solve}(x) = 2^{2^{x}}"
     utils.check_function(solve, latex, expand_functions={"exp2"})
 
 
@@ -61,7 +61,7 @@ def test_expm1() -> None:
     def solve(x):
         return math.expm1(x)
 
-    latex = r"\mathrm{solve}(x) = \exp x - {1}"
+    latex = r"\mathrm{solve}(x) = \exp x - 1"
     utils.check_function(solve, latex, expand_functions={"expm1"})
 
 
@@ -69,7 +69,7 @@ def test_expm1_nested() -> None:
     def solve(x, y, z):
         return math.expm1(math.pow(y, z))
 
-    latex = r"\mathrm{solve}(x, y, z) = e^{y^{z}} - {1}"
+    latex = r"\mathrm{solve}(x, y, z) = e^{y^{z}} - 1"
     utils.check_function(solve, latex, expand_functions={"expm1", "exp", "pow"})
 
 
@@ -79,7 +79,7 @@ def test_hypot_without_attribute() -> None:
     def solve(x, y, z):
         return hypot(x, y, z)
 
-    latex = r"\mathrm{solve}(x, y, z) = \sqrt{ x^{{2}} + y^{{2}} + z^{{2}} }"
+    latex = r"\mathrm{solve}(x, y, z) = \sqrt{ x^{2} + y^{2} + z^{2} }"
     utils.check_function(solve, latex, expand_functions={"hypot"})
 
 
@@ -87,7 +87,7 @@ def test_hypot() -> None:
     def solve(x, y, z):
         return math.hypot(x, y, z)
 
-    latex = r"\mathrm{solve}(x, y, z) = \sqrt{ x^{{2}} + y^{{2}} + z^{{2}} }"
+    latex = r"\mathrm{solve}(x, y, z) = \sqrt{ x^{2} + y^{2} + z^{2} }"
     utils.check_function(solve, latex, expand_functions={"hypot"})
 
 
@@ -97,7 +97,7 @@ def test_hypot_nested() -> None:
 
     latex = (
         r"\mathrm{solve}(a, b, x, y) ="
-        r" \sqrt{ \sqrt{ a^{{2}} + b^{{2}} }^{{2}} + x^{{2}} + y^{{2}} }"
+        r" \sqrt{ \sqrt{ a^{2} + b^{2} }^{2} + x^{2} + y^{2} }"
     )
     utils.check_function(solve, latex, expand_functions={"hypot"})
 
@@ -106,7 +106,7 @@ def test_log1p() -> None:
     def solve(x):
         return math.log1p(x)
 
-    latex = r"\mathrm{solve}(x) = \log \mathopen{}\left( {1} + x \mathclose{}\right)"
+    latex = r"\mathrm{solve}(x) = \log \mathopen{}\left( 1 + x \mathclose{}\right)"
     utils.check_function(solve, latex, expand_functions={"log1p"})
 
 
@@ -114,9 +114,7 @@ def test_log1p_nested() -> None:
     def solve(x):
         return math.log1p(math.exp(x))
 
-    latex = (
-        r"\mathrm{solve}(x) = \log \mathopen{}\left( {1} + e^{x} \mathclose{}\right)"
-    )
+    latex = r"\mathrm{solve}(x) = \log \mathopen{}\left( 1 + e^{x} \mathclose{}\right)"
     utils.check_function(solve, latex, expand_functions={"log1p", "exp"})
 
 

@@ -42,7 +42,7 @@ def f(a, b, c):
 f
 ```
 
-$$f(a, b, c) = \frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}$$
+$$f(a, b, c) = \frac{-b + \sqrt{b^{2} - 4 a c}}{2 a}$$
 
 
 ## `use_math_symbols: bool`
@@ -90,4 +90,4 @@ def f(a, b, c):
 f
 ```
 
-$$\frac{-b + \sqrt{b^{{2}} - {4} a c}}{{2} a}$$
+$$\frac{-b + \sqrt{b^{2} - 4 a c}}{2 a}$$
