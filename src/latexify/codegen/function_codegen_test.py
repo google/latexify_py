@@ -752,14 +752,49 @@ def test_matchvalue() -> None:
         match x:
             case 0:
                 return 1
+            case _:
+                return 2
         """
         )
     ).body[0]
 
-    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ \end{array} \right."
-
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{otherwise}\end{array} \right."
 
 def test_multiple_matchvalue() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                return 1
+            case 1:
+                return 2
+            case _:
+                return 3
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{if} \ x = {1} \\ {3}, & \mathrm{otherwise}\end{array} \right."
+
+def test_single_matchvalue_no_wildcards() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                return 1
+        """
+        )
+    ).body[0]
+
+    with pytest.raises(
+            exceptions.LatexifySyntaxError,
+            match=r"Match subtrees must contain only one wildcard at the end.",
+        ):
+            FunctionCodegen().visit(tree)
+
+def test_multiple_matchvalue_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
         """
@@ -772,10 +807,13 @@ def test_multiple_matchvalue() -> None:
         )
     ).body[0]
 
-    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{if} \ x = {1} \\ \end{array} \right."
+    with pytest.raises(
+            exceptions.LatexifySyntaxError,
+            match=r"Match subtrees must contain only one wildcard at the end.",
+        ):
+            FunctionCodegen().visit(tree)
 
-
-def test_matchvalue_matchas_wildcard() -> None:
+def test_multiple_matchas_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
         """
@@ -784,14 +822,38 @@ def test_matchvalue_matchas_wildcard() -> None:
                 return 1
             case _:
                 return 2
+            case _:
+                return 3
         """
         )
     ).body[0]
 
-    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{otherwise}\end{array} \right."
+    with pytest.raises(
+            exceptions.LatexifySyntaxError,
+            match=r"Match subtrees must contain only one wildcard at the end.",
+        ):
+            FunctionCodegen().visit(tree)
 
+def test_matchas_nonempty() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case [x] as y:
+                return 1
+            case _:
+                return 2
+        """
+        )
+    ).body[0]
 
-def test_matchvalue_matchas_nonempty() -> None:
+    with pytest.raises(
+            exceptions.LatexifySyntaxError,
+            match=r"Nonempty as-patterns are not supported in MatchAs nodes.",
+        ):
+            FunctionCodegen().visit(tree)
+
+def test_matchas_nonempty_end() -> None:
     tree = ast.parse(
         textwrap.dedent(
         """
@@ -809,3 +871,23 @@ def test_matchvalue_matchas_nonempty() -> None:
             match=r"Nonempty as-patterns are not supported in MatchAs nodes.",
         ):
             FunctionCodegen().visit(tree)
+
+def test_matchvalue_mutliple_statements() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                x = 5
+                return 1
+            case 1:
+                return 2
+        """
+        )
+    ).body[0]
+
+    with pytest.raises(
+        exceptions.LatexifySyntaxError,
+        match=r"Multiple statements are not supported in Match nodes.",
+    ):
+        FunctionCodegen().visit(tree)
