@@ -7,7 +7,8 @@ import dataclasses
 import sys
 from typing import Any
 
-from latexify import analyzers, ast_utils, constants, exceptions, math_symbols
+from latexify import analyzers, ast_utils, constants, exceptions
+from latexify.codegen import identifier_converter
 
 # Precedences of operators for BoolOp, BinOp, UnaryOp, and Compare nodes.
 # Note that this value affects only the appearance of surrounding parentheses for each
@@ -51,6 +52,14 @@ _PRECEDENCES: dict[type[ast.AST], int] = {
     ast.Or: 10,
 }
 
+# NOTE(odashi):
+# Function invocation is treated as a unary operator with a higher precedence.
+# This ensures that the argument with a unary operator is wrapped:
+#     exp(x) --> \exp x
+#     exp(-x) --> \exp (-x)
+#     -exp(x) --> - \exp x
+_CALL_PRECEDENCE = _PRECEDENCES[ast.UAdd] + 1
+
 
 def _get_precedence(node: ast.AST) -> int:
     """Obtains the precedence of the subtree.
@@ -62,6 +71,9 @@ def _get_precedence(node: ast.AST) -> int:
         If `node` is a subtree with some operator, returns the precedence of the
         operator. Otherwise, returns a number larger enough from other precedences.
     """
+    if isinstance(node, ast.Call):
+        return _CALL_PRECEDENCE
+
     if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
         return _PRECEDENCES[type(node.op)]
 
@@ -194,8 +206,7 @@ class FunctionCodegen(ast.NodeVisitor):
     LaTeX expression of the given function.
     """
 
-    _math_symbol_converter: math_symbols.MathSymbolConverter
-    _use_raw_function_name: bool
+    _identifier_converter: identifier_converter.IdentifierConverter
     _use_signature: bool
 
     _bin_op_rules: dict[type[ast.operator], BinOpRule]
@@ -205,7 +216,6 @@ class FunctionCodegen(ast.NodeVisitor):
         self,
         *,
         use_math_symbols: bool = False,
-        use_raw_function_name: bool = False,
         use_signature: bool = True,
         use_set_symbols: bool = False,
     ) -> None:
@@ -214,16 +224,13 @@ class FunctionCodegen(ast.NodeVisitor):
         Args:
             use_math_symbols: Whether to convert identifiers with a math symbol surface
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-            use_raw_function_name: Whether to keep underscores "_" in the function name,
-                or convert it to subscript.
             use_signature: Whether to add the function signature before the expression
                 or not.
             use_set_symbols: Whether to use set symbols or not.
         """
-        self._math_symbol_converter = math_symbols.MathSymbolConverter(
-            enabled=use_math_symbols
+        self._identifier_converter = identifier_converter.IdentifierConverter(
+            use_math_symbols=use_math_symbols
         )
-        self._use_raw_function_name = use_raw_function_name
         self._use_signature = use_signature
 
         self._bin_op_rules = _SET_BIN_OP_RULES if use_set_symbols else _BIN_OP_RULES
@@ -239,14 +246,11 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         # Function name
-        name_str = str(node.name)
-        if self._use_raw_function_name:
-            name_str = name_str.replace(r"_", r"\_")
-        name_str = r"\mathrm{" + name_str + "}"
+        name_str = self._identifier_converter.convert(node.name)[0]
 
         # Arguments
         arg_strs = [
-            self._math_symbol_converter.convert(str(arg.arg)) for arg in node.args.args
+            self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
         ]
 
         body_strs: list[str] = []
@@ -292,42 +296,42 @@ class FunctionCodegen(ast.NodeVisitor):
         return " = ".join(operands)
 
     def visit_Return(self, node: ast.Return) -> str:
-        return self.visit(node.value)
+        return (
+            self.visit(node.value)
+            if node.value is not None
+            else self._convert_constant(None)
+        )
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return (
-            r"\mathopen{}\left( "
-            + r"\space,\space ".join(elts)
-            + r"\mathclose{}\right) "
-        )
+        return r"\mathopen{}\left( " + r", ".join(elts) + r" \mathclose{}\right)"
 
     def visit_List(self, node: ast.List) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\left[ " + r"\space,\space ".join(elts) + r"\right] "
+        return r"\mathopen{}\left[ " + r", ".join(elts) + r" \mathclose{}\right]"
 
     def visit_Set(self, node: ast.Set) -> str:
         elts = [self.visit(i) for i in node.elts]
-        return r"\left\{ " + r"\space,\space ".join(elts) + r"\right\} "
+        return r"\mathopen{}\left\{ " + r", ".join(elts) + r" \mathclose{}\right\}"
 
     def visit_ListComp(self, node: ast.ListComp) -> str:
         generators = [self.visit(comp) for comp in node.generators]
         return (
-            r"\left[ "
+            r"\mathopen{}\left[ "
             + self.visit(node.elt)
             + r" \mid "
             + ", ".join(generators)
-            + r" \right]"
+            + r" \mathclose{}\right]"
         )
 
     def visit_SetComp(self, node: ast.SetComp) -> str:
         generators = [self.visit(comp) for comp in node.generators]
         return (
-            r"\left\{ "
+            r"\mathopen{}\left\{ "
             + self.visit(node.elt)
             + r" \mid "
             + ", ".join(generators)
-            + r" \right\}"
+            + r" \mathclose{}\right\}"
         )
 
     def visit_comprehension(self, node: ast.comprehension) -> str:
@@ -341,42 +345,133 @@ class FunctionCodegen(ast.NodeVisitor):
         wrapped = [r"\mathopen{}\left( " + s + r" \mathclose{}\right)" for s in conds]
         return r" \land ".join(wrapped)
 
-    def visit_Call(self, node: ast.Call) -> str:
-        """Visit a call node."""
-        # Function signature (possibly an expression).
-        func_str = self.visit(node.func)
+    def _generate_sum_prod(self, node: ast.Call) -> str | None:
+        """Generates sum/prod expression.
 
-        # Removes common prefixes: math.sqrt -> sqrt
-        # TODO(odashi): This process can be implemented as a NodeTransformer.
-        for prefix in constants.PREFIXES:
-            if func_str.startswith(f"{prefix}."):
-                func_str = func_str[len(prefix) + 1 :]
-                break
+        Args:
+            node: ast.Call node containing the sum/prod invocation.
 
-        # Obtains wrapper syntax: sqrt -> "\sqrt{" and "}"
-        lstr, rstr = constants.BUILTIN_FUNCS.get(
-            func_str,
-            (r"\mathrm{" + func_str + r"}\mathopen{}\left(", r"\mathclose{}\right)"),
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+        if not isinstance(node.args[0], ast.GeneratorExp):
+            return None
+
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name in ("fsum", "sum", "prod")
+
+        command = {
+            "fsum": r"\sum",
+            "sum": r"\sum",
+            "prod": r"\prod",
+        }[name]
+
+        elt, scripts = self._get_sum_prod_info(node.args[0])
+        scripts_str = [rf"{command}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
+        return (
+            " ".join(scripts_str)
+            + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
         )
 
-        if func_str in ("sum", "prod") and isinstance(node.args[0], ast.GeneratorExp):
-            elt, scripts = self._get_sum_prod_info(node.args[0])
-            scripts_str = [rf"\{func_str}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-            return (
-                " ".join(scripts_str)
-                + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
-            )
+    def _generate_matrix(self, node: ast.Call) -> str | None:
+        """Generates matrix expression.
 
-        arg_strs = [self.visit(arg) for arg in node.args]
-        return lstr + ", ".join(arg_strs) + rstr
+        Args:
+            node: ast.Call node containing the ndarray invocation.
+
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+
+        def generate_matrix_from_array(data: list[list[str]]) -> str:
+            """Helper to generate a bmatrix environment."""
+            contents = r" \\ ".join(" & ".join(row) for row in data)
+            return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
+
+        arg = node.args[0]
+        if not isinstance(arg, ast.List) or not arg.elts:
+            # Not an array or no rows
+            return None
+
+        row0 = arg.elts[0]
+
+        if not isinstance(row0, ast.List):
+            # Maybe 1 x N array
+            return generate_matrix_from_array([[self.visit(x) for x in arg.elts]])
+
+        if not row0.elts:
+            # No columns
+            return None
+
+        ncols = len(row0.elts)
+
+        rows: list[list[str]] = []
+
+        for row in arg.elts:
+            if not isinstance(row, ast.List) or len(row.elts) != ncols:
+                # Length mismatch
+                return None
+
+            rows.append([self.visit(x) for x in row.elts])
+
+        return generate_matrix_from_array(rows)
+
+    def visit_Call(self, node: ast.Call) -> str:
+        """Visit a call node."""
+        func_name = ast_utils.extract_function_name_or_none(node)
+
+        # Special treatments for some functions.
+        if func_name in ("fsum", "sum", "prod"):
+            special_latex = self._generate_sum_prod(node)
+        elif func_name in ("array", "ndarray"):
+            special_latex = self._generate_matrix(node)
+        else:
+            special_latex = None
+
+        if special_latex is not None:
+            return special_latex
+
+        # Obtains the codegen rule.
+        rule = constants.BUILTIN_FUNCS.get(func_name) if func_name is not None else None
+
+        if rule is None:
+            rule = constants.FunctionRule(self.visit(node.func))
+
+        if rule.is_unary and len(node.args) == 1:
+            # Unary function. Applies the same wrapping policy with the unary operators.
+            # NOTE(odashi):
+            # Factorial "x!" is treated as a special case: it requires both inner/outer
+            # parentheses for correct interpretation.
+            precedence = _get_precedence(node)
+            arg = node.args[0]
+            force_wrap = isinstance(arg, ast.Call) and (
+                func_name == "factorial"
+                or ast_utils.extract_function_name_or_none(arg) == "factorial"
+            )
+            arg_latex = self._wrap_operand(arg, precedence, force_wrap)
+            elements = [rule.left, arg_latex, rule.right]
+        else:
+            arg_latex = ", ".join(self.visit(arg) for arg in node.args)
+            if rule.is_wrapped:
+                elements = [rule.left, arg_latex, rule.right]
+            else:
+                elements = [
+                    rule.left,
+                    r"\mathopen{}\left(",
+                    arg_latex,
+                    r"\mathclose{}\right)",
+                    rule.right,
+                ]
+
+        return " ".join(x for x in elements if x)
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
         vstr = self.visit(node.value)
-        astr = str(node.attr)
+        astr = self._identifier_converter.convert(node.attr)[0]
         return vstr + "." + astr
 
     def visit_Name(self, node: ast.Name) -> str:
-        return self._math_symbol_converter.convert(str(node.id))
+        return self._identifier_converter.convert(node.id)[0]
 
     def _convert_constant(self, value: Any) -> str:
         """Helper to convert constant values to LaTeX.
@@ -391,13 +486,13 @@ class FunctionCodegen(ast.NodeVisitor):
             return r"\mathrm{" + str(value) + "}"
         if isinstance(value, (int, float, complex)):
             # TODO(odashi): Support other symbols for the imaginary unit than j.
-            return "{" + str(value) + "}"
+            return str(value)
         if isinstance(value, str):
             return r'\textrm{"' + value + '"}'
         if isinstance(value, bytes):
             return r"\textrm{" + str(value) + "}"
         if value is ...:
-            return r"{\cdots}"
+            return r"\cdots"
         raise exceptions.LatexifyNotSupportedError(
             f"Unrecognized constant: {type(value).__name__}"
         )
@@ -426,20 +521,26 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_Ellipsis(self, node: ast.Ellipsis) -> str:
         return self._convert_constant(...)
 
-    def _wrap_operand(self, child: ast.expr, parent_prec: int) -> str:
+    def _wrap_operand(
+        self, child: ast.expr, parent_prec: int, force_wrap: bool = False
+    ) -> str:
         """Wraps the operand subtree with parentheses.
 
         Args:
             child: Operand subtree.
             parent_prec: Precedence of the parent operator.
+            force_wrap: Whether to wrap the operand or not when the precedence is equal.
 
         Returns:
             LaTeX form of `child`, with or without surrounding parentheses.
         """
         latex = self.visit(child)
-        if _get_precedence(child) >= parent_prec:
-            return latex
-        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
+        child_prec = _get_precedence(child)
+
+        if child_prec < parent_prec or force_wrap and child_prec == parent_prec:
+            return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
+
+        return latex
 
     def _wrap_binop_operand(
         self,
@@ -459,6 +560,16 @@ class FunctionCodegen(ast.NodeVisitor):
         """
         if not operand_rule.wrap:
             return self.visit(child)
+
+        if isinstance(child, ast.Call):
+            child_fn_name = ast_utils.extract_function_name_or_none(child)
+            rule = (
+                constants.BUILTIN_FUNCS.get(child_fn_name)
+                if child_fn_name is not None
+                else None
+            )
+            if rule is not None and rule.is_wrapped:
+                return self.visit(child)
 
         if not isinstance(child, ast.BinOp):
             return self._wrap_operand(child, parent_prec)
@@ -497,43 +608,48 @@ class FunctionCodegen(ast.NodeVisitor):
         ops = [self._compare_ops[type(x)] for x in node.ops]
         rhs = [self._wrap_operand(x, parent_prec) for x in node.comparators]
         ops_rhs = [f" {o} {r}" for o, r in zip(ops, rhs)]
-        return "{" + lhs + "".join(ops_rhs) + "}"
+        return lhs + "".join(ops_rhs)
 
     def visit_BoolOp(self, node: ast.BoolOp) -> str:
         """Visit a BoolOp node."""
         parent_prec = _get_precedence(node)
         values = [self._wrap_operand(x, parent_prec) for x in node.values]
         op = f" {_BOOL_OPS[type(node.op)]} "
-        return "{" + op.join(values) + "}"
+        return op.join(values)
 
     def visit_If(self, node: ast.If) -> str:
         """Visit an if node."""
         latex = r"\left\{ \begin{array}{ll} "
 
-        while isinstance(node, ast.If):
-            if len(node.body) != 1 or len(node.orelse) != 1:
+        current_stmt: ast.stmt = node
+
+        while isinstance(current_stmt, ast.If):
+            if len(current_stmt.body) != 1 or len(current_stmt.orelse) != 1:
                 raise exceptions.LatexifySyntaxError(
                     "Multiple statements are not supported in If nodes."
                 )
 
-            cond_latex = self.visit(node.test)
-            true_latex = self.visit(node.body[0])
+            cond_latex = self.visit(current_stmt.test)
+            true_latex = self.visit(current_stmt.body[0])
             latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-            node = node.orelse[0]
+            current_stmt = current_stmt.orelse[0]
 
-        latex += self.visit(node)
+        latex += self.visit(current_stmt)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_IfExp(self, node: ast.IfExp) -> str:
         """Visit an ifexp node"""
         latex = r"\left\{ \begin{array}{ll} "
-        while isinstance(node, ast.IfExp):
-            cond_latex = self.visit(node.test)
-            true_latex = self.visit(node.body)
-            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-            node = node.orelse
 
-        latex += self.visit(node)
+        current_expr: ast.expr = node
+
+        while isinstance(current_expr, ast.IfExp):
+            cond_latex = self.visit(current_expr.test)
+            true_latex = self.visit(current_expr.body)
+            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
+            current_expr = current_expr.orelse
+
+        latex += self.visit(current_expr)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_Match(self, node: ast.Match) -> str:
@@ -597,7 +713,45 @@ class FunctionCodegen(ast.NodeVisitor):
             else:
                 upper = "{" + self.visit(node) + "}"
 
-        return upper
+    def _reduce_stop_parameter(self, node: ast.expr) -> ast.expr:
+        """Adjusts the stop expression of the range.
+
+        This function tries to convert the syntax as follows:
+            * n + 1 --> n
+            * n + 2 --> n + 1
+            * n - (-1) --> n
+            * n - 1 --> n - 2
+
+        Args:
+            node: The target expression.
+
+        Returns:
+            Converted expression.
+        """
+        if not (
+            isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub))
+        ):
+            return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
+
+        # Treatment for Python 3.7.
+        rhs = (
+            ast.Constant(value=node.right.n)
+            if sys.version_info.minor < 8 and isinstance(node.right, ast.Num)
+            else node.right
+        )
+
+        if not isinstance(rhs, ast.Constant):
+            return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
+
+        shift = 1 if isinstance(node.op, ast.Add) else -1
+
+        return (
+            node.left
+            if rhs.value == shift
+            else ast.BinOp(
+                left=node.left, op=node.op, right=ast.Constant(value=rhs.value - shift)
+            )
+        )
 
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.
@@ -637,18 +791,12 @@ class FunctionCodegen(ast.NodeVisitor):
         if range_info.start_int is None:
             lower_rhs = self.visit(range_info.start)
         else:
-            lower_rhs = f"{{{range_info.start_int}}}"
+            lower_rhs = str(range_info.start_int)
 
         if range_info.stop_int is None:
-            # use special processing if range_info.stop involves addition or subtraction
-            if isinstance(range_info.stop, ast.BinOp) and isinstance(
-                range_info.stop.op, (ast.Add, ast.Sub)
-            ):
-                upper = self._reduce_stop_parameter(range_info.stop)
-            else:
-                upper = "{" + self.visit(range_info.stop) + " - 1}"
+            upper = self.visit(self._reduce_stop_parameter(range_info.stop))
         else:
-            upper = f"{{{range_info.stop_int - 1}}}"
+            upper = str(range_info.stop_int - 1)
 
         return lower_rhs, upper
 
@@ -695,7 +843,7 @@ class FunctionCodegen(ast.NodeVisitor):
     # Until 3.8
     def visit_Index(self, node: ast.Index) -> str:
         """Visitor for the Index nodes."""
-        return self.visit(node.value)
+        return self.visit(node.value)  # type: ignore[attr-defined]
 
     def _convert_nested_subscripts(self, node: ast.Subscript) -> tuple[str, list[str]]:
         """Helper function to convert nested subscription.
@@ -725,6 +873,6 @@ class FunctionCodegen(ast.NodeVisitor):
 
         # TODO(odashi):
         # "[i][j][...]" may be a possible representation as well as "i, j. ..."
-        indices_str = "{" + ", ".join(indices) + "}"
+        indices_str = ", ".join(indices)
 
-        return f"{{{value}_{indices_str}}}"
+        return f"{value}_{{{indices_str}}}"

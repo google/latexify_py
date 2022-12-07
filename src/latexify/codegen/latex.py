@@ -21,7 +21,7 @@ class Latex:
         """
         self._raw = raw
 
-    def __eq__(self, other: object) -> None:
+    def __eq__(self, other: object) -> bool:
         """Checks equality.
 
         Args:
