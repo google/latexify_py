@@ -574,6 +574,11 @@ class FunctionCodegen(ast.NodeVisitor):
                 "Nonempty as-patterns are not supported in MatchAs nodes."
             )
 
+    def visit_MatchOr(self, node: ast.MatchOr) -> str:
+        """Visit a MatchOr node"""
+        # still need to implement
+        return
+
     def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
         # ast.Constant class is added in Python 3.8
         # ast.Num is the relevant node type in previous versions
