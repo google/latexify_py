@@ -540,20 +540,24 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a match node"""
         latex = r"\left\{ \begin{array}{ll} "
         subject_latex = self.visit(node.subject)        
-        for match_case in node.cases:
-            true_latex, cond_latex = self.visit(match_case)
-            if cond_latex:
+        for i, match_case in enumerate(node.cases):
+            true_latex = self.visit(match_case.body[0])
+            cond_latex = self.visit(match_case.pattern)
+
+            if i < len(node.cases)-1: # no wildcard
+                if not cond_latex:
+                    raise exceptions.LatexifySyntaxError(
+                        "Match subtrees must contain only one wildcard at the end."
+                    )
                 latex += true_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex + r" \\ "
-            else:
+            else:  
+                if cond_latex:
+                    raise exceptions.LatexifySyntaxError(
+                        "Match subtrees must contain only one wildcard at the end."
+                    )
                 latex += true_latex + r", & \mathrm{otherwise}"
         latex += r"\end{array} \right."
         return latex
-    
-    def visit_match_case(self, node: ast.match_case) -> str:
-        """Visit a match_case node"""
-        cond_latex = self.visit(node.pattern)
-        true_latex = self.visit(node.body[0])
-        return true_latex, cond_latex
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node"""
