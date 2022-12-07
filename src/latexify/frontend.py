@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import warnings
 from collections.abc import Callable
-from typing import Any
+from typing import Any, overload
 
 from latexify import codegen
 from latexify import config as cfg
@@ -119,45 +118,63 @@ class LatexifiedFunction:
         )
 
 
-def function(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Translate a function into a corresponding LaTeX representation.
+@overload
+def function(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+    ...
+
+
+@overload
+def function(**kwargs: Any) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    ...
+
+
+def function(
+    fn: Callable[..., Any] | None = None, **kwargs: Any
+) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Attach LaTeX pretty-printing to the given function.
 
     This function works with or without specifying the target function as the positional
     argument. The following two syntaxes works similarly.
-        - with_latex(fn, **kwargs)
-        - with_latex(**kwargs)(fn)
+        - latexify.function(fn, **kwargs)
+        - latexify.function(**kwargs)(fn)
 
     Args:
-        *args: No argument, or a callable.
+        fn: Callable to be wrapped.
         **kwargs: Arguments to control behavior. See also get_latex().
 
     Returns:
-        - If the target function is passed directly, returns the wrapped function.
+        - If `fn` is passed, returns the wrapped function.
         - Otherwise, returns the wrapper function with given settings.
     """
-    if len(args) == 1 and isinstance(args[0], Callable):
-        return LatexifiedFunction(args[0], **kwargs)
-
-    def wrapper(fn):
+    if fn is not None:
         return LatexifiedFunction(fn, **kwargs)
+
+    def wrapper(f):
+        return LatexifiedFunction(f, **kwargs)
 
     return wrapper
 
 
-def expression(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Translate a function into a LaTeX representation without the signature.
+@overload
+def expression(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+    ...
+
+
+@overload
+def expression(**kwargs: Any) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    ...
+
+
+def expression(
+    fn: Callable[..., Any] | None = None, **kwargs: Any
+) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Attach LaTeX pretty-printing to the given function.
 
     This function is a shortcut for `latexify.function` with the default parameter
     `use_signature=False`.
     """
     kwargs["use_signature"] = kwargs.get("use_signature", False)
-    return function(*args, **kwargs)
-
-
-def with_latex(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Deprecated. use `latexify.function` instead."""
-    warnings.warn(
-        "`latexify.with_latex` is deprecated. Use `latexify.function` instead.",
-        DeprecationWarning,
-    )
-    return function(*args, **kwargs)
+    if fn is not None:
+        return function(fn, **kwargs)
+    else:
+        return function(**kwargs)
