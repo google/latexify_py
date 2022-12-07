@@ -774,4 +774,22 @@ def test_multiple_matchvalue() -> None:
 
     assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{if} \ x = {1} \\ \end{array} \right."
 
+def test_matchvalue_mutliple_statements() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                x = 5
+                return 1
+            case 1:
+                return 2
+        """
+        )
+    ).body[0]
 
+    with pytest.raises(
+        exceptions.LatexifySyntaxError,
+        match=r"Multiple statements are not supported in Match nodes.",
+    ):
+        FunctionCodegen().visit(tree)

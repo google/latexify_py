@@ -540,7 +540,11 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a match node"""
         latex = r"\left\{ \begin{array}{ll} "
         subject_latex = self.visit(node.subject)        
-        for i, match_case in enumerate(node.cases):
+        for match_case in node.cases:
+            if len(match_case.body) != 1:
+                raise exceptions.LatexifySyntaxError(
+                    "Multiple statements are not supported in Match nodes."
+                )
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)
             latex += true_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex + r" \\ "
@@ -551,7 +555,7 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node"""
         latex = self.visit(node.value)
-        return r" = " + latex
+        return " = " + latex
 
     def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
         # ast.Constant class is added in Python 3.8
