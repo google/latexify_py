@@ -52,6 +52,10 @@ dev = [
     "pytest>=7.1",
     "twine>=4.0",
 ]
+mypy = [
+    "mypy>=0.991",
+    "pytest>=7.1",
+]
 
 [project.urls]
 Homepage = "https://github.com/google/latexify_py"

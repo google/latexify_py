@@ -80,6 +80,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install mypy
+          python -m pip install '.[mypy]'
       - name: Check
         run: python -m mypy src
