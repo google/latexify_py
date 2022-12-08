@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import dataclasses
+import sys
 
 from latexify import ast_utils, exceptions
 
@@ -61,4 +62,43 @@ def analyze_range(node: ast.Call) -> RangeInfo:
         start_int=ast_utils.extract_int_or_none(start),
         stop_int=ast_utils.extract_int_or_none(stop),
         step_int=ast_utils.extract_int_or_none(step),
+    )
+
+
+def reduce_stop_parameter(node: ast.expr) -> ast.expr:
+    """Adjusts the stop expression of the range.
+
+    This function tries to convert the syntax as follows:
+        * n + 1 --> n
+        * n + 2 --> n + 1
+        * n - (-1) --> n
+        * n - 1 --> n - 2
+
+    Args:
+        node: The target expression.
+
+    Returns:
+        Converted expression.
+    """
+    if not (isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub))):
+        return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
+
+    # Treatment for Python 3.7.
+    rhs = (
+        ast.Constant(value=node.right.n)
+        if sys.version_info.minor < 8 and isinstance(node.right, ast.Num)
+        else node.right
+    )
+
+    if not isinstance(rhs, ast.Constant):
+        return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
+
+    shift = 1 if isinstance(node.op, ast.Add) else -1
+
+    return (
+        node.left
+        if rhs.value == shift
+        else ast.BinOp(
+            left=node.left, op=node.op, right=ast.Constant(value=rhs.value - shift)
+        )
     )

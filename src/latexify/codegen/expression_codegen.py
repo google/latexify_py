@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import dataclasses
-import sys
 
 from latexify import analyzers, ast_utils, constants, exceptions
 from latexify.codegen import codegen_utils, identifier_converter
@@ -534,46 +533,6 @@ class ExpressionCodegen(ast.NodeVisitor):
         latex += self.visit(current_expr)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
-    def _reduce_stop_parameter(self, node: ast.expr) -> ast.expr:
-        """Adjusts the stop expression of the range.
-
-        This function tries to convert the syntax as follows:
-            * n + 1 --> n
-            * n + 2 --> n + 1
-            * n - (-1) --> n
-            * n - 1 --> n - 2
-
-        Args:
-            node: The target expression.
-
-        Returns:
-            Converted expression.
-        """
-        if not (
-            isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub))
-        ):
-            return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
-
-        # Treatment for Python 3.7.
-        rhs = (
-            ast.Constant(value=node.right.n)
-            if sys.version_info.minor < 8 and isinstance(node.right, ast.Num)
-            else node.right
-        )
-
-        if not isinstance(rhs, ast.Constant):
-            return ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1))
-
-        shift = 1 if isinstance(node.op, ast.Add) else -1
-
-        return (
-            node.left
-            if rhs.value == shift
-            else ast.BinOp(
-                left=node.left, op=node.op, right=ast.Constant(value=rhs.value - shift)
-            )
-        )
-
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.
 
@@ -615,7 +574,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             lower_rhs = str(range_info.start_int)
 
         if range_info.stop_int is None:
-            upper = self.visit(self._reduce_stop_parameter(range_info.stop))
+            upper = self.visit(analyzers.reduce_stop_parameter(range_info.stop))
         else:
             upper = str(range_info.stop_int - 1)
 
