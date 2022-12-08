@@ -1,14 +1,13 @@
-"""Codegen for single function."""
+"""Codegen for single expressions."""
 
 from __future__ import annotations
 
 import ast
 import dataclasses
 import sys
-from typing import Any
 
 from latexify import analyzers, ast_utils, constants, exceptions
-from latexify.codegen import identifier_converter
+from latexify.codegen import codegen_utils, identifier_converter
 
 # Precedences of operators for BoolOp, BinOp, UnaryOp, and Compare nodes.
 # Note that this value affects only the appearance of surrounding parentheses for each
@@ -199,8 +198,8 @@ _BOOL_OPS: dict[type[ast.boolop], str] = {
 }
 
 
-class FunctionCodegen(ast.NodeVisitor):
-    """Codegen for single functions.
+class ExpressionCodegen(ast.NodeVisitor):
+    """Codegen for single expressions.
 
     This codegen works for Module with single FunctionDef node to generate a single
     LaTeX expression of the given function.
@@ -213,25 +212,18 @@ class FunctionCodegen(ast.NodeVisitor):
     _compare_ops: dict[type[ast.cmpop], str]
 
     def __init__(
-        self,
-        *,
-        use_math_symbols: bool = False,
-        use_signature: bool = True,
-        use_set_symbols: bool = False,
+        self, *, use_math_symbols: bool = False, use_set_symbols: bool = False
     ) -> None:
         """Initializer.
 
         Args:
             use_math_symbols: Whether to convert identifiers with a math symbol surface
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-            use_signature: Whether to add the function signature before the expression
-                or not.
             use_set_symbols: Whether to use set symbols or not.
         """
         self._identifier_converter = identifier_converter.IdentifierConverter(
             use_math_symbols=use_math_symbols
         )
-        self._use_signature = use_signature
 
         self._bin_op_rules = _SET_BIN_OP_RULES if use_set_symbols else _BIN_OP_RULES
         self._compare_ops = _SET_COMPARE_OPS if use_set_symbols else _COMPARE_OPS
@@ -239,67 +231,6 @@ class FunctionCodegen(ast.NodeVisitor):
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
             f"Unsupported AST: {type(node).__name__}"
-        )
-
-    def visit_Module(self, node: ast.Module) -> str:
-        return self.visit(node.body[0])
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
-        # Function name
-        name_str = self._identifier_converter.convert(node.name)[0]
-
-        # Arguments
-        arg_strs = [
-            self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
-        ]
-
-        body_strs: list[str] = []
-
-        # Assignment statements (if any): x = ...
-        for child in node.body[:-1]:
-            if isinstance(child, ast.Expr) and ast_utils.is_constant(child.value):
-                continue
-
-            if not isinstance(child, ast.Assign):
-                raise exceptions.LatexifyNotSupportedError(
-                    "Codegen supports only Assign nodes in multiline functions, "
-                    f"but got: {type(child).__name__}"
-                )
-            body_strs.append(self.visit(child))
-
-        return_stmt = node.body[-1]
-
-        if not isinstance(return_stmt, (ast.Return, ast.If)):
-            raise exceptions.LatexifySyntaxError(
-                f"Unsupported last statement: {type(return_stmt).__name__}"
-            )
-
-        # Function signature: f(x, ...)
-        signature_str = name_str + "(" + ", ".join(arg_strs) + ")"
-
-        # Function definition: f(x, ...) \triangleq ...
-        return_str = self.visit(return_stmt)
-        if self._use_signature:
-            return_str = signature_str + " = " + return_str
-
-        if not body_strs:
-            # Only the definition.
-            return return_str
-
-        # Definition with several assignments. Wrap all statements with array.
-        body_strs.append(return_str)
-        return r"\begin{array}{l} " + r" \\ ".join(body_strs) + r" \end{array}"
-
-    def visit_Assign(self, node: ast.Assign) -> str:
-        operands: list[str] = [self.visit(t) for t in node.targets]
-        operands.append(self.visit(node.value))
-        return " = ".join(operands)
-
-    def visit_Return(self, node: ast.Return) -> str:
-        return (
-            self.visit(node.value)
-            if node.value is not None
-            else self._convert_constant(None)
         )
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
@@ -473,53 +404,29 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_Name(self, node: ast.Name) -> str:
         return self._identifier_converter.convert(node.id)[0]
 
-    def _convert_constant(self, value: Any) -> str:
-        """Helper to convert constant values to LaTeX.
-
-        Args:
-            value: A constant value.
-
-        Returns:
-            The LaTeX representation of `value`.
-        """
-        if value is None or isinstance(value, bool):
-            return r"\mathrm{" + str(value) + "}"
-        if isinstance(value, (int, float, complex)):
-            # TODO(odashi): Support other symbols for the imaginary unit than j.
-            return str(value)
-        if isinstance(value, str):
-            return r'\textrm{"' + value + '"}'
-        if isinstance(value, bytes):
-            return r"\textrm{" + str(value) + "}"
-        if value is ...:
-            return r"\cdots"
-        raise exceptions.LatexifyNotSupportedError(
-            f"Unrecognized constant: {type(value).__name__}"
-        )
-
     # From Python 3.8
     def visit_Constant(self, node: ast.Constant) -> str:
-        return self._convert_constant(node.value)
+        return codegen_utils.convert_constant(node.value)
 
     # Until Python 3.7
     def visit_Num(self, node: ast.Num) -> str:
-        return self._convert_constant(node.n)
+        return codegen_utils.convert_constant(node.n)
 
     # Until Python 3.7
     def visit_Str(self, node: ast.Str) -> str:
-        return self._convert_constant(node.s)
+        return codegen_utils.convert_constant(node.s)
 
     # Until Python 3.7
     def visit_Bytes(self, node: ast.Bytes) -> str:
-        return self._convert_constant(node.s)
+        return codegen_utils.convert_constant(node.s)
 
     # Until Python 3.7
     def visit_NameConstant(self, node: ast.NameConstant) -> str:
-        return self._convert_constant(node.value)
+        return codegen_utils.convert_constant(node.value)
 
     # Until Python 3.7
     def visit_Ellipsis(self, node: ast.Ellipsis) -> str:
-        return self._convert_constant(...)
+        return codegen_utils.convert_constant(...)
 
     def _wrap_operand(
         self, child: ast.expr, parent_prec: int, force_wrap: bool = False
@@ -616,26 +523,6 @@ class FunctionCodegen(ast.NodeVisitor):
         values = [self._wrap_operand(x, parent_prec) for x in node.values]
         op = f" {_BOOL_OPS[type(node.op)]} "
         return op.join(values)
-
-    def visit_If(self, node: ast.If) -> str:
-        """Visit an if node."""
-        latex = r"\left\{ \begin{array}{ll} "
-
-        current_stmt: ast.stmt = node
-
-        while isinstance(current_stmt, ast.If):
-            if len(current_stmt.body) != 1 or len(current_stmt.orelse) != 1:
-                raise exceptions.LatexifySyntaxError(
-                    "Multiple statements are not supported in If nodes."
-                )
-
-            cond_latex = self.visit(current_stmt.test)
-            true_latex = self.visit(current_stmt.body[0])
-            latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-            current_stmt = current_stmt.orelse[0]
-
-        latex += self.visit(current_stmt)
-        return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_IfExp(self, node: ast.IfExp) -> str:
         """Visit an ifexp node"""

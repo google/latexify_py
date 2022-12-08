@@ -8,7 +8,7 @@ import textwrap
 import pytest
 
 from latexify import ast_utils, exceptions, test_utils
-from latexify.codegen import FunctionCodegen, function_codegen
+from latexify.codegen import FunctionCodegen
 
 
 def test_generic_visit() -> None:
@@ -19,7 +19,7 @@ def test_generic_visit() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: UnknownNode$",
     ):
-        function_codegen.FunctionCodegen().visit(UnknownNode())
+        FunctionCodegen().visit(UnknownNode())
 
 
 def test_visit_functiondef_use_signature() -> None:
@@ -678,7 +678,7 @@ def test_if_then_else(code: str, latex: str) -> None:
 def test_visit_binop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -717,7 +717,7 @@ def test_visit_binop(code: str, latex: str) -> None:
 def test_visit_unaryop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.UnaryOp)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -771,7 +771,7 @@ def test_visit_unaryop(code: str, latex: str) -> None:
 def test_visit_compare(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -817,7 +817,7 @@ def test_visit_compare(code: str, latex: str) -> None:
 def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BoolOp)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_most(7)
@@ -842,7 +842,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
 def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, cls)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_least(8)
@@ -882,7 +882,7 @@ def test_visit_constant(code: str, latex: str) -> None:
 def test_visit_subscript(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Subscript)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -897,7 +897,7 @@ def test_visit_subscript(code: str, latex: str) -> None:
 def test_use_set_symbols_binop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
-    assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+    assert FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -912,7 +912,7 @@ def test_use_set_symbols_binop(code: str, latex: str) -> None:
 def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
-    assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+    assert FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -958,4 +958,4 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
 def test_numpy_array(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
