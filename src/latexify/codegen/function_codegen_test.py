@@ -959,3 +959,20 @@ def test_numpy_array(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("np.zeros(2)", r"\mathbf{0}^{{1} \times {2}}"),
+        ("np.zeros(0)", r"\mathbf{0}^{{1} \times {0}}"),
+        ("np.zeros((2,3))", r"\mathbf{0}^{{2} \times {3}}"),
+        ("np.zeros((1,3,5))", r"\mathbf{0}^{{1} \times {3} \times {5}}"),
+        ("np.identity(5)", "I_{5}"),
+        ("np.identity(0)", "I_{0}"),
+    ],
+)
+def test_special_numpy_array(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert function_codegen.FunctionCodegen().visit(tree) == latex

@@ -416,6 +416,49 @@ class FunctionCodegen(ast.NodeVisitor):
 
         return generate_matrix_from_array(rows)
 
+    def _generate_special_latex(self, node: ast.Call, func_name) -> str | None:
+        """Generates special Latex expression.
+        Args:
+            node: ast.Call node containing the numpy method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+        if func_name == "zeros":
+            latex = ""
+            # All args to np.zeros should be numeric
+            if isinstance(node.args[0], ast.Tuple):
+                elts = node.args[0].elts
+                if not all(self.visit(elt)[1:-1].isnumeric() for elt in elts):
+                    return None
+
+                for i, elt in enumerate(elts):
+                    latex += self.visit(elt)
+                    if i != len(node.args[0].elts) - 1:
+                        latex += " " + r"\times" + " "
+            elif isinstance(node.args[0], ast.Constant):
+                elts = node.args[0]
+                if not self.visit(elts)[1:-1].isnumeric():
+                    return None
+
+                # 1 x N array of zeros
+                latex = "{1} " + r"\times" + " " + self.visit(elts)
+            else:
+                return None
+
+            matrix_str = r"\mathbf{0}^" + "{" + latex + "}"
+            return matrix_str
+        elif func_name == "identity":
+            elt = node.args[0]
+            if not isinstance(elt, ast.Constant):
+                return None
+
+            if not self.visit(elt)[1:-1].isnumeric():
+                return None
+
+            str = self.visit(elt)
+            matrix_str = f"I_{str}"
+            return matrix_str
+
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
