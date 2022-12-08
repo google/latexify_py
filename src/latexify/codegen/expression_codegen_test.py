@@ -30,7 +30,7 @@ def test_generic_visit() -> None:
         ("(x, y, z)", r"\mathopen{}\left( x, y, z \mathclose{}\right)"),
     ],
 )
-def test_tuple(code: str, latex: str) -> None:
+def test_visit_tuple(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Tuple)
     assert ExpressionCodegen().visit(node) == latex
@@ -45,7 +45,7 @@ def test_tuple(code: str, latex: str) -> None:
         ("[x, y, z]", r"\mathopen{}\left[ x, y, z \mathclose{}\right]"),
     ],
 )
-def test_list(code: str, latex: str) -> None:
+def test_visit_list(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.List)
     assert ExpressionCodegen().visit(node) == latex
@@ -61,7 +61,7 @@ def test_list(code: str, latex: str) -> None:
         ("{x, y, z}", r"\mathopen{}\left\{ x, y, z \mathclose{}\right\}"),
     ],
 )
-def test_set(code: str, latex: str) -> None:
+def test_visit_set(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Set)
     assert ExpressionCodegen().visit(node) == latex
