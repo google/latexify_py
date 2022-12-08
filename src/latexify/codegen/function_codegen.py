@@ -43,6 +43,8 @@ class FunctionCodegen(ast.NodeVisitor):
         self._use_signature = use_signature
 
     def generic_visit(self, node: ast.AST) -> str:
+        if isinstance(node, ast.expr):
+            return self._expression_codegen.visit(node)
         raise exceptions.LatexifyNotSupportedError(
             f"Unsupported AST: {type(node).__name__}"
         )
@@ -127,69 +129,3 @@ class FunctionCodegen(ast.NodeVisitor):
 
         latex += self.visit(current_stmt)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
-
-    def visit_Attribute(self, node: ast.Attribute) -> str:
-        return self._expression_codegen.visit_Attribute(node)
-
-    # Until Python 3.7
-    def visit_Bytes(self, node: ast.Bytes) -> str:
-        return self._expression_codegen.visit_Bytes(node)
-
-    def visit_BinOp(self, node: ast.BinOp) -> str:
-        return self._expression_codegen.visit_BinOp(node)
-
-    def visit_BoolOp(self, node: ast.BoolOp) -> str:
-        return self._expression_codegen.visit_BoolOp(node)
-
-    def visit_Call(self, node: ast.Call) -> str:
-        return self._expression_codegen.visit_Call(node)
-
-    def visit_Compare(self, node: ast.Compare) -> str:
-        return self._expression_codegen.visit_Compare(node)
-
-    # From Python 3.8
-    def visit_Constant(self, node: ast.Constant) -> str:
-        return self._expression_codegen.visit_Constant(node)
-
-    # Until Python 3.7
-    def visit_Ellipsis(self, node: ast.Ellipsis) -> str:
-        return self._expression_codegen.visit_Ellipsis(node)
-
-    def visit_IfExp(self, node: ast.IfExp) -> str:
-        return self._expression_codegen.visit_IfExp(node)
-
-    def visit_List(self, node: ast.List) -> str:
-        return self._expression_codegen.visit_List(node)
-
-    def visit_ListComp(self, node: ast.ListComp) -> str:
-        return self._expression_codegen.visit_ListComp(node)
-
-    def visit_Name(self, node: ast.Name) -> str:
-        return self._expression_codegen.visit_Name(node)
-
-    # Until Python 3.7
-    def visit_NameConstant(self, node: ast.NameConstant) -> str:
-        return self._expression_codegen.visit_NameConstant(node)
-
-    # Until Python 3.7
-    def visit_Num(self, node: ast.Num) -> str:
-        return self._expression_codegen.visit_Num(node)
-
-    def visit_Set(self, node: ast.Set) -> str:
-        return self._expression_codegen.visit_Set(node)
-
-    def visit_SetComp(self, node: ast.SetComp) -> str:
-        return self._expression_codegen.visit_SetComp(node)
-
-    # Until Python 3.7
-    def visit_Str(self, node: ast.Str) -> str:
-        return self._expression_codegen.visit_Str(node)
-
-    def visit_Subscript(self, node: ast.Subscript) -> str:
-        return self._expression_codegen.visit_Subscript(node)
-
-    def visit_Tuple(self, node: ast.Tuple) -> str:
-        return self._expression_codegen.visit_Tuple(node)
-
-    def visit_UnaryOp(self, node: ast.UnaryOp) -> str:
-        return self._expression_codegen.visit_UnaryOp(node)
