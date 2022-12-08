@@ -798,22 +798,23 @@ def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> No
     [
         ("0", "0"),
         ("1", "1"),
-        ("0.0", "{0.0}"),
-        ("1.5", "{1.5}"),
-        ("0.0j", "{0j}"),
-        ("1.0j", "{1j}"),
-        ("1.5j", "{1.5j}"),
+        ("0.0", "0.0"),
+        ("1.5", "1.5"),
+        ("0.0j", "0j"),
+        ("1.0j", "1j"),
+        ("1.5j", "1.5j"),
         ('"abc"', r'\textrm{"abc"}'),
         ('b"abc"', r"\textrm{b'abc'}"),
         ("None", r"\mathrm{None}"),
         ("False", r"\mathrm{False}"),
         ("True", r"\mathrm{True}"),
-        ("...", r"{\cdots}"),
+        ("...", r"\cdots"),
     ],
 )
 def test_visit_constant(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Constant)
+    assert ExpressionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(

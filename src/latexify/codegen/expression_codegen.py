@@ -199,14 +199,9 @@ _BOOL_OPS: dict[type[ast.boolop], str] = {
 
 
 class ExpressionCodegen(ast.NodeVisitor):
-    """Codegen for single expressions.
-
-    This codegen works for Module with single FunctionDef node to generate a single
-    LaTeX expression of the given function.
-    """
+    """Codegen for single expressions."""
 
     _identifier_converter: identifier_converter.IdentifierConverter
-    _use_signature: bool
 
     _bin_op_rules: dict[type[ast.operator], BinOpRule]
     _compare_ops: dict[type[ast.cmpop], str]
