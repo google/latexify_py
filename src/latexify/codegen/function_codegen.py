@@ -269,10 +269,17 @@ class FunctionCodegen(ast.NodeVisitor):
 
         return_stmt = node.body[-1]
 
-        if not isinstance(return_stmt, (ast.Return, ast.If)):
-            raise exceptions.LatexifySyntaxError(
-                f"Unsupported last statement: {type(return_stmt).__name__}"
-            )
+        if sys.version_info.minor >= 10:
+            if not isinstance(return_stmt, (ast.Return, ast.If, ast.Match)):
+                raise exceptions.LatexifySyntaxError(
+                    f"Unsupported last statement: {type(return_stmt).__name__}"
+                )
+        else:
+
+            if not isinstance(return_stmt, (ast.Return, ast.If)):
+                raise exceptions.LatexifySyntaxError(
+                    f"Unsupported last statement: {type(return_stmt).__name__}"
+                )
 
         # Function signature: f(x, ...)
         signature_str = name_str + "(" + ", ".join(arg_strs) + ")"
@@ -715,27 +722,40 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Match(self, node: ast.Match) -> str:
         """Visit a match node"""
-        latex = r"\left\{ \begin{array}{ll}"
-        subject_latex = self.visit(node.subject)
-        for match_case in node.cases:
-            if not (
-                len(match_case.body) == 1 and isinstance(match_case.body[0], ast.Return)
-            ):
-                raise exceptions.LatexifyNotSupportedError(
-                    "Match cases must have exactly 1 return statement."
-                )
-            true_latex = self.visit(match_case.body[0])
-            cond_latex = self.visit(match_case.pattern)
-            latex += (
-                true_latex
-                + r", & \mathrm{if} \ "
-                + subject_latex
-                + cond_latex
-                + r" \\ "
+        if not (
+            len(node.cases) >= 2
+            and isinstance(node.cases[-1].pattern, ast.MatchAs)
+            and node.cases[-1].pattern.name is None
+        ):
+            raise exceptions.LatexifySyntaxError(
+                "Match statement must contain the wildcard."
             )
 
-        latex += r"\end{array} \right."
-        return latex
+        subject_latex = self.visit(node.subject)
+        case_latexes: list[str] = []
+
+        for i, case in enumerate(node.cases):
+            if len(case.body) != 1 or not isinstance(case.body[0], ast.Return):
+                raise exceptions.LatexifyNotSupportedError(
+                    "Match cases must contain exactly 1 return statement."
+                )
+
+            if i < len(node.cases) - 1:
+                body_latex = self.visit(case.body[0])
+                cond_latex = self.visit(case.pattern)
+                case_latexes.append(
+                    body_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex
+                )
+            else:
+                case_latexes.append(
+                    self.visit(node.cases[-1].body[0]) + r", & \mathrm{otherwise}"
+                )
+
+        return (
+            r"\left\{ \begin{array}{ll} "
+            + r" \\ ".join(case_latexes)
+            + r" \end{array} \right."
+        )
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node"""

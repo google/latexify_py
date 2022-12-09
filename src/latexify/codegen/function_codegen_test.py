@@ -8,7 +8,7 @@ import textwrap
 import pytest
 
 from latexify import ast_utils, exceptions, test_utils
-from latexify.codegen import FunctionCodegen, function_codegen
+from latexify.codegen import function_codegen
 
 
 def test_generic_visit() -> None:
@@ -35,9 +35,15 @@ def test_visit_functiondef_use_signature() -> None:
 
     latex_without_flag = "x"
     latex_with_flag = r"f(x) = x"
-    assert FunctionCodegen().visit(tree) == latex_with_flag
-    assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
-    assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
+    assert function_codegen.FunctionCodegen().visit(tree) == latex_with_flag
+    assert (
+        function_codegen.FunctionCodegen(use_signature=False).visit(tree)
+        == latex_without_flag
+    )
+    assert (
+        function_codegen.FunctionCodegen(use_signature=True).visit(tree)
+        == latex_with_flag
+    )
 
 
 def test_visit_functiondef_ignore_docstring() -> None:
@@ -53,7 +59,7 @@ def test_visit_functiondef_ignore_docstring() -> None:
     assert isinstance(tree, ast.FunctionDef)
 
     latex = r"f(x) = x"
-    assert FunctionCodegen().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
 def test_visit_functiondef_ignore_multiple_constants() -> None:
@@ -71,7 +77,7 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
     assert isinstance(tree, ast.FunctionDef)
 
     latex = r"f(x) = x"
-    assert FunctionCodegen().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -86,7 +92,7 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
 def test_tuple(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Tuple)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -101,7 +107,7 @@ def test_tuple(code: str, latex: str) -> None:
 def test_list(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.List)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -117,7 +123,7 @@ def test_list(code: str, latex: str) -> None:
 def test_set(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Set)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -167,7 +173,7 @@ def test_set(code: str, latex: str) -> None:
 def test_visit_listcomp(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.ListComp)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -217,7 +223,7 @@ def test_visit_listcomp(code: str, latex: str) -> None:
 def test_visit_setcomp(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.SetComp)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -268,7 +274,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
 def test_visit_call(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -383,7 +389,7 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
     for src_fn, dest_fn in [("fsum", r"\sum"), ("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
-        assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
+        assert function_codegen.FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
 
 @pytest.mark.parametrize(
@@ -434,7 +440,7 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
 def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -460,7 +466,7 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
     for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
-        assert FunctionCodegen().visit(node) == dest_fn + dest_suffix
+        assert function_codegen.FunctionCodegen().visit(node) == dest_fn + dest_suffix
 
 
 @pytest.mark.parametrize(
@@ -495,7 +501,7 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
 def test_if_then_else(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.IfExp)
-    assert FunctionCodegen().visit(node) == latex
+    assert function_codegen.FunctionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -913,84 +919,6 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-            """
-        )
-    ).body[0]
-
-    assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}1, & \mathrm{if} \ x = 0 \\ \end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_multiple_matchvalue() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-                case 1:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}1, & \mathrm{if} \ x = 0 \\"
-        + r" 2, & \mathrm{if} \ x = 1 \\ \end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue_no_return() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    x = 5
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifyNotSupportedError,
-        match=r"^Match cases must have exactly 1 return statement\.$",
-    ):
-        FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue_mutliple_statements() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    x = 5
-                    return 1
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifyNotSupportedError,
-        match=r"^Match cases must have exactly 1 return statement\.$",
-    ):
-        FunctionCodegen().visit(tree)
 
 
 @pytest.mark.parametrize(
