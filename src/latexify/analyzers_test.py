@@ -150,3 +150,39 @@ def test_analyze_range_invalid(code: str) -> None:
         exceptions.LatexifySyntaxError, match=r"^Unsupported AST for analyze_range\.$"
     ):
         analyzers.analyze_range(node)
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        # Not an ast.BinOp
+        "{1, 2, 3}",
+        "dir(int)",
+        # Not ast.Add or ast.Sub
+        "1 * 2",
+        "3 / 4",
+    ],
+)
+def test_reduce_stop_parameter_not_binop_with_op_add_or_sub(code: str) -> None:
+    node = ast_utils.parse_expr(code)
+    reduced_stop_parameter = analyzers.reduce_stop_parameter(node)
+    test_utils.assert_ast_equal(
+        reduced_stop_parameter,
+        ast.BinOp(left=node, op=ast.Sub(), right=ast_utils.make_constant(1)),
+    )
+
+
+@pytest.mark.parametrize(
+    "before,after",
+    [
+        ("n + 1", "n"),
+        ("n + 2", "n + 1"),
+        ("n - (-1)", "n - (-1) - 1"),
+        ("n - 1", "n - 2"),
+    ],
+)
+def test_reduce_stop_parameter(before: str, after: str) -> None:
+    test_utils.assert_ast_equal(
+        analyzers.reduce_stop_parameter(ast_utils.parse_expr(before)),
+        ast_utils.parse_expr(after),
+    )

@@ -60,8 +60,8 @@ def require_at_most(
 def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
     """Checks the equality between two ASTs.
 
-    This function checks if `ovserved` contains at least the same subtree with
-    `expected`. If `ovserved` has some extra branches that `expected` does not cover,
+    This function checks if `observed` contains at least the same subtree with
+    `expected`. If `observed` has some extra branches that `expected` does not cover,
     it is ignored.
 
     Args:
@@ -75,6 +75,9 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
         assert type(observed) is type(expected)
 
         for k, ve in vars(expected).items():
+            if k in {"lineno", "col_offset", "end_lineno", "end_col_offset"}:
+                continue
+
             vo = getattr(observed, k)  # May cause AttributeError.
 
             if isinstance(ve, ast.AST):
