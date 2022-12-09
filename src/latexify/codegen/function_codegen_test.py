@@ -813,6 +813,27 @@ def test_multiple_matchvalue_no_wildcards() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+
+def test_multiple_matchvalue_no_wildcards() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0:
+                return 1
+            case 1:
+                return 2
+        """
+        )
+    ).body[0]
+
+    with pytest.raises(
+            exceptions.LatexifySyntaxError,
+            match=r"Match subtrees must contain only one wildcard at the end.",
+        ):
+            FunctionCodegen().visit(tree)
+
+
 def test_multiple_matchas_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -853,6 +874,7 @@ def test_matchas_nonempty() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+
 def test_matchas_nonempty_end() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -871,6 +893,7 @@ def test_matchas_nonempty_end() -> None:
             match=r"Nonempty as-patterns are not supported in MatchAs nodes.",
         ):
             FunctionCodegen().visit(tree)
+
 
 def test_matchvalue_mutliple_statements() -> None:
     tree = ast.parse(
@@ -950,4 +973,21 @@ def test_matchcase_with_multiple_guards() -> None:
         )
     ).body[0]
 
+
     assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ {{0} < x \le {10}} \\ {2}, & \mathrm{otherwise}\end{array} \right."
+
+    
+def test_matchor() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0 | 1:
+                return 1
+            case _:
+                return 2
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \lor x = {1} \\ {2}, & \mathrm{otherwise}\end{array} \right."
