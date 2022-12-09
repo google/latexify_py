@@ -416,58 +416,76 @@ class FunctionCodegen(ast.NodeVisitor):
 
         return generate_matrix_from_array(rows)
 
-    def _generate_special_latex(self, node: ast.Call, func_name) -> str | None:
-        """Generates special Latex expression.
+    def _generate_zeros(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.zeros.
+
         Args:
-            node: ast.Call node containing the numpy method invocation.
+            node: ast.Call node containing the appropriate method invocation.
+
         Returns:
             Generated LaTeX, or None if the node has unsupported syntax.
         """
-        if func_name == "zeros":
-            latex = ""
-            # All args to np.zeros should be numeric
-            if isinstance(node.args[0], ast.Tuple):
-                elts = node.args[0].elts
-                if not all(self.visit(elt)[1:-1].isnumeric() for elt in elts):
-                    return None
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "zeros"
 
-                for i, elt in enumerate(elts):
-                    latex += self.visit(elt)
-                    if i != len(node.args[0].elts) - 1:
-                        latex += " " + r"\times" + " "
-            elif isinstance(node.args[0], ast.Constant):
-                elts = node.args[0]
-                if not self.visit(elts)[1:-1].isnumeric():
-                    return None
+        if len(node.args) != 1:
+            return None
 
-                # 1 x N array of zeros
-                latex = "{1} " + r"\times" + " " + self.visit(elts)
-            else:
+        # All args to np.zeros should be numeric.
+        if isinstance(node.args[0], ast.Tuple):
+            dims = [ast_utils.extract_int_or_none(x) for x in node.args[0].elts]
+            if any(x is None for x in dims):
                 return None
+            if not dims:
+                return "0"
+            if len(dims) == 1:
+                dims = [1, dims[0]]
 
-            matrix_str = r"\mathbf{0}^" + "{" + latex + "}"
-            return matrix_str
-        elif func_name == "identity":
-            elt = node.args[0]
-            if not isinstance(elt, ast.Constant):
+            dims_latex = r" \times ".join(str(x) for x in dims)
+        else:
+            dim = ast_utils.extract_int_or_none(node.args[0])
+            if not isinstance(dim, int):
                 return None
+            # 1 x N array of zeros
+            dims_latex = rf"1 \times {dim}"
 
-            if not self.visit(elt)[1:-1].isnumeric():
-                return None
+        return rf"\mathbf{{0}}^{{{dims_latex}}}"
 
-            str = self.visit(elt)
-            matrix_str = f"I_{str}"
-            return matrix_str
+    def _generate_identity(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.identity.
+
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "identity"
+
+        if len(node.args) != 1:
+            return None
+
+        ndims = ast_utils.extract_int_or_none(node.args[0])
+        if ndims is None:
+            return None
+
+        return rf"\mathbf{{I}}_{{{ndims}}}"
 
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
 
         # Special treatments for some functions.
+        # TODO(odashi): Move these functions to some separate utility.
         if func_name in ("fsum", "sum", "prod"):
             special_latex = self._generate_sum_prod(node)
         elif func_name in ("array", "ndarray"):
             special_latex = self._generate_matrix(node)
+        elif func_name == "zeros":
+            special_latex = self._generate_zeros(node)
+        elif func_name == "identity":
+            special_latex = self._generate_identity(node)
         else:
             special_latex = None
 
