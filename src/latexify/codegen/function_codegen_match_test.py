@@ -12,6 +12,30 @@ from latexify.codegen import function_codegen
 
 
 @test_utils.require_at_least(10)
+def test_functiondef_match() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            def f(x):
+                match x:
+                    case 0:
+                        return 1
+                    case _:
+                        return 3 * x
+            """
+        )
+    )
+    expected = (
+        r"f(x) ="
+        r" \left\{ \begin{array}{ll}"
+        r" 1, & \mathrm{if} \ x = 0 \\"
+        r" 3 x, & \mathrm{otherwise}"
+        r" \end{array} \right."
+    )
+    assert function_codegen.FunctionCodegen().visit(tree) == expected
+
+
+@test_utils.require_at_least(10)
 def test_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
