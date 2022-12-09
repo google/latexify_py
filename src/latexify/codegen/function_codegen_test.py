@@ -8,7 +8,7 @@ import textwrap
 import pytest
 
 from latexify import exceptions
-from latexify.codegen import FunctionCodegen
+from latexify.codegen import function_codegen
 
 
 def test_generic_visit() -> None:
@@ -19,7 +19,7 @@ def test_generic_visit() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: UnknownNode$",
     ):
-        FunctionCodegen().visit(UnknownNode())
+        function_codegen.FunctionCodegen().visit(UnknownNode())
 
 
 def test_visit_functiondef_use_signature() -> None:
@@ -35,9 +35,15 @@ def test_visit_functiondef_use_signature() -> None:
 
     latex_without_flag = "x"
     latex_with_flag = r"f(x) = x"
-    assert FunctionCodegen().visit(tree) == latex_with_flag
-    assert FunctionCodegen(use_signature=False).visit(tree) == latex_without_flag
-    assert FunctionCodegen(use_signature=True).visit(tree) == latex_with_flag
+    assert function_codegen.FunctionCodegen().visit(tree) == latex_with_flag
+    assert (
+        function_codegen.FunctionCodegen(use_signature=False).visit(tree)
+        == latex_without_flag
+    )
+    assert (
+        function_codegen.FunctionCodegen(use_signature=True).visit(tree)
+        == latex_with_flag
+    )
 
 
 def test_visit_functiondef_ignore_docstring() -> None:
@@ -53,7 +59,7 @@ def test_visit_functiondef_ignore_docstring() -> None:
     assert isinstance(tree, ast.FunctionDef)
 
     latex = r"f(x) = x"
-    assert FunctionCodegen().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
 
 
 def test_visit_functiondef_ignore_multiple_constants() -> None:
@@ -71,4 +77,4 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
     assert isinstance(tree, ast.FunctionDef)
 
     latex = r"f(x) = x"
-    assert FunctionCodegen().visit(tree) == latex
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
