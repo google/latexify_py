@@ -8,7 +8,7 @@ import textwrap
 import pytest
 
 from latexify import exceptions, test_utils
-from latexify.codegen import FunctionCodegen
+from latexify.codegen import function_codegen
 
 
 @test_utils.require_at_least(10)
@@ -30,7 +30,7 @@ def test_matchvalue() -> None:
         r" 2, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
-    assert FunctionCodegen().visit(tree) == expected
+    assert function_codegen.FunctionCodegen().visit(tree) == expected
 
 
 @test_utils.require_at_least(10)
@@ -55,7 +55,7 @@ def test_multiple_matchvalue() -> None:
         r" 3, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
-    assert FunctionCodegen().visit(tree) == expected
+    assert function_codegen.FunctionCodegen().visit(tree) == expected
 
 
 @test_utils.require_at_least(10)
@@ -74,7 +74,7 @@ def test_single_matchvalue_no_wildcards() -> None:
         exceptions.LatexifySyntaxError,
         match=r"^Match statement must contain the wildcard\.$",
     ):
-        FunctionCodegen().visit(tree)
+        function_codegen.FunctionCodegen().visit(tree)
 
 
 @test_utils.require_at_least(10)
@@ -95,7 +95,7 @@ def test_multiple_matchvalue_no_wildcards() -> None:
         exceptions.LatexifySyntaxError,
         match=r"^Match statement must contain the wildcard\.$",
     ):
-        FunctionCodegen().visit(tree)
+        function_codegen.FunctionCodegen().visit(tree)
 
 
 @test_utils.require_at_least(10)
@@ -116,7 +116,7 @@ def test_matchas_nonempty() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: MatchAs$",
     ):
-        FunctionCodegen().visit(tree)
+        function_codegen.FunctionCodegen().visit(tree)
 
 
 @test_utils.require_at_least(10)
@@ -137,7 +137,7 @@ def test_matchvalue_no_return() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Match cases must contain exactly 1 return statement\.$",
     ):
-        FunctionCodegen().visit(tree)
+        function_codegen.FunctionCodegen().visit(tree)
 
 
 @test_utils.require_at_least(10)
@@ -159,4 +159,4 @@ def test_matchvalue_mutliple_statements() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Match cases must contain exactly 1 return statement\.$",
     ):
-        FunctionCodegen().visit(tree)
+        function_codegen.FunctionCodegen().visit(tree)
