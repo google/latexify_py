@@ -915,6 +915,7 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
+@test_utils.require_at_least(10)
 def test_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -935,6 +936,7 @@ def test_matchvalue() -> None:
     )
 
 
+@test_utils.require_at_least(10)
 def test_multiple_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -975,6 +977,7 @@ def test_single_matchvalue_no_wildcards() -> None:
         FunctionCodegen().visit(tree)
 
 
+@test_utils.require_at_least(10)
 def test_multiple_matchvalue_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -1057,6 +1060,7 @@ def test_matchas_nonempty_end() -> None:
         FunctionCodegen().visit(tree)
 
 
+@test_utils.require_at_least(10)
 def test_matchvalue_mutliple_statements() -> None:
     tree = ast.parse(
         textwrap.dedent(

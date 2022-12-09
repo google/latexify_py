@@ -744,6 +744,7 @@ class FunctionCodegen(ast.NodeVisitor):
                         "Match subtrees must contain only one wildcard at the end."
                     )
                 latex += true_latex + r", & \mathrm{otherwise}"
+
         latex += r"\end{array} \right."
         return latex
 
