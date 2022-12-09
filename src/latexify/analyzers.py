@@ -99,6 +99,8 @@ def reduce_stop_parameter(node: ast.expr) -> ast.expr:
         node.left
         if rhs.value == shift
         else ast.BinOp(
-            left=node.left, op=node.op, right=ast.Constant(value=rhs.value - shift)
+            left=node.left,
+            op=node.op,
+            right=ast_utils.make_constant(value=rhs.value - shift),
         )
     )
