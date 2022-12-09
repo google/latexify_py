@@ -48,8 +48,7 @@ class IdentifierReplacer(ast.NodeTransformer):
         return [ast.arg(arg=self._mapping.get(a.arg, a.arg)) for a in args]
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
-        """Visitor of FunctionDef."""
-
+        """Visit a FunctionDef node."""
         visited = cast(ast.FunctionDef, super().generic_visit(node))
 
         if sys.version_info.minor < 8:
@@ -76,7 +75,7 @@ class IdentifierReplacer(ast.NodeTransformer):
         )
 
     def visit_Name(self, node: ast.Name) -> ast.Name:
-        """Visitor of Name."""
+        """Visit a Name node."""
         return ast.Name(
             id=self._mapping.get(node.id, node.id),
             ctx=node.ctx,

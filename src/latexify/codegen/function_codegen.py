@@ -49,9 +49,11 @@ class FunctionCodegen(ast.NodeVisitor):
         )
 
     def visit_Module(self, node: ast.Module) -> str:
+        """Visit a Module node."""
         return self.visit(node.body[0])
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
+        """Visit a FunctionDef node."""
         # Function name
         name_str = self._identifier_converter.convert(node.name)[0]
 
@@ -104,11 +106,13 @@ class FunctionCodegen(ast.NodeVisitor):
         return r"\begin{array}{l} " + r" \\ ".join(body_strs) + r" \end{array}"
 
     def visit_Assign(self, node: ast.Assign) -> str:
+        """Visit an Assign node."""
         operands: list[str] = [self._expression_codegen.visit(t) for t in node.targets]
         operands.append(self._expression_codegen.visit(node.value))
         return " = ".join(operands)
 
     def visit_Return(self, node: ast.Return) -> str:
+        """Visit a Return node."""
         return (
             self._expression_codegen.visit(node.value)
             if node.value is not None
@@ -116,7 +120,7 @@ class FunctionCodegen(ast.NodeVisitor):
         )
 
     def visit_If(self, node: ast.If) -> str:
-        """Visit an if node."""
+        """Visit an If node."""
         latex = r"\left\{ \begin{array}{ll} "
 
         current_stmt: ast.stmt = node
@@ -136,7 +140,7 @@ class FunctionCodegen(ast.NodeVisitor):
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
     def visit_Match(self, node: ast.Match) -> str:
-        """Visit a match node"""
+        """Visit a Match node"""
         if not (
             len(node.cases) >= 2
             and isinstance(node.cases[-1].pattern, ast.MatchAs)

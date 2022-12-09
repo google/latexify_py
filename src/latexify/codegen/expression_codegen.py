@@ -228,18 +228,22 @@ class ExpressionCodegen(ast.NodeVisitor):
         )
 
     def visit_Tuple(self, node: ast.Tuple) -> str:
-        elts = [self.visit(i) for i in node.elts]
+        """Visit a Tuple node."""
+        elts = [self.visit(elt) for elt in node.elts]
         return r"\mathopen{}\left( " + r", ".join(elts) + r" \mathclose{}\right)"
 
     def visit_List(self, node: ast.List) -> str:
-        elts = [self.visit(i) for i in node.elts]
+        """Visit a List node."""
+        elts = [self.visit(elt) for elt in node.elts]
         return r"\mathopen{}\left[ " + r", ".join(elts) + r" \mathclose{}\right]"
 
     def visit_Set(self, node: ast.Set) -> str:
-        elts = [self.visit(i) for i in node.elts]
+        """Visit a Set node."""
+        elts = [self.visit(elt) for elt in node.elts]
         return r"\mathopen{}\left\{ " + r", ".join(elts) + r" \mathclose{}\right\}"
 
     def visit_ListComp(self, node: ast.ListComp) -> str:
+        """Visit a ListComp node."""
         generators = [self.visit(comp) for comp in node.generators]
         return (
             r"\mathopen{}\left[ "
@@ -250,6 +254,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         )
 
     def visit_SetComp(self, node: ast.SetComp) -> str:
+        """Visit a SetComp node."""
         generators = [self.visit(comp) for comp in node.generators]
         return (
             r"\mathopen{}\left\{ "
@@ -260,6 +265,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         )
 
     def visit_comprehension(self, node: ast.comprehension) -> str:
+        """Visit a comprehension node."""
         target = rf"{self.visit(node.target)} \in {self.visit(node.iter)}"
 
         if not node.ifs:
@@ -342,7 +348,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         return generate_matrix_from_array(rows)
 
     def visit_Call(self, node: ast.Call) -> str:
-        """Visit a call node."""
+        """Visit a Call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
 
         # Special treatments for some functions.
@@ -391,35 +397,43 @@ class ExpressionCodegen(ast.NodeVisitor):
         return " ".join(x for x in elements if x)
 
     def visit_Attribute(self, node: ast.Attribute) -> str:
+        """Visit an Attribute node."""
         vstr = self.visit(node.value)
         astr = self._identifier_converter.convert(node.attr)[0]
         return vstr + "." + astr
 
     def visit_Name(self, node: ast.Name) -> str:
+        """Visit a Name node."""
         return self._identifier_converter.convert(node.id)[0]
 
     # From Python 3.8
     def visit_Constant(self, node: ast.Constant) -> str:
+        """Visit a Constant node."""
         return codegen_utils.convert_constant(node.value)
 
     # Until Python 3.7
     def visit_Num(self, node: ast.Num) -> str:
+        """Visit a Num node."""
         return codegen_utils.convert_constant(node.n)
 
     # Until Python 3.7
     def visit_Str(self, node: ast.Str) -> str:
+        """Visit a Str node."""
         return codegen_utils.convert_constant(node.s)
 
     # Until Python 3.7
     def visit_Bytes(self, node: ast.Bytes) -> str:
+        """Visit a Bytes node."""
         return codegen_utils.convert_constant(node.s)
 
     # Until Python 3.7
     def visit_NameConstant(self, node: ast.NameConstant) -> str:
+        """Visit a NameConstant node."""
         return codegen_utils.convert_constant(node.value)
 
     # Until Python 3.7
     def visit_Ellipsis(self, node: ast.Ellipsis) -> str:
+        """Visit an Ellipsis node."""
         return codegen_utils.convert_constant(...)
 
     def _wrap_operand(
@@ -498,12 +512,12 @@ class ExpressionCodegen(ast.NodeVisitor):
         return f"{rule.latex_left}{lhs}{rule.latex_middle}{rhs}{rule.latex_right}"
 
     def visit_UnaryOp(self, node: ast.UnaryOp) -> str:
-        """Visit a unary op node."""
+        """Visit a UnaryOp node."""
         latex = self._wrap_operand(node.operand, _get_precedence(node))
         return _UNARY_OPS[type(node.op)] + latex
 
     def visit_Compare(self, node: ast.Compare) -> str:
-        """Visit a compare node."""
+        """Visit a Compare node."""
         parent_prec = _get_precedence(node)
         lhs = self._wrap_operand(node.left, parent_prec)
         ops = [self._compare_ops[type(x)] for x in node.ops]
@@ -519,7 +533,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         return op.join(values)
 
     def visit_IfExp(self, node: ast.IfExp) -> str:
-        """Visit an ifexp node"""
+        """Visit an IfExp node"""
         latex = r"\left\{ \begin{array}{ll} "
 
         current_expr: ast.expr = node
@@ -622,7 +636,7 @@ class ExpressionCodegen(ast.NodeVisitor):
 
     # Until 3.8
     def visit_Index(self, node: ast.Index) -> str:
-        """Visitor for the Index nodes."""
+        """Visit an Index node."""
         return self.visit(node.value)  # type: ignore[attr-defined]
 
     def _convert_nested_subscripts(self, node: ast.Subscript) -> tuple[str, list[str]]:
@@ -648,7 +662,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         return value, indices
 
     def visit_Subscript(self, node: ast.Subscript) -> str:
-        """Visitor of the Subscript nodes."""
+        """Visitor a Subscript node."""
         value, indices = self._convert_nested_subscripts(node)
 
         # TODO(odashi):
