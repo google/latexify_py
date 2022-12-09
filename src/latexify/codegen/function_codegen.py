@@ -43,8 +43,6 @@ class FunctionCodegen(ast.NodeVisitor):
         self._use_signature = use_signature
 
     def generic_visit(self, node: ast.AST) -> str:
-        if isinstance(node, ast.expr):
-            return self._expression_codegen.visit(node)
         raise exceptions.LatexifyNotSupportedError(
             f"Unsupported AST: {type(node).__name__}"
         )
@@ -99,13 +97,13 @@ class FunctionCodegen(ast.NodeVisitor):
         return r"\begin{array}{l} " + r" \\ ".join(body_strs) + r" \end{array}"
 
     def visit_Assign(self, node: ast.Assign) -> str:
-        operands: list[str] = [self.visit(t) for t in node.targets]
-        operands.append(self.visit(node.value))
+        operands: list[str] = [self._expression_codegen.visit(t) for t in node.targets]
+        operands.append(self._expression_codegen.visit(node.value))
         return " = ".join(operands)
 
     def visit_Return(self, node: ast.Return) -> str:
         return (
-            self.visit(node.value)
+            self._expression_codegen.visit(node.value)
             if node.value is not None
             else codegen_utils.convert_constant(None)
         )
@@ -122,7 +120,7 @@ class FunctionCodegen(ast.NodeVisitor):
                     "Multiple statements are not supported in If nodes."
                 )
 
-            cond_latex = self.visit(current_stmt.test)
+            cond_latex = self._expression_codegen.visit(current_stmt.test)
             true_latex = self.visit(current_stmt.body[0])
             latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
             current_stmt = current_stmt.orelse[0]
