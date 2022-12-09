@@ -927,7 +927,7 @@ def test_matchvalue() -> None:
     ).body[0]
 
     assert FunctionCodegen().visit(tree) == \
-        r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\ \end{array} \right."
+        r"\left\{ \begin{array}{ll}1, & \mathrm{if} \ x = 0 \\ \end{array} \right."
 
 
 def test_multiple_matchvalue() -> None:
@@ -944,10 +944,8 @@ def test_multiple_matchvalue() -> None:
     ).body[0]
 
     assert FunctionCodegen().visit(tree) == \
-        r"""
-        \left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\
-        2, & \mathrm{if} \ x = 1 \\ \end{array} \right.
-        """
+        r"\left\{ \begin{array}{ll}1, & \mathrm{if} \ x = 0 \\" + \
+        r" 2, & \mathrm{if} \ x = 1 \\ \end{array} \right."
 
 
 def test_matchvalue_mutliple_statements() -> None:
