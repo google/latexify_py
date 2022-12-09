@@ -45,11 +45,16 @@ dev = [
     "build>=0.8",
     "black>=22.10",
     "flake8>=5.0",
+    "isort>=5.10",
+    "mypy>=0.991",
     "notebook>=6.5.1",
     "pyproject-flake8>=5.0",
     "pytest>=7.1",
     "twine>=4.0",
-    "isort>=5.10",
+]
+mypy = [
+    "mypy>=0.991",
+    "pytest>=7.1",
 ]
 
 [project.urls]
@@ -74,3 +79,6 @@ path = "src/latexify/_version.py"
 [tool.flake8]
 max-line-length = 88
 extend-ignore = "E203"
+
+[tool.isort]
+profile = "black"

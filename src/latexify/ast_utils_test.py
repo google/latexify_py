@@ -10,6 +10,30 @@ import pytest
 from latexify import ast_utils, test_utils
 
 
+def test_parse_expr() -> None:
+    test_utils.assert_ast_equal(
+        ast_utils.parse_expr("a + b"),
+        ast.BinOp(
+            left=ast_utils.make_name("a"),
+            op=ast.Add(),
+            right=ast_utils.make_name("b"),
+        ),
+    )
+
+
+def test_make_name() -> None:
+    test_utils.assert_ast_equal(
+        ast_utils.make_name("foo"), ast.Name(id="foo", ctx=ast.Load())
+    )
+
+
+def test_make_attribute() -> None:
+    test_utils.assert_ast_equal(
+        ast_utils.make_attribute(ast_utils.make_name("foo"), "bar"),
+        ast.Attribute(ast.Name(id="foo", ctx=ast.Load()), attr="bar", ctx=ast.Load()),
+    )
+
+
 @test_utils.require_at_most(7)
 @pytest.mark.parametrize(
     "value,expected",
@@ -70,7 +94,7 @@ def test_make_constant_invalid() -> None:
         (ast.Num(n=123), True),
         (ast.Str(s="baz"), True),
         (ast.Expr(value=ast.Num(456)), False),
-        (ast.Global("qux"), False),
+        (ast.Global(names=["qux"]), False),
     ],
 )
 def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
@@ -81,9 +105,9 @@ def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Constant("foo"), True),
-        (ast.Expr(value=ast.Constant(123)), False),
-        (ast.Global("bar"), False),
+        (ast.Constant(value="foo"), True),
+        (ast.Expr(value=ast.Constant(value=123)), False),
+        (ast.Global(names=["bar"]), False),
     ],
 )
 def test_is_constant(value: ast.AST, expected: bool) -> None:
@@ -97,15 +121,6 @@ def test_extract_int_or_none() -> None:
 
 
 def test_extract_int_or_none_invalid() -> None:
-    # Not a subtree.
-    assert ast_utils.extract_int_or_none(123) is None
-
-    # Not a direct Constant node.
-    assert (
-        ast_utils.extract_int_or_none(ast.Expr(value=ast_utils.make_constant(123)))
-        is None
-    )
-
     # Not a Constant node with int.
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(None)) is None
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(True)) is None
@@ -123,14 +138,6 @@ def test_extract_int() -> None:
 
 
 def test_extract_int_invalid() -> None:
-    # Not a subtree.
-    with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
-        ast_utils.extract_int(123)
-
-    # Not a direct Constant node.
-    with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
-        ast_utils.extract_int(ast.Expr(value=ast_utils.make_constant(123)))
-
     # Not a Constant node with int.
     with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
         ast_utils.extract_int(ast_utils.make_constant(None))
@@ -146,3 +153,37 @@ def test_extract_int_invalid() -> None:
         ast_utils.extract_int(ast_utils.make_constant("123"))
     with pytest.raises(ValueError, match=r"^Unsupported node to extract int"):
         ast_utils.extract_int(ast_utils.make_constant(b"123"))
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (
+            ast.Call(
+                func=ast.Name(id="hypot", ctx=ast.Load()),
+                args=[],
+            ),
+            "hypot",
+        ),
+        (
+            ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id="math", ctx=ast.Load()),
+                    attr="hypot",
+                    ctx=ast.Load(),
+                ),
+                args=[],
+            ),
+            "hypot",
+        ),
+        (
+            ast.Call(
+                func=ast.Call(func=ast.Name(id="foo", ctx=ast.Load()), args=[]),
+                args=[],
+            ),
+            None,
+        ),
+    ],
+)
+def test_extract_function_name_or_none(value: ast.Call, expected: str | None) -> None:
+    assert ast_utils.extract_function_name_or_none(value) == expected

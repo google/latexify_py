@@ -7,6 +7,43 @@ import sys
 from typing import Any
 
 
+def parse_expr(code: str) -> ast.expr:
+    """Parses given Python expression.
+
+    Args:
+        code: Python expression to parse.
+
+    Returns:
+        ast.expr corresponding to `code`.
+    """
+    return ast.parse(code, mode="eval").body
+
+
+def make_name(id: str) -> ast.Name:
+    """Generates a new Name node.
+
+    Args:
+        id: Name of the node.
+
+    Returns:
+        Generated ast.Name.
+    """
+    return ast.Name(id=id, ctx=ast.Load())
+
+
+def make_attribute(value: ast.expr, attr: str):
+    """Generates a new Attribute node.
+
+    Args:
+        value: Parent value.
+        attr: Attribute name.
+
+    Returns:
+        Generated ast.Attribute.
+    """
+    return ast.Attribute(value=value, attr=attr, ctx=ast.Load())
+
+
 def make_constant(value: Any) -> ast.expr:
     """Generates a new Constant node.
 
@@ -104,3 +141,20 @@ def extract_int(node: ast.expr) -> int:
         raise ValueError(f"Unsupported node to extract int: {type(node).__name__}")
 
     return value
+
+
+def extract_function_name_or_none(node: ast.Call) -> str | None:
+    """Extracts function name from the given Call node.
+
+    Args:
+        node: ast.Call.
+
+    Returns:
+        Extracted function name, or None if not found.
+    """
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+
+    return None
