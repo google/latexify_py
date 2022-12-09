@@ -891,3 +891,18 @@ def test_matchvalue_mutliple_statements() -> None:
         match=r"Multiple statements are not supported in Match nodes.",
     ):
         FunctionCodegen().visit(tree)
+
+def test_matchcase_with_guard() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case x if x>0:
+                return 1
+            case _:
+                return 2
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ {x > {0}} \\ {2}, & \mathrm{otherwise}\end{array} \right."
