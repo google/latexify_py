@@ -745,6 +745,7 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
+@test_utils.require_at_least(10)
 def test_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -760,6 +761,8 @@ def test_matchvalue() -> None:
 
     assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{otherwise}\end{array} \right."
 
+
+@test_utils.require_at_least(10)
 def test_multiple_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -777,6 +780,8 @@ def test_multiple_matchvalue() -> None:
 
     assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \\ {2}, & \mathrm{if} \ x = {1} \\ {3}, & \mathrm{otherwise}\end{array} \right."
 
+
+@test_utils.require_at_least(10)
 def test_single_matchvalue_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -794,6 +799,8 @@ def test_single_matchvalue_no_wildcards() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+
+@test_utils.require_at_least(10)
 def test_multiple_matchvalue_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -813,6 +820,8 @@ def test_multiple_matchvalue_no_wildcards() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+
+@test_utils.require_at_least(10)
 def test_multiple_matchas_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -834,6 +843,8 @@ def test_multiple_matchas_wildcards() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+
+@test_utils.require_at_least(10)
 def test_matchas_nonempty() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -853,6 +864,8 @@ def test_matchas_nonempty() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+
+@test_utils.require_at_least(10)
 def test_matchas_nonempty_end() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -872,6 +885,8 @@ def test_matchas_nonempty_end() -> None:
         ):
             FunctionCodegen().visit(tree)
 
+            
+@test_utils.require_at_least(10)
 def test_matchor() -> None:
     tree = ast.parse(
         textwrap.dedent(
