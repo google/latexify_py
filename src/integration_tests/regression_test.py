@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 from integration_tests import utils
+from latexify import test_utils
 
 
 def test_quadratic_solution() -> None:
@@ -242,3 +243,22 @@ def test_multiple_constants_allowed() -> None:
 
     latex = r"\mathrm{solve}(x) = x"
     utils.check_function(solve, latex)
+
+
+@test_utils.require_at_least(10)
+def test_match() -> None:
+    def f(x):
+        match x:
+            case 0:
+                return 1
+            case _:
+                return 3 * x
+
+    latex = (
+        r"f(x) ="
+        r" \left\{ \begin{array}{ll}"
+        r" 1, & \mathrm{if} \ x = 0 \\"
+        r" 3 x, & \mathrm{otherwise}"
+        r" \end{array} \right."
+    )
+    utils.check_function(f, latex)

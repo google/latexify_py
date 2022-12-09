@@ -1,4 +1,4 @@
-"""Tests for latexify.codegen.function_codegen."""
+"""Tests for latexify.codegen."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import textwrap
 import pytest
 
 from latexify import ast_utils, exceptions, test_utils
-from latexify.codegen import FunctionCodegen, function_codegen
+from latexify.codegen import FunctionCodegen
 
 
 def test_generic_visit() -> None:
@@ -19,7 +19,7 @@ def test_generic_visit() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: UnknownNode$",
     ):
-        function_codegen.FunctionCodegen().visit(UnknownNode())
+        FunctionCodegen().visit(UnknownNode())
 
 
 def test_visit_functiondef_use_signature() -> None:
@@ -678,7 +678,7 @@ def test_if_then_else(code: str, latex: str) -> None:
 def test_visit_binop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -717,7 +717,7 @@ def test_visit_binop(code: str, latex: str) -> None:
 def test_visit_unaryop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.UnaryOp)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -771,7 +771,7 @@ def test_visit_unaryop(code: str, latex: str) -> None:
 def test_visit_compare(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -817,7 +817,7 @@ def test_visit_compare(code: str, latex: str) -> None:
 def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BoolOp)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_most(7)
@@ -842,7 +842,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
 def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, cls)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_least(8)
@@ -882,7 +882,7 @@ def test_visit_constant(code: str, latex: str) -> None:
 def test_visit_subscript(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Subscript)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -897,7 +897,7 @@ def test_visit_subscript(code: str, latex: str) -> None:
 def test_use_set_symbols_binop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
-    assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
+    assert FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -912,178 +912,7 @@ def test_use_set_symbols_binop(code: str, latex: str) -> None:
 def test_use_set_symbols_compare(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
-    assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\ "
-        + r"2, & \mathrm{otherwise}\end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_multiple_matchvalue() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-                case 1:
-                    return 2
-                case _:
-                    return 3
-            """
-        )
-    ).body[0]
-
-    assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\ "
-        + r"2, & \mathrm{if} \ x = 1 \\ 3, & \mathrm{otherwise}\end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_single_matchvalue_no_wildcards() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Match subtrees must contain only one wildcard at the end.",
-    ):
-        FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_multiple_matchvalue_no_wildcards() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-                case 1:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Match subtrees must contain only one wildcard at the end.",
-    ):
-        FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_multiple_matchas_wildcards() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-                case _:
-                    return 2
-                case _:
-                    return 3
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Match subtrees must contain only one wildcard at the end.",
-    ):
-        FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_matchas_nonempty() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case [x] as y:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Nonempty as-patterns are not supported in MatchAs nodes.",
-    ):
-        FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_matchas_nonempty_end() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    return 1
-                case [x] as y:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Nonempty as-patterns are not supported in MatchAs nodes.",
-    ):
-        FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue_mutliple_statements() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    x = 5
-                    return 1
-                case 1:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Multiple statements are not supported in Match nodes.",
-    ):
-        FunctionCodegen().visit(tree)
+    assert FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -1129,7 +958,7 @@ def test_matchvalue_mutliple_statements() -> None:
 def test_numpy_array(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -1163,7 +992,7 @@ def test_numpy_array(code: str, latex: str) -> None:
 def test_zeros(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -1184,4 +1013,4 @@ def test_zeros(code: str, latex: str) -> None:
 def test_identity(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
-    assert function_codegen.FunctionCodegen().visit(tree) == latex
+    assert FunctionCodegen().visit(tree) == latex
