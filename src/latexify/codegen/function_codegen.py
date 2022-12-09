@@ -718,9 +718,11 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = r"\left\{ \begin{array}{ll}"
         subject_latex = self.visit(node.subject)
         for match_case in node.cases:
-            if len(match_case.body) != 1:
-                raise exceptions.LatexifySyntaxError(
-                    "Multiple statements are not supported in Match nodes."
+            if not (
+                len(match_case.body) == 1 and isinstance(match_case.body[0], ast.Return)
+            ):
+                raise exceptions.LatexifyNotSupportedError(
+                    "Match cases must have exactly 1 return statement."
                 )
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)

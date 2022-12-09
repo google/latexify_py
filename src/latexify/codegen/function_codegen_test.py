@@ -915,6 +915,7 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
     assert function_codegen.FunctionCodegen(use_set_symbols=True).visit(tree) == latex
 
 
+@test_utils.require_at_least(10)
 def test_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -932,6 +933,7 @@ def test_matchvalue() -> None:
     )
 
 
+@test_utils.require_at_least(10)
 def test_multiple_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -952,6 +954,26 @@ def test_multiple_matchvalue() -> None:
     )
 
 
+@test_utils.require_at_least(10)
+def test_matchvalue_no_return() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case 0:
+                    x = 5
+            """
+        )
+    ).body[0]
+
+    with pytest.raises(
+        exceptions.LatexifyNotSupportedError,
+        match=r"^Match cases must have exactly 1 return statement\.$",
+    ):
+        FunctionCodegen().visit(tree)
+
+
+@test_utils.require_at_least(10)
 def test_matchvalue_mutliple_statements() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -960,15 +982,13 @@ def test_matchvalue_mutliple_statements() -> None:
                 case 0:
                     x = 5
                     return 1
-                case 1:
-                    return 2
             """
         )
     ).body[0]
 
     with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"Multiple statements are not supported in Match nodes.",
+        exceptions.LatexifyNotSupportedError,
+        match=r"^Match cases must have exactly 1 return statement\.$",
     ):
         FunctionCodegen().visit(tree)
 
