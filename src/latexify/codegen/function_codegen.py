@@ -772,7 +772,6 @@ class FunctionCodegen(ast.NodeVisitor):
             * n - (-1) --> n
             * n - 1 --> n - 2
 
-
         Args:
             node: The target expression.
 
