@@ -842,7 +842,7 @@ def test_visit_subscript(code: str, latex: str) -> None:
         ("a | b", r"a \cup b"),
     ],
 )
-def test_use_set_symbols_binop(code: str, latex: str) -> None:
+def test_visit_binop_use_set_symbols(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
     assert ExpressionCodegen(use_set_symbols=True).visit(tree) == latex
@@ -857,7 +857,7 @@ def test_use_set_symbols_binop(code: str, latex: str) -> None:
         ("a >= b", r"a \supseteq b"),
     ],
 )
-def test_use_set_symbols_compare(code: str, latex: str) -> None:
+def test_visit_compare_use_set_symbols(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
     assert ExpressionCodegen(use_set_symbols=True).visit(tree) == latex
