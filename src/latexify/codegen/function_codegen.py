@@ -663,8 +663,13 @@ class FunctionCodegen(ast.NodeVisitor):
                 )
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)
-            latex += true_latex + r", & \mathrm{if} \ " + \
-                subject_latex + cond_latex + r" \\ "
+            latex += (
+                true_latex
+                + r", & \mathrm{if} \ "
+                + subject_latex
+                + cond_latex
+                + r" \\ "
+            )
 
         latex += r"\end{array} \right."
         return latex
