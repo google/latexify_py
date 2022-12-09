@@ -548,10 +548,10 @@ class FunctionCodegen(ast.NodeVisitor):
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)
 
-            if i < len(node.cases)-1: # no wildcard
-                if (match_case.guard):
+            if i < len(node.cases) - 1:  # no wildcard cases
+                if match_case.guard:
                     cond_latex = self.visit(match_case.guard)
-                    subject_latex = "" # getting variable from cond_latex
+                    subject_latex = ""  # getting variable from cond_latex
                 if not cond_latex:
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
@@ -572,7 +572,7 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = self.visit(node.value)
 
         return "subject_name = " + latex
-    
+
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
         """Visit a MatchAs node"""
         """If MatchAs is a wildcard, return 'otherwise' case, else throw error"""
