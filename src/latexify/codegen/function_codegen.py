@@ -731,8 +731,8 @@ class FunctionCodegen(ast.NodeVisitor):
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
                     )
-                latex += true_latex + r", & \mathrm{if} \ "
-                + subject_latex + cond_latex + r" \\ "
+                latex += true_latex + r", & \mathrm{if} \ " + \
+                    subject_latex + cond_latex + r" \\ "
             else:
                 if cond_latex:
                     raise exceptions.LatexifySyntaxError(
