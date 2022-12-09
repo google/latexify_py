@@ -959,6 +959,7 @@ def test_multiple_matchvalue() -> None:
     )
 
 
+@test_utils.require_at_least(10)
 def test_single_matchvalue_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -998,6 +999,7 @@ def test_multiple_matchvalue_no_wildcards() -> None:
         FunctionCodegen().visit(tree)
 
 
+@test_utils.require_at_least(10)
 def test_multiple_matchas_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -1020,6 +1022,7 @@ def test_multiple_matchas_wildcards() -> None:
         FunctionCodegen().visit(tree)
 
 
+@test_utils.require_at_least(10)
 def test_matchas_nonempty() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -1040,6 +1043,7 @@ def test_matchas_nonempty() -> None:
         FunctionCodegen().visit(tree)
 
 
+@test_utils.require_at_least(10)
 def test_matchas_nonempty_end() -> None:
     tree = ast.parse(
         textwrap.dedent(
