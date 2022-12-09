@@ -541,10 +541,17 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = r"\left\{ \begin{array}{ll} "
         subject_latex = self.visit(node.subject)
         for i, match_case in enumerate(node.cases):
+            if len(match_case.body) != 1:
+                raise exceptions.LatexifySyntaxError(
+                    "Multiple statements are not supported in Match nodes."
+                )
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)
 
-            if i < len(node.cases) - 1:  # no wildcard
+            if i < len(node.cases)-1: # no wildcard
+                if (match_case.guard):
+                    cond_latex = self.visit(match_case.guard)
+                    subject_latex = "" # getting variable from cond_latex
                 if not cond_latex:
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
@@ -563,8 +570,9 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node"""
         latex = self.visit(node.value)
-        return r"subject_name = " + latex
 
+        return "subject_name = " + latex
+    
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
         """Visit a MatchAs node"""
         """If MatchAs is a wildcard, return 'otherwise' case, else throw error"""
