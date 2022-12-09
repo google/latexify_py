@@ -673,46 +673,6 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = self.visit(node.value)
         return " = " + latex
 
-    def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
-        # ast.Constant class is added in Python 3.8
-        # ast.Num is the relevant node type in previous versions
-        if sys.version_info.minor < 8:
-            if isinstance(node.right, ast.Num):
-                if isinstance(node.op, ast.Add):
-                    if node.right.n == 1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Num(node.right.n - 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-                else:
-                    if node.right.n == -1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Num(node.right.n + 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-            else:
-                upper = "{" + self.visit(node) + "}"
-        else:
-            if isinstance(node.right, ast.Constant):
-                if isinstance(node.op, ast.Add):
-                    if node.right.value == 1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Constant(node.right.value - 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-                else:
-                    if node.right.value == -1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Constant(node.right.value + 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-            else:
-                upper = "{" + self.visit(node) + "}"
-
     def _reduce_stop_parameter(self, node: ast.expr) -> ast.expr:
         """Adjusts the stop expression of the range.
 
