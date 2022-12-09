@@ -552,7 +552,7 @@ class FunctionCodegen(ast.NodeVisitor):
             if i < len(node.cases)-1: # no wildcard
                 if (match_case.guard):
                     cond_latex = self.visit(match_case.guard)
-                    subject_latex = "" # getting 'x' from cond_latex
+                    subject_latex = "" # getting variable from cond_latex
                 if not cond_latex:
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
