@@ -1017,3 +1017,58 @@ def test_numpy_array(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("zeros(0)", r"\mathbf{0}^{1 \times 0}"),
+        ("zeros(1)", r"\mathbf{0}^{1 \times 1}"),
+        ("zeros(2)", r"\mathbf{0}^{1 \times 2}"),
+        ("zeros(())", r"0"),
+        ("zeros((0,))", r"\mathbf{0}^{1 \times 0}"),
+        ("zeros((1,))", r"\mathbf{0}^{1 \times 1}"),
+        ("zeros((2,))", r"\mathbf{0}^{1 \times 2}"),
+        ("zeros((0, 0))", r"\mathbf{0}^{0 \times 0}"),
+        ("zeros((1, 1))", r"\mathbf{0}^{1 \times 1}"),
+        ("zeros((2, 3))", r"\mathbf{0}^{2 \times 3}"),
+        ("zeros((0, 0, 0))", r"\mathbf{0}^{0 \times 0 \times 0}"),
+        ("zeros((1, 1, 1))", r"\mathbf{0}^{1 \times 1 \times 1}"),
+        ("zeros((2, 3, 5))", r"\mathbf{0}^{2 \times 3 \times 5}"),
+        # Unsupported
+        ("zeros()", r"\mathrm{zeros} \mathopen{}\left( \mathclose{}\right)"),
+        ("zeros(x)", r"\mathrm{zeros} \mathopen{}\left( x \mathclose{}\right)"),
+        ("zeros(0, x)", r"\mathrm{zeros} \mathopen{}\left( 0, x \mathclose{}\right)"),
+        (
+            "zeros((x,))",
+            r"\mathrm{zeros} \mathopen{}\left("
+            r" \mathopen{}\left( x \mathclose{}\right)"
+            r" \mathclose{}\right)",
+        ),
+    ],
+)
+def test_zeros(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("identity(0)", r"\mathbf{I}_{0}"),
+        ("identity(1)", r"\mathbf{I}_{1}"),
+        ("identity(2)", r"\mathbf{I}_{2}"),
+        # Unsupported
+        ("identity()", r"\mathrm{identity} \mathopen{}\left( \mathclose{}\right)"),
+        ("identity(x)", r"\mathrm{identity} \mathopen{}\left( x \mathclose{}\right)"),
+        (
+            "identity(0, x)",
+            r"\mathrm{identity} \mathopen{}\left( 0, x \mathclose{}\right)",
+        ),
+    ],
+)
+def test_identity(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert function_codegen.FunctionCodegen().visit(tree) == latex
