@@ -539,18 +539,18 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_Match(self, node: ast.Match) -> str:
         """Visit a match node"""
         latex = r"\left\{ \begin{array}{ll} "
-        subject_latex = self.visit(node.subject)        
+        subject_latex = self.visit(node.subject)
         for i, match_case in enumerate(node.cases):
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)
 
-            if i < len(node.cases)-1: # no wildcard
+            if i < len(node.cases) - 1:  # no wildcard
                 if not cond_latex:
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
                     )
                 latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
-            else:  
+            else:
                 if cond_latex:
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
@@ -564,12 +564,12 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a MatchValue node"""
         latex = self.visit(node.value)
         return r"subject_name = " + latex
-    
+
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
         """Visit a MatchAs node"""
         """If MatchAs is a wildcard, return 'otherwise' case, else throw error"""
-        if not(node.pattern):
-            return ''
+        if not (node.pattern):
+            return ""
         else:
             raise exceptions.LatexifySyntaxError(
                 "Nonempty as-patterns are not supported in MatchAs nodes."
@@ -579,7 +579,7 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a MatchOr node"""
         latex = ""
         for i, pattern in enumerate(node.patterns):
-            if (i != 0):
+            if i != 0:
                 latex += r" \lor " + self.visit(pattern)
             else:
                 latex += self.visit(pattern)
