@@ -713,6 +713,35 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(current_expr)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
+    def visit_Match(self, node: ast.Match) -> str:
+        """Visit a match node"""
+        latex = r"\left\{ \begin{array}{ll}"
+        subject_latex = self.visit(node.subject)
+        for match_case in node.cases:
+            if not (
+                len(match_case.body) == 1 and isinstance(match_case.body[0], ast.Return)
+            ):
+                raise exceptions.LatexifyNotSupportedError(
+                    "Match cases must have exactly 1 return statement."
+                )
+            true_latex = self.visit(match_case.body[0])
+            cond_latex = self.visit(match_case.pattern)
+            latex += (
+                true_latex
+                + r", & \mathrm{if} \ "
+                + subject_latex
+                + cond_latex
+                + r" \\ "
+            )
+
+        latex += r"\end{array} \right."
+        return latex
+
+    def visit_MatchValue(self, node: ast.MatchValue) -> str:
+        """Visit a MatchValue node"""
+        latex = self.visit(node.value)
+        return " = " + latex
+
     def _reduce_stop_parameter(self, node: ast.expr) -> ast.expr:
         """Adjusts the stop expression of the range.
 
