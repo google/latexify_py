@@ -549,7 +549,7 @@ class FunctionCodegen(ast.NodeVisitor):
                     raise exceptions.LatexifySyntaxError(
                         "Match subtrees must contain only one wildcard at the end."
                     )
-                latex += true_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex + r" \\ "
+                latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
             else:  
                 if cond_latex:
                     raise exceptions.LatexifySyntaxError(
@@ -557,12 +557,13 @@ class FunctionCodegen(ast.NodeVisitor):
                     )
                 latex += true_latex + r", & \mathrm{otherwise}"
         latex += r"\end{array} \right."
-        return latex
+        latex_final = latex.replace("subject_name", subject_latex)
+        return latex_final
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node"""
         latex = self.visit(node.value)
-        return r" = " + latex
+        return r"subject_name = " + latex
     
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
         """Visit a MatchAs node"""
@@ -576,8 +577,13 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_MatchOr(self, node: ast.MatchOr) -> str:
         """Visit a MatchOr node"""
-        # still need to implement
-        return
+        latex = ""
+        for i, pattern in enumerate(node.patterns):
+            if (i != 0):
+                latex += r" \lor " + self.visit(pattern)
+            else:
+                latex += self.visit(pattern)
+        return latex
 
     def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
         # ast.Constant class is added in Python 3.8

@@ -871,3 +871,18 @@ def test_matchas_nonempty_end() -> None:
             match=r"Nonempty as-patterns are not supported in MatchAs nodes.",
         ):
             FunctionCodegen().visit(tree)
+
+def test_matchor() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+        """
+        match x:
+            case 0 | 1:
+                return 1
+            case _:
+                return 2
+        """
+        )
+    ).body[0]
+
+    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \lor x = {1} \\ {2}, & \mathrm{otherwise}\end{array} \right."
