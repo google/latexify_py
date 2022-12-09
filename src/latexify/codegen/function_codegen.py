@@ -654,8 +654,8 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Match(self, node: ast.Match) -> str:
         """Visit a match node"""
-        latex = r"\left\{ \begin{array}{ll} "
-        subject_latex = self.visit(node.subject)        
+        latex = r"\left\{ \begin{array}{ll}"
+        subject_latex = self.visit(node.subject)
         for match_case in node.cases:
             if len(match_case.body) != 1:
                 raise exceptions.LatexifySyntaxError(
@@ -663,8 +663,9 @@ class FunctionCodegen(ast.NodeVisitor):
                 )
             true_latex = self.visit(match_case.body[0])
             cond_latex = self.visit(match_case.pattern)
-            latex += true_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex + r" \\ "
-            
+            latex += true_latex + r", & \mathrm{if} \ " + \
+                subject_latex + cond_latex + r" \\ "
+
         latex += r"\end{array} \right."
         return latex
 

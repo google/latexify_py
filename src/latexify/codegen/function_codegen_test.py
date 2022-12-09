@@ -10,6 +10,7 @@ import pytest
 from latexify import ast_utils, exceptions, test_utils
 from latexify.codegen import FunctionCodegen, function_codegen
 
+
 def test_generic_visit() -> None:
     class UnknownNode(ast.AST):
         pass
@@ -917,43 +918,49 @@ def test_use_set_symbols_compare(code: str, latex: str) -> None:
 def test_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
-        """
-        match x:
-            case 0:
-                return 1
-        """
+            """
+            match x:
+                case 0:
+                    return 1
+            """
         )
     ).body[0]
 
-    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\ \end{array} \right."
+    assert FunctionCodegen().visit(tree) == \
+        r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\ \end{array} \right."
 
 
 def test_multiple_matchvalue() -> None:
     tree = ast.parse(
         textwrap.dedent(
-        """
-        match x:
-            case 0:
-                return 1
-            case 1:
-                return 2
-        """
+            """
+            match x:
+                case 0:
+                    return 1
+                case 1:
+                    return 2
+            """
         )
     ).body[0]
 
-    assert FunctionCodegen().visit(tree) == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\ 2, & \mathrm{if} \ x = 1 \\ \end{array} \right."
+    assert FunctionCodegen().visit(tree) == \
+        r"""
+        \left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \\
+        2, & \mathrm{if} \ x = 1 \\ \end{array} \right.
+        """
+
 
 def test_matchvalue_mutliple_statements() -> None:
     tree = ast.parse(
         textwrap.dedent(
-        """
-        match x:
-            case 0:
-                x = 5
-                return 1
-            case 1:
-                return 2
-        """
+            """
+            match x:
+                case 0:
+                    x = 5
+                    return 1
+                case 1:
+                    return 2
+            """
         )
     ).body[0]
 
@@ -1008,4 +1015,3 @@ def test_numpy_array(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert function_codegen.FunctionCodegen().visit(tree) == latex
-
