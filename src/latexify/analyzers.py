@@ -71,7 +71,6 @@ def reduce_stop_parameter(node: ast.expr) -> ast.expr:
     This function tries to convert the syntax as follows:
         * n + 1 --> n
         * n + 2 --> n + 1
-        * n - (-1) --> n
         * n - 1 --> n - 2
 
     Args:
