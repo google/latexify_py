@@ -75,7 +75,7 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
         assert type(observed) is type(expected)
 
         for k, ve in vars(expected).items():
-            if k in {"col_offset", "end_lineno", "end_col_offset", "kind", "lineno"}:
+            if k in {"col_offset", "end_col_offset", "end_lineno", "kind", "lineno"}:
                 continue
 
             vo = getattr(observed, k)  # May cause AttributeError.
