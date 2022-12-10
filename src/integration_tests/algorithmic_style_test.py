@@ -75,5 +75,4 @@ def test_collatz() -> None:
         r"\EndProcedure "
         r"\end{algorithmic}"
     )
-
     check_algorithm(collatz, latex)
