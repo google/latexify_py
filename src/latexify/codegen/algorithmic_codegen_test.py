@@ -24,7 +24,10 @@ def test_generic_visit() -> None:
 
 @pytest.mark.parametrize(
     "code,latex",
-    [("x = 3", r"\State $x \gets 3$"), ("a = b = 0", r"\State $a \gets b \gets 0$")],
+    [
+        ("x = 3", r"\State $x \gets 3$"),
+        ("a = b = 0", r"\State $a \gets b \gets 0$"),
+    ],
 )
 def test_visit_assign(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
@@ -38,21 +41,21 @@ def test_visit_assign(code: str, latex: str) -> None:
         (
             "def f(x): return x",
             (
-                r"\begin{algorithmic} "
-                r"\Procedure{f}{$x$} "
-                r"\State \Return $x$ "
-                r"\EndProcedure "
-                r"\end{algorithmic}"
+                r"\begin{algorithmic}"
+                r" \Function{f}{$x$}"
+                r" \State \Return $x$"
+                r" \EndFunction"
+                r" \end{algorithmic}"
             ),
         ),
         (
             "def xyz(a, b, c): return 3",
             (
-                r"\begin{algorithmic} "
-                r"\Procedure{xyz}{$a,b,c$} "
-                r"\State \Return $3$ "
-                r"\EndProcedure "
-                r"\end{algorithmic}"
+                r"\begin{algorithmic}"
+                r" \Function{xyz}{$a, b, c$}"
+                r" \State \Return $3$"
+                r" \EndFunction"
+                r" \end{algorithmic}"
             ),
         ),
     ],
@@ -88,7 +91,7 @@ def test_visit_if(code: str, latex: str) -> None:
         ),
         (
             "return",
-            r"\State \Return $\mathrm{None}$",
+            r"\State \Return",
         ),
     ],
 )
@@ -114,16 +117,19 @@ def test_visit_while(code: str, latex: str) -> None:
 
 
 def test_visit_while_with_else() -> None:
-    with pytest.raises(exceptions.LatexifyNotSupportedError):
-        node = ast.parse(
-            textwrap.dedent(
-                """
-                while True:
-                    x = x
-                else:
-                    x = y
-                """
-            )
-        ).body[0]
-        assert isinstance(node, ast.While)
+    node = ast.parse(
+        textwrap.dedent(
+            """
+            while True:
+                x = x
+            else:
+                x = y
+            """
+        )
+    ).body[0]
+    assert isinstance(node, ast.While)
+    with pytest.raises(
+        exceptions.LatexifyNotSupportedError,
+        match="^While statement with the else clause is not supported$",
+    ):
         algorithmic_codegen.AlgorithmicCodegen().visit(node)

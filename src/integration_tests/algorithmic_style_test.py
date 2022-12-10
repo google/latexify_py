@@ -13,6 +13,7 @@ def check_algorithm(
     **kwargs,
 ) -> None:
     """Helper to check if the obtained function has the expected LaTeX form.
+
     Args:
         fn: Function to check.
         latex: LaTeX form of `fn`.
@@ -36,15 +37,15 @@ def test_factorial() -> None:
             return n * fact(n - 1)
 
     latex = (
-        r"\begin{algorithmic} "
-        r"\Procedure{fact}{$n$} "
-        r"\If{$n = 0$} "
-        r"\State \Return $1$ "
-        r"\Else "
-        r"\State \Return $n \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$ "
-        r"\EndIf "
-        r"\EndProcedure "
-        r"\end{algorithmic}"
+        r"\begin{algorithmic}"
+        r" \Function{fact}{$n$}"
+        r" \If{$n = 0$}"
+        r" \State \Return $1$"
+        r" \Else"
+        r" \State \Return $n \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$"
+        r" \EndIf"
+        r" \EndFunction"
+        r" \end{algorithmic}"
     )
     check_algorithm(fact, latex)
 
@@ -54,25 +55,25 @@ def test_collatz() -> None:
         iterations = 0
         while n > 1:
             if n % 2 == 0:
-                n = n / 2
+                n = n // 2
             else:
                 n = 3 * n + 1
             iterations = iterations + 1
         return iterations
 
     latex = (
-        r"\begin{algorithmic} "
-        r"\Procedure{collatz}{$n$} "
-        r"\State $\mathrm{iterations} \gets 0$ "
-        r"\While{$n > 1$} "
-        r"\If{$n \mathbin{\%} 2 = 0$} "
-        r"\State $n \gets \frac{n}{2}$ "
-        r"\Else \State $n \gets 3 n + 1$ "
-        r"\EndIf "
-        r"\State $\mathrm{iterations} \gets \mathrm{iterations} + 1$ "
-        r"\EndWhile "
-        r"\State \Return $\mathrm{iterations}$ "
-        r"\EndProcedure "
-        r"\end{algorithmic}"
+        r"\begin{algorithmic}"
+        r" \Function{collatz}{$n$}"
+        r" \State $\mathrm{iterations} \gets 0$"
+        r" \While{$n > 1$}"
+        r" \If{$n \mathbin{\%} 2 = 0$}"
+        r" \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$"
+        r" \Else \State $n \gets 3 n + 1$"
+        r" \EndIf"
+        r" \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$"
+        r" \EndWhile"
+        r" \State \Return $\mathrm{iterations}$"
+        r" \EndFunction"
+        r" \end{algorithmic}"
     )
     check_algorithm(collatz, latex)

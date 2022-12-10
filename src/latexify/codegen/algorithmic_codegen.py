@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 
 from latexify import exceptions
-from latexify.codegen import codegen_utils, expression_codegen, identifier_converter
+from latexify.codegen import expression_codegen, identifier_converter
 
 
 class AlgorithmicCodegen(ast.NodeVisitor):
@@ -61,11 +61,11 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         # Body
         body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
         return (
-            rf"\begin{{algorithmic}} "
-            rf"\Procedure{{{node.name}}}{{${','.join(arg_strs)}$}} "
-            f"{' '.join(body_strs)} "
-            r"\EndProcedure "
-            rf"\end{{algorithmic}}"
+            rf"\begin{{algorithmic}}"
+            rf" \Function{{{node.name}}}{{${', '.join(arg_strs)}$}}"
+            f" {' '.join(body_strs)}"
+            r" \EndFunction"
+            rf" \end{{algorithmic}}"
         )
 
     # TODO(ZibingZhang): support \ELSIF
@@ -88,18 +88,17 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
     def visit_Return(self, node: ast.Return) -> str:
         """Visit a Return node."""
-        return r"\State \Return " + (
-            f"${self._expression_codegen.visit(node.value)}$"
+        return (
+            rf"\State \Return ${self._expression_codegen.visit(node.value)}$"
             if node.value is not None
-            else f"${codegen_utils.convert_constant(None)}$"
+            else r"\State \Return"
         )
 
     def visit_While(self, node: ast.While) -> str:
         """Visit a While node."""
         if node.orelse:
             raise exceptions.LatexifyNotSupportedError(
-                "Algorithmic codegen does not support while statements with an else "
-                "clause"
+                "While statement with the else clause is not supported"
             )
 
         cond_latex = self._expression_codegen.visit(node.test)

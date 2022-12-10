@@ -17,7 +17,7 @@ from latexify import exceptions, parser, transformers
 _COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
-class Style(str, enum.Enum):
+class Style(enum.Enum):
     EXPRESSION = "expression"
     FUNCTION = "function"
     ALGORITHMIC = "algorithmic"
