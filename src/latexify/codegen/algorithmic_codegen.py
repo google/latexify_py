@@ -50,7 +50,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
     def visit_Expr(self, node: ast.Expr) -> str:
         """Visit an Expr node."""
-        return rf"\State ${self._expression_codegen.visit(node)}$"
+        return rf"\State ${self._expression_codegen.visit(node.value)}$"
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
