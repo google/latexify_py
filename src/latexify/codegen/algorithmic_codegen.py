@@ -88,10 +88,10 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
     def visit_Return(self, node: ast.Return) -> str:
         """Visit a Return node."""
-        return (
-            rf"\State \Return ${self._expression_codegen.visit(node.value)}$"
+        return r"\State \Return " + (
+            f"${self._expression_codegen.visit(node.value)}$"
             if node.value is not None
-            else rf"\State \Return ${codegen_utils.convert_constant(None)}$"
+            else f"${codegen_utils.convert_constant(None)}$"
         )
 
     def visit_While(self, node: ast.While) -> str:
@@ -103,7 +103,4 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
         cond_latex = self._expression_codegen.visit(node.test)
         body_latex = " ".join(self.visit(stmt) for stmt in node.body)
-
-        latex = rf"\While{{${cond_latex}$}} {body_latex}"
-
-        return latex + r" \EndWhile"
+        return rf"\While{{${cond_latex}$}} {body_latex} \EndWhile"
