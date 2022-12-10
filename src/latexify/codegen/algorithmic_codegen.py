@@ -98,7 +98,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         """Visit a While node."""
         if node.orelse:
             raise exceptions.LatexifyNotSupportedError(
-                "Codegen does not support while statements with an else clause."
+                "Algorithmic codegen does not support while statements with an else clause."
             )
 
         cond_latex = self._expression_codegen.visit(node.test)

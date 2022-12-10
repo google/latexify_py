@@ -71,7 +71,7 @@ class FunctionCodegen(ast.NodeVisitor):
 
             if not isinstance(child, ast.Assign):
                 raise exceptions.LatexifyNotSupportedError(
-                    "Codegen supports only Assign nodes in multiline functions, "
+                    "Function codegen supports only Assign nodes in multiline functions, "
                     f"but got: {type(child).__name__}"
                 )
             body_strs.append(self.visit(child))
