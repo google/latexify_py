@@ -2,11 +2,13 @@
 import ast
 
 from latexify import exceptions
-from latexify.codegen import codegen_utils, expression_codegen
+from latexify.codegen import codegen_utils, expression_codegen, identifier_converter
 
 
 class AlgorithmicCodegen(ast.NodeVisitor):
     """Codegen for single algorithms."""
+
+    _identifier_converter: identifier_converter.IdentifierConverter
 
     def __init__(
         self, *, use_math_symbols: bool = False, use_set_symbols: bool = False
@@ -20,6 +22,9 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         self._expression_codegen = expression_codegen.ExpressionCodegen(
             use_math_symbols=use_math_symbols, use_set_symbols=use_set_symbols
         )
+        self._identifier_converter = identifier_converter.IdentifierConverter(
+            use_math_symbols=use_math_symbols
+        )
 
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
@@ -27,6 +32,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         )
 
     def visit_Assign(self, node: ast.Assign) -> str:
+        """Visit an Assign node."""
         operands: list[str] = [
             self._expression_codegen.visit(target) for target in node.targets
         ]
@@ -34,11 +40,29 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         operands_latex = r" \gets ".join(operands)
         return rf"\State ${operands_latex}$"
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
-        body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
-        return rf"\begin{{algorithmic}} {' '.join(body_strs)} \end{{algorithmic}}"
+    def visit_Expr(self, node: ast.Expr) -> str:
+        """Visit an Expr node."""
+        return rf"\State ${self._expression_codegen.visit(node)}$"
 
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
+        """Visit a FunctionDef node."""
+        # Arguments
+        arg_strs = [
+            self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
+        ]
+
+        body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
+        return (
+            rf"\begin{{algorithmic}} "
+            rf"\Procedure{{{node.name}}}{{${','.join(arg_strs)}$}} "
+            f"{' '.join(body_strs)} "
+            r"\EndProcedure "
+            rf"\end{{algorithmic}}"
+        )
+
+    # TODO(ZibingZhang): support \ELSIF
     def visit_If(self, node: ast.If) -> str:
+        """Visit an If node."""
         cond_latex = self._expression_codegen.visit(node.test)
         body_latex = " ".join(self.visit(stmt) for stmt in node.body)
 
@@ -51,9 +75,11 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         return latex + r" \EndIf"
 
     def visit_Module(self, node: ast.Module) -> str:
+        """Visit a Module node."""
         return self.visit(node.body[0])
 
     def visit_Return(self, node: ast.Return) -> str:
+        """Visit a Return node."""
         return (
             rf"\State \Return ${self._expression_codegen.visit(node.value)}$"
             if node.value is not None
@@ -61,13 +87,15 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         )
 
     def visit_While(self, node: ast.While) -> str:
+        """Visit a While node."""
+        if node.orelse:
+            raise exceptions.LatexifyNotSupportedError(
+                "Codegen does not support while statements with an else clause."
+            )
+
         cond_latex = self._expression_codegen.visit(node.test)
         body_latex = " ".join(self.visit(stmt) for stmt in node.body)
 
         latex = rf"\While{{${cond_latex}$}} {body_latex}"
-
-        if node.orelse:
-            latex += r" \Else "
-            latex += " ".join(self.visit(stmt) for stmt in node.orelse)
 
         return latex + r" \EndWhile"

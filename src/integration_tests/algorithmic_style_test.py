@@ -35,11 +35,13 @@ def test_factorial() -> None:
 
     latex = (
         r"\begin{algorithmic} "
+        r"\Procedure{fact}{$n$} "
         r"\If{$n = 0$} "
         r"\State \Return $1$ "
         r"\Else "
         r"\State \Return $n \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$ "
         r"\EndIf "
+        r"\EndProcedure "
         r"\end{algorithmic}"
     )
     check_algorithm(fact, latex)
@@ -58,6 +60,7 @@ def test_collatz() -> None:
 
     latex = (
         r"\begin{algorithmic} "
+        r"\Procedure{collatz}{$n$} "
         r"\State $\mathrm{iterations} \gets 0$ "
         r"\While{$n > 1$} "
         r"\If{$n \mathbin{\%} 2 = 0$} "
@@ -67,6 +70,7 @@ def test_collatz() -> None:
         r"\State $\mathrm{iterations} \gets \mathrm{iterations} + 1$ "
         r"\EndWhile "
         r"\State \Return $\mathrm{iterations}$ "
+        r"\EndProcedure "
         r"\end{algorithmic}"
     )
 

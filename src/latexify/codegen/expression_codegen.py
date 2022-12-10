@@ -227,6 +227,10 @@ class ExpressionCodegen(ast.NodeVisitor):
             f"Unsupported AST: {type(node).__name__}"
         )
 
+    def visit_Expr(self, node: ast.Expr) -> str:
+        """Visit an Expr node."""
+        return self.visit(node.value)
+
     def visit_Tuple(self, node: ast.Tuple) -> str:
         """Visit a Tuple node."""
         elts = [self.visit(elt) for elt in node.elts]
