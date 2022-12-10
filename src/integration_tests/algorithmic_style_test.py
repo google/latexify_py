@@ -26,6 +26,8 @@ def check_algorithm(
     assert latexified == latex
 
 
+# TODO(ZibingZhang) changing fact -> factorial breaks because factorial is replaced by
+#  !, substitutions should not occur for the name of the procedure
 def test_factorial() -> None:
     def fact(n):
         if n == 0:
