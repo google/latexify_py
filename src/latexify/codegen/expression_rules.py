@@ -55,6 +55,8 @@ _PRECEDENCES: dict[type[ast.AST], int] = {
 #     -exp(x) --> - \exp x
 _CALL_PRECEDENCE = _PRECEDENCES[ast.UAdd] + 1
 
+_INF_PRECEDENCE = 1_000_000
+
 
 def get_precedence(node: ast.AST) -> int:
     """Obtains the precedence of the subtree.
@@ -69,7 +71,7 @@ def get_precedence(node: ast.AST) -> int:
     if isinstance(node, ast.Call):
         return _CALL_PRECEDENCE
 
-    if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
+    if isinstance(node, (ast.BinOp, ast.UnaryOp, ast.BoolOp)):
         return _PRECEDENCES[type(node.op)]
 
     if isinstance(node, ast.Compare):
@@ -77,7 +79,7 @@ def get_precedence(node: ast.AST) -> int:
         # first operator.
         return _PRECEDENCES[type(node.ops[0])]
 
-    return 1_000_000
+    return _INF_PRECEDENCE
 
 
 @dataclasses.dataclass(frozen=True)
