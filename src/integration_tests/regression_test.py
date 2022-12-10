@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from integration_tests import utils
+from integration_tests import integration_utils
 
 
 def test_quadratic_solution() -> None:
@@ -12,7 +12,7 @@ def test_quadratic_solution() -> None:
         return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
     latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{ b^{2} - 4 a c }}{2 a}"
-    utils.check_function(solve, latex)
+    integration_utils.check_function(solve, latex)
 
 
 def test_sinc() -> None:
@@ -29,7 +29,7 @@ def test_sinc() -> None:
         r" \frac{\sin x}{x}, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
-    utils.check_function(sinc, latex)
+    integration_utils.check_function(sinc, latex)
 
 
 def test_x_times_beta() -> None:
@@ -37,11 +37,15 @@ def test_x_times_beta() -> None:
         return x * beta
 
     latex_without_symbols = r"\mathrm{xtimesbeta}(x, \mathrm{beta}) = x \mathrm{beta}"
-    utils.check_function(xtimesbeta, latex_without_symbols)
-    utils.check_function(xtimesbeta, latex_without_symbols, use_math_symbols=False)
+    integration_utils.check_function(xtimesbeta, latex_without_symbols)
+    integration_utils.check_function(
+        xtimesbeta, latex_without_symbols, use_math_symbols=False
+    )
 
     latex_with_symbols = r"\mathrm{xtimesbeta}(x, \beta) = x \beta"
-    utils.check_function(xtimesbeta, latex_with_symbols, use_math_symbols=True)
+    integration_utils.check_function(
+        xtimesbeta, latex_with_symbols, use_math_symbols=True
+    )
 
 
 def test_sum_with_limit_1arg() -> None:
@@ -52,7 +56,7 @@ def test_sum_with_limit_1arg() -> None:
         r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n - 1}"
         r" \mathopen{}\left({i^{2}}\mathclose{}\right)"
     )
-    utils.check_function(sum_with_limit, latex)
+    integration_utils.check_function(sum_with_limit, latex)
 
 
 def test_sum_with_limit_2args() -> None:
@@ -63,7 +67,7 @@ def test_sum_with_limit_2args() -> None:
         r"\mathrm{sum\_with\_limit}(a, n) = \sum_{i = a}^{n - 1} "
         r"\mathopen{}\left({i^{2}}\mathclose{}\right)"
     )
-    utils.check_function(sum_with_limit, latex)
+    integration_utils.check_function(sum_with_limit, latex)
 
 
 def test_sum_with_reducible_limit() -> None:
@@ -74,7 +78,7 @@ def test_sum_with_reducible_limit() -> None:
         r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n} "
         r"\mathopen{}\left({i}\mathclose{}\right)"
     )
-    utils.check_function(sum_with_limit, latex)
+    integration_utils.check_function(sum_with_limit, latex)
 
 
 def test_sum_with_irreducible_limit() -> None:
@@ -85,7 +89,7 @@ def test_sum_with_irreducible_limit() -> None:
         r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n 3 - 1} "
         r"\mathopen{}\left({i}\mathclose{}\right)"
     )
-    utils.check_function(sum_with_limit, latex)
+    integration_utils.check_function(sum_with_limit, latex)
 
 
 def test_prod_with_limit_1arg() -> None:
@@ -96,7 +100,7 @@ def test_prod_with_limit_1arg() -> None:
         r"\mathrm{prod\_with\_limit}(n) = "
         r"\prod_{i = 0}^{n - 1} \mathopen{}\left({i^{2}}\mathclose{}\right)"
     )
-    utils.check_function(prod_with_limit, latex)
+    integration_utils.check_function(prod_with_limit, latex)
 
 
 def test_prod_with_limit_2args() -> None:
@@ -107,7 +111,7 @@ def test_prod_with_limit_2args() -> None:
         r"\mathrm{prod\_with\_limit}(a, n) = "
         r"\prod_{i = a}^{n - 1} \mathopen{}\left({i^{2}}\mathclose{}\right)"
     )
-    utils.check_function(prod_with_limit, latex)
+    integration_utils.check_function(prod_with_limit, latex)
 
 
 def test_prod_with_reducible_limits() -> None:
@@ -118,7 +122,7 @@ def test_prod_with_reducible_limits() -> None:
         r"\mathrm{prod\_with\_limit}(n) = "
         r"\prod_{i = 0}^{n - 2} \mathopen{}\left({i}\mathclose{}\right)"
     )
-    utils.check_function(prod_with_limit, latex)
+    integration_utils.check_function(prod_with_limit, latex)
 
 
 def test_prod_with_irreducible_limit() -> None:
@@ -129,14 +133,14 @@ def test_prod_with_irreducible_limit() -> None:
         r"\mathrm{prod\_with\_limit}(n) = "
         r"\prod_{i = 0}^{n 3 - 1} \mathopen{}\left({i}\mathclose{}\right)"
     )
-    utils.check_function(prod_with_limit, latex)
+    integration_utils.check_function(prod_with_limit, latex)
 
 
 def test_nested_function() -> None:
     def nested(x):
         return 3 * x
 
-    utils.check_function(nested, r"\mathrm{nested}(x) = 3 x")
+    integration_utils.check_function(nested, r"\mathrm{nested}(x) = 3 x")
 
 
 def test_double_nested_function() -> None:
@@ -146,7 +150,7 @@ def test_double_nested_function() -> None:
 
         return inner
 
-    utils.check_function(nested(3), r"\mathrm{inner}(y) = x y")
+    integration_utils.check_function(nested(3), r"\mathrm{inner}(y) = x y")
 
 
 def test_reduce_assignments() -> None:
@@ -154,11 +158,11 @@ def test_reduce_assignments() -> None:
         a = x + x
         return 3 * a
 
-    utils.check_function(
+    integration_utils.check_function(
         f,
         r"\begin{array}{l} a = x + x \\ f(x) = 3 a \end{array}",
     )
-    utils.check_function(
+    integration_utils.check_function(
         f,
         r"f(x) = 3 \mathopen{}\left( x + x \mathclose{}\right)",
         reduce_assignments=True,
@@ -179,9 +183,9 @@ def test_reduce_assignments_double() -> None:
         r"\end{array}"
     )
 
-    utils.check_function(f, latex_without_option)
-    utils.check_function(f, latex_without_option, reduce_assignments=False)
-    utils.check_function(
+    integration_utils.check_function(f, latex_without_option)
+    integration_utils.check_function(f, latex_without_option, reduce_assignments=False)
+    integration_utils.check_function(
         f,
         r"f(x) = 3 \mathopen{}\left( x^{2} + x^{2} \mathclose{}\right)",
         reduce_assignments=True,
@@ -197,7 +201,7 @@ def test_reduce_assignments_with_if() -> None:
         else:
             return n
 
-    utils.check_function(
+    integration_utils.check_function(
         sigmoid,
         (
             r"\mathrm{sigmoid}(x) = \left\{ \begin{array}{ll} "
@@ -221,7 +225,7 @@ def test_sub_bracket() -> None:
         r"a + b \mathclose{}\right) - \mathopen{}\left( "
         r"a - b \mathclose{}\right) - a b"
     )
-    utils.check_function(solve, latex)
+    integration_utils.check_function(solve, latex)
 
 
 def test_docstring_allowed() -> None:
@@ -230,7 +234,7 @@ def test_docstring_allowed() -> None:
         return x
 
     latex = r"\mathrm{solve}(x) = x"
-    utils.check_function(solve, latex)
+    integration_utils.check_function(solve, latex)
 
 
 def test_multiple_constants_allowed() -> None:
@@ -241,4 +245,4 @@ def test_multiple_constants_allowed() -> None:
         return x
 
     latex = r"\mathrm{solve}(x) = x"
-    utils.check_function(solve, latex)
+    integration_utils.check_function(solve, latex)
