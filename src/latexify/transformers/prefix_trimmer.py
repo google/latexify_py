@@ -79,6 +79,7 @@ class PrefixTrimmer(ast.NodeTransformer):
         return ast_utils.make_attribute(parent, name)
 
     def visit_Attribute(self, node: ast.Attribute) -> ast.expr:
+        """Visit an Attribute node."""
         prefix = self._get_prefix(node.value)
         if prefix is None:
             return node
