@@ -7,7 +7,7 @@ import ast
 import pytest
 
 from latexify import ast_utils, exceptions, test_utils
-from latexify.codegen import ExpressionCodegen
+from latexify.codegen import expression_codegen
 
 
 def test_generic_visit() -> None:
@@ -18,7 +18,7 @@ def test_generic_visit() -> None:
         exceptions.LatexifyNotSupportedError,
         match=r"^Unsupported AST: UnknownNode$",
     ):
-        ExpressionCodegen().visit(UnknownNode())
+        expression_codegen.ExpressionCodegen().visit(UnknownNode())
 
 
 @pytest.mark.parametrize(
@@ -33,7 +33,7 @@ def test_generic_visit() -> None:
 def test_visit_tuple(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Tuple)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -48,7 +48,7 @@ def test_visit_tuple(code: str, latex: str) -> None:
 def test_visit_list(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.List)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -64,7 +64,7 @@ def test_visit_list(code: str, latex: str) -> None:
 def test_visit_set(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Set)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -114,7 +114,7 @@ def test_visit_set(code: str, latex: str) -> None:
 def test_visit_listcomp(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.ListComp)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -164,7 +164,7 @@ def test_visit_listcomp(code: str, latex: str) -> None:
 def test_visit_setcomp(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.SetComp)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -215,7 +215,7 @@ def test_visit_setcomp(code: str, latex: str) -> None:
 def test_visit_call(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -330,7 +330,9 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
     for src_fn, dest_fn in [("fsum", r"\sum"), ("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
-        assert ExpressionCodegen().visit(node) == dest_fn + dest_suffix
+        assert (
+            expression_codegen.ExpressionCodegen().visit(node) == dest_fn + dest_suffix
+        )
 
 
 @pytest.mark.parametrize(
@@ -381,7 +383,7 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
 def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -407,7 +409,9 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
     for src_fn, dest_fn in [("sum", r"\sum"), ("prod", r"\prod")]:
         node = ast_utils.parse_expr(src_fn + src_suffix)
         assert isinstance(node, ast.Call)
-        assert ExpressionCodegen().visit(node) == dest_fn + dest_suffix
+        assert (
+            expression_codegen.ExpressionCodegen().visit(node) == dest_fn + dest_suffix
+        )
 
 
 @pytest.mark.parametrize(
@@ -442,7 +446,7 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
 def test_if_then_else(code: str, latex: str) -> None:
     node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.IfExp)
-    assert ExpressionCodegen().visit(node) == latex
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -625,7 +629,7 @@ def test_if_then_else(code: str, latex: str) -> None:
 def test_visit_binop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -664,7 +668,7 @@ def test_visit_binop(code: str, latex: str) -> None:
 def test_visit_unaryop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.UnaryOp)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -718,7 +722,7 @@ def test_visit_unaryop(code: str, latex: str) -> None:
 def test_visit_compare(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -764,7 +768,7 @@ def test_visit_compare(code: str, latex: str) -> None:
 def test_visit_boolop(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BoolOp)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_most(7)
@@ -789,7 +793,7 @@ def test_visit_boolop(code: str, latex: str) -> None:
 def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, cls)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @test_utils.require_at_least(8)
@@ -814,7 +818,7 @@ def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> No
 def test_visit_constant(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Constant)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -830,7 +834,7 @@ def test_visit_constant(code: str, latex: str) -> None:
 def test_visit_subscript(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Subscript)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
 @pytest.mark.parametrize(
@@ -845,7 +849,9 @@ def test_visit_subscript(code: str, latex: str) -> None:
 def test_visit_binop_use_set_symbols(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.BinOp)
-    assert ExpressionCodegen(use_set_symbols=True).visit(tree) == latex
+    assert (
+        expression_codegen.ExpressionCodegen(use_set_symbols=True).visit(tree) == latex
+    )
 
 
 @pytest.mark.parametrize(
@@ -860,7 +866,9 @@ def test_visit_binop_use_set_symbols(code: str, latex: str) -> None:
 def test_visit_compare_use_set_symbols(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Compare)
-    assert ExpressionCodegen(use_set_symbols=True).visit(tree) == latex
+    assert (
+        expression_codegen.ExpressionCodegen(use_set_symbols=True).visit(tree) == latex
+    )
 
 
 @pytest.mark.parametrize(
@@ -906,4 +914,59 @@ def test_visit_compare_use_set_symbols(code: str, latex: str) -> None:
 def test_numpy_array(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
-    assert ExpressionCodegen().visit(tree) == latex
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("zeros(0)", r"\mathbf{0}^{1 \times 0}"),
+        ("zeros(1)", r"\mathbf{0}^{1 \times 1}"),
+        ("zeros(2)", r"\mathbf{0}^{1 \times 2}"),
+        ("zeros(())", r"0"),
+        ("zeros((0,))", r"\mathbf{0}^{1 \times 0}"),
+        ("zeros((1,))", r"\mathbf{0}^{1 \times 1}"),
+        ("zeros((2,))", r"\mathbf{0}^{1 \times 2}"),
+        ("zeros((0, 0))", r"\mathbf{0}^{0 \times 0}"),
+        ("zeros((1, 1))", r"\mathbf{0}^{1 \times 1}"),
+        ("zeros((2, 3))", r"\mathbf{0}^{2 \times 3}"),
+        ("zeros((0, 0, 0))", r"\mathbf{0}^{0 \times 0 \times 0}"),
+        ("zeros((1, 1, 1))", r"\mathbf{0}^{1 \times 1 \times 1}"),
+        ("zeros((2, 3, 5))", r"\mathbf{0}^{2 \times 3 \times 5}"),
+        # Unsupported
+        ("zeros()", r"\mathrm{zeros} \mathopen{}\left( \mathclose{}\right)"),
+        ("zeros(x)", r"\mathrm{zeros} \mathopen{}\left( x \mathclose{}\right)"),
+        ("zeros(0, x)", r"\mathrm{zeros} \mathopen{}\left( 0, x \mathclose{}\right)"),
+        (
+            "zeros((x,))",
+            r"\mathrm{zeros} \mathopen{}\left("
+            r" \mathopen{}\left( x \mathclose{}\right)"
+            r" \mathclose{}\right)",
+        ),
+    ],
+)
+def test_zeros(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("identity(0)", r"\mathbf{I}_{0}"),
+        ("identity(1)", r"\mathbf{I}_{1}"),
+        ("identity(2)", r"\mathbf{I}_{2}"),
+        # Unsupported
+        ("identity()", r"\mathrm{identity} \mathopen{}\left( \mathclose{}\right)"),
+        ("identity(x)", r"\mathrm{identity} \mathopen{}\left( x \mathclose{}\right)"),
+        (
+            "identity(0, x)",
+            r"\mathrm{identity} \mathopen{}\left( 0, x \mathclose{}\right)",
+        ),
+    ],
+)
+def test_identity(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
