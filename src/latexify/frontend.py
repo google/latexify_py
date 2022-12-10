@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import enum
 from collections.abc import Callable
 from typing import Any, overload
 
@@ -16,10 +17,16 @@ from latexify import exceptions, parser, transformers
 _COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
-# TODO(odashi): move expand_functions to Config.
+class Style(enum.Enum):
+    EXPRESSION = "expression"
+    FUNCTION = "function"
+    ALGORITHMIC = "algorithmic"
+
+
 def get_latex(
     fn: Callable[..., Any],
     *,
+    style: Style = Style.FUNCTION,
     config: cfg.Config | None = None,
     **kwargs,
 ) -> str:
@@ -27,9 +34,10 @@ def get_latex(
 
     Args:
         fn: Reference to a function to analyze.
-        config: use defined Config object, if it is None, it will be automatic assigned
+        style: Style of the LaTeX description, the default is FUNCTION.
+        config: Use defined Config object, if it is None, it will be automatic assigned
             with default value.
-        **kwargs: dict of Config field values that could be defined individually
+        **kwargs: Dict of Config field values that could be defined individually
             by users.
 
     Returns:
@@ -38,6 +46,9 @@ def get_latex(
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
+    if style == Style.EXPRESSION:
+        kwargs["use_signature"] = kwargs.get("use_signature", False)
+
     merged_config = cfg.Config.defaults().merge(config=config, **kwargs)
 
     # Obtains the source AST.
@@ -56,11 +67,17 @@ def get_latex(
         tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
 
     # Generates LaTeX.
-    return codegen.FunctionCodegen(
-        use_math_symbols=merged_config.use_math_symbols,
-        use_signature=merged_config.use_signature,
-        use_set_symbols=merged_config.use_set_symbols,
-    ).visit(tree)
+    if style == Style.ALGORITHMIC:
+        return codegen.AlgorithmicCodegen(
+            use_math_symbols=merged_config.use_math_symbols,
+            use_set_symbols=merged_config.use_set_symbols,
+        ).visit(tree)
+    else:
+        return codegen.FunctionCodegen(
+            use_math_symbols=merged_config.use_math_symbols,
+            use_signature=merged_config.use_signature,
+            use_set_symbols=merged_config.use_set_symbols,
+        ).visit(tree)
 
 
 class LatexifiedFunction:
@@ -173,7 +190,7 @@ def expression(
     This function is a shortcut for `latexify.function` with the default parameter
     `use_signature=False`.
     """
-    kwargs["use_signature"] = kwargs.get("use_signature", False)
+    kwargs["style"] = Style.EXPRESSION
     if fn is not None:
         return function(fn, **kwargs)
     else:

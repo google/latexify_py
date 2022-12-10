@@ -1,3 +1,7 @@
+"""Utilities for integration tests."""
+
+from __future__ import annotations
+
 from typing import Any, Callable
 
 from latexify import frontend
