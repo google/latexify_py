@@ -9,7 +9,11 @@ from latexify.codegen import codegen_utils, expression_codegen, identifier_conve
 
 
 class AlgorithmicCodegen(ast.NodeVisitor):
-    """Codegen for single algorithms."""
+    """Codegen for single algorithms.
+
+    This codegen works for Module with single FunctionDef node to generate a single
+    LaTeX expression of the given algorithm.
+    """
 
     _identifier_converter: identifier_converter.IdentifierConverter
 
@@ -17,6 +21,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         self, *, use_math_symbols: bool = False, use_set_symbols: bool = False
     ) -> None:
         """Initializer.
+
         Args:
             use_math_symbols: Whether to convert identifiers with a math symbol surface
                 (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
@@ -53,7 +58,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         arg_strs = [
             self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
         ]
-
+        # Body
         body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
         return (
             rf"\begin{{algorithmic}} "
@@ -86,7 +91,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         return (
             rf"\State \Return ${self._expression_codegen.visit(node.value)}$"
             if node.value is not None
-            else codegen_utils.convert_constant(None)
+            else rf"\State \Return ${codegen_utils.convert_constant(None)}$"
         )
 
     def visit_While(self, node: ast.While) -> str:

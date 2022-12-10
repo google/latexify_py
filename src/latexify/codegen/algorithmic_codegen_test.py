@@ -85,7 +85,11 @@ def test_visit_if(code: str, latex: str) -> None:
         (
             "return x + y",
             r"\State \Return $x + y$",
-        )
+        ),
+        (
+            "return",
+            r"\State \Return $\mathrm{None}$",
+        ),
     ],
 )
 def test_visit_return(code: str, latex: str) -> None:
