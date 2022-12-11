@@ -33,7 +33,7 @@ class AssignmentReducer(ast.NodeTransformer):
     # comprehensions or lambdas, which introduces inner scopes.
     # It may cause some mistakes in the resulting AST.
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
-        """Visitor of FunctionDef nodes."""
+        """Visit a FunctionDef node."""
         # Push stack
         parent_assignments = self._assignments
         self._assignments = {}
@@ -75,7 +75,7 @@ class AssignmentReducer(ast.NodeTransformer):
         )
 
     def visit_Name(self, node: ast.Name) -> Any:
-        """Visitor of Name nodes."""
+        """Visit a Name node."""
         if self._assignments is not None:
             return self._assignments.get(node.id, node)
 

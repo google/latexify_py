@@ -6,7 +6,7 @@ import ast
 
 import pytest
 
-from latexify import analyzers, exceptions, test_utils
+from latexify import analyzers, ast_utils, exceptions, test_utils
 
 
 @test_utils.require_at_least(8)
@@ -105,7 +105,7 @@ def test_analyze_range(
     stop_int: int | None,
     step_int: int | None,
 ) -> None:
-    node = ast.parse(code).body[0].value
+    node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
 
     info = analyzers.analyze_range(node)
@@ -143,10 +143,27 @@ def test_analyze_range(
     ],
 )
 def test_analyze_range_invalid(code: str) -> None:
-    node = ast.parse(code).body[0].value
+    node = ast_utils.parse_expr(code)
     assert isinstance(node, ast.Call)
 
     with pytest.raises(
         exceptions.LatexifySyntaxError, match=r"^Unsupported AST for analyze_range\.$"
     ):
         analyzers.analyze_range(node)
+
+
+@pytest.mark.parametrize(
+    "before,after",
+    [
+        ("n + 1", "n"),
+        ("n + 2", "n + 1"),
+        ("n - (-1)", "n - (-1) - 1"),
+        ("n - 1", "n - 2"),
+        ("1 * 2", "1 * 2 - 1"),
+    ],
+)
+def test_reduce_stop_parameter(before: str, after: str) -> None:
+    test_utils.assert_ast_equal(
+        analyzers.reduce_stop_parameter(ast_utils.parse_expr(before)),
+        ast_utils.parse_expr(after),
+    )

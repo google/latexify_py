@@ -9,10 +9,9 @@ except Exception:
 
 from latexify import frontend
 
+Style = frontend.Style
+
 get_latex = frontend.get_latex
 
 function = frontend.function
 expression = frontend.expression
-
-# Deprecated
-with_latex = frontend.with_latex

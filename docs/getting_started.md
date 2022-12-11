@@ -5,7 +5,7 @@ This document describes how to use `latexify` with your Python code.
 
 ## Installation
 
-`lateixfy` depends on only Python libraries at this point.
+`latexify` depends on only Python libraries at this point.
 You can simply install `latexify` via `pip`:
 
 ```shell
@@ -19,7 +19,7 @@ Note that you have to install `latexify-py` rather than `latexify`.
 
 `latexify.function` decorator function wraps your functions to pretty-print them as
 corresponding LaTeX formulas.
-Jupyter recoginzes this wrapper and try to print LaTeX instead of the original function.
+Jupyter recognizes this wrapper and try to print LaTeX instead of the original function.
 
 The following snippet:
 
@@ -53,7 +53,7 @@ print(solve)
 ```
 
 ```
-\\mathrm{f}(n) = \\frac{-b + \\sqrt{b^{{2}} - {4}ac}}{{2}a}
+f(n) = \\frac{-b + \\sqrt{b^{2} - 4ac}}{2a}
 ```
 
 `latexify.expression` works similarly to `latexify.function`,
@@ -85,5 +85,5 @@ latexify.get_latex(solve)
 ```
 
 ```
-\\mathrm{f}(n) = \\frac{-b + \\sqrt{b^{{2}} - {4}ac}}{{2}a}
+f(n) = \\frac{-b + \\sqrt{b^{2} - 4ac}}{2a}
 ```
