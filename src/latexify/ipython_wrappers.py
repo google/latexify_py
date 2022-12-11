@@ -5,8 +5,9 @@ from __future__ import annotations
 import abc
 from typing import Any, Callable
 
+from latexify import codegen
 from latexify import config as cfg
-from latexify import codegen, exceptions, parser
+from latexify import exceptions, parser
 from latexify.transformers import transformer_utils
 
 
@@ -60,9 +61,10 @@ class LatexifiedAlgorithm(LatexifiedRepr):
         super().__init__(fn)
         merged_config = cfg.Config.defaults().merge(**kwargs)
 
-        # Obtains the source AST.
-        tree = parser.parse_function(fn)
-        tree = transformer_utils.apply_transformers(tree, merged_config)
+        # Obtains the transformed source AST.
+        tree = transformer_utils.apply_transformers(
+            parser.parse_function(fn), merged_config
+        )
 
         # Generates LaTeX.
         try:
@@ -114,9 +116,10 @@ class LatexifiedFunction(LatexifiedRepr):
 
         merged_config = cfg.Config.defaults().merge(**kwargs)
 
-        # Obtains the source AST.
-        tree = parser.parse_function(fn)
-        tree = transformer_utils.apply_transformers(tree, merged_config)
+        # Obtains the transformed source AST.
+        tree = transformer_utils.apply_transformers(
+            parser.parse_function(fn), merged_config
+        )
 
         # Generates LaTeX.
         try:

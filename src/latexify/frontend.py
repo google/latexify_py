@@ -45,9 +45,10 @@ def get_latex(
     """
     merged_config = cfg.Config.defaults().merge(config=config, **kwargs)
 
-    # Obtains the source AST.
-    tree = parser.parse_function(fn)
-    tree = transformer_utils.apply_transformers(tree, merged_config)
+    # Obtains the transformed source AST.
+    tree = transformer_utils.apply_transformers(
+        parser.parse_function(fn), merged_config
+    )
 
     # Generates LaTeX.
     if style == Style.ALGORITHMIC:

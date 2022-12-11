@@ -7,7 +7,6 @@ import ast
 from latexify import config as cfg
 from latexify import transformers
 
-
 # NOTE(odashi):
 # These prefixes are trimmed by default.
 # This behavior shouldn't be controlled by users in the current implementation because
