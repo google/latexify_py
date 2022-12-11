@@ -77,7 +77,6 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             self._jupyter_latex = None
             self._jupyter_error = f"{type(e).__name__}: {str(e)}"
 
-    @functools.cached_property
     def _repr_html_(self):
         """IPython hook to display HTML visualization."""
         return (
@@ -86,11 +85,10 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             else None
         )
 
-    @functools.cached_property
     def _repr_latex_(self):
         """IPython hook to display LaTeX visualization."""
         return (
-            r"$$ \displaystyle " + self._jupyter_latex + " $$"
+            r"$ " + self._jupyter_latex + " $"
             if self._jupyter_latex is not None
             else self._jupyter_error
         )
