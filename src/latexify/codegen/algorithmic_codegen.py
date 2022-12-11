@@ -107,7 +107,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
 
 class AlgorithmicJupyterCodegen(ast.NodeVisitor):
-    """Codegen for single algorithms, targeting the Jupyter Notebook environment.
+    """Codegen for single algorithms targeting the Jupyter Notebook environment.
 
     This codegen works for Module with single FunctionDef node to generate a single
     LaTeX expression of the given algorithm.
@@ -167,7 +167,7 @@ class AlgorithmicJupyterCodegen(ast.NodeVisitor):
 
         return (
             rf"{self._prefix()} \mathbf{{function}}"
-            rf" \ \mathrm{{{node.name.upper()}}}({', '.join(arg_strs)}): \\"
+            rf" \ \mathrm{{{node.name.upper()}}}({', '.join(arg_strs)}) \\"
             rf" {body} \\"
             rf" {self._prefix()} \mathbf{{end \ function}}"
         )
@@ -179,10 +179,10 @@ class AlgorithmicJupyterCodegen(ast.NodeVisitor):
         self._indent += 1
         body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
         self._indent -= 1
-        latex = rf"{self._prefix()}\mathbf{{if}} \ {cond_latex} \\ {body_latex}"
+        latex = rf"{self._prefix()} \mathbf{{if}} \ {cond_latex} \\ {body_latex}"
 
         if node.orelse:
-            latex += rf" \\ {self._prefix()}\mathbf{{else}} \\ "
+            latex += rf" \\ {self._prefix()} \mathbf{{else}} \\ "
             self._indent += 1
             latex += r" \\ ".join(self.visit(stmt) for stmt in node.orelse)
             self._indent -= 1
