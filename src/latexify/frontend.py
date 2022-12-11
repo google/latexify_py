@@ -136,6 +136,43 @@ class LatexifiedFunction:
 
 
 @overload
+def algorithmic(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+    ...
+
+
+@overload
+def algorithmic(**kwargs: Any) -> LatexifiedFunction:
+    ...
+
+
+def algorithmic(
+    alg: Callable[..., Any] | None = None, **kwargs: Any
+) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Attach LaTeX pretty-printing to the given algorithm.
+
+    This function works with or without specifying the target algorithm as the positional
+    argument. The following two syntaxes works similarly.
+        - latexify.algorithmic(alg, **kwargs)
+        - latexify.algorithmic(**kwargs)(alg)
+
+    Args:
+        alg: Callable to be wrapped.
+        **kwargs: Arguments to control behavior. See also get_latex().
+
+    Returns:
+        - If `alg` is passed, returns the wrapped function.
+        - Otherwise, returns the wrapper function with given settings.
+    """
+    if alg is not None:
+        return LatexifiedFunction(alg, **kwargs)
+
+    def wrapper(a):
+        return LatexifiedFunction(a, **kwargs)
+
+    return wrapper
+
+
+@overload
 def function(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
     ...
 
