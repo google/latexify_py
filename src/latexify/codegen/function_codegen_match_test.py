@@ -214,7 +214,7 @@ def test_visit_match_case_with_if_and() -> None:
         textwrap.dedent(
             """
             match x:
-                case x if x>0 and x<=10:
+                case x if x > 0 and x <= 10:
                     return 1
                 case _:
                     return 2
