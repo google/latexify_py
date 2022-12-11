@@ -54,8 +54,8 @@ class LatexifiedRepr(abc.ABC):
 class LatexifiedAlgorithm(LatexifiedRepr):
     """Algorithm with latex representation."""
 
-    _jupyter_latex: str | None
-    _jupyter_error: str | None
+    _ipython_latex: str | None
+    _ipython_error: str | None
 
     def __init__(self, fn, **kwargs):
         super().__init__(fn)
@@ -68,26 +68,26 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             self._error = f"{type(e).__name__}: {str(e)}"
         try:
             kwargs["environment"] = frontend.Environment.IPYTHON
-            self._jupyter_latex = frontend.get_latex(fn, **kwargs)
-            self._jupyter_error = None
+            self._ipython_latex = frontend.get_latex(fn, **kwargs)
+            self._ipython_error = None
         except exceptions.LatexifyError as e:
-            self._jupyter_latex = None
-            self._jupyter_error = f"{type(e).__name__}: {str(e)}"
+            self._ipython_latex = None
+            self._ipython_error = f"{type(e).__name__}: {str(e)}"
 
     def _repr_html_(self):
         """IPython hook to display HTML visualization."""
         return (
-            '<span style="color: red;">' + self._jupyter_error + "</span>"
-            if self._jupyter_error is not None
+            '<span style="color: red;">' + self._ipython_error + "</span>"
+            if self._ipython_error is not None
             else None
         )
 
     def _repr_latex_(self):
         """IPython hook to display LaTeX visualization."""
         return (
-            r"$ " + self._jupyter_latex + " $"
-            if self._jupyter_latex is not None
-            else self._jupyter_error
+            r"$ " + self._ipython_latex + " $"
+            if self._ipython_latex is not None
+            else self._ipython_error
         )
 
 
