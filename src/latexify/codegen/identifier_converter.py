@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from latexify import math_symbols
+from latexify.codegen import expression_rules
 
 
 class IdentifierConverter:
@@ -38,7 +38,7 @@ class IdentifierConverter:
                 - is_single_character: Whether `latex` can be treated as a single
                     character or not.
         """
-        if self._use_math_symbols and name in math_symbols._MATH_SYMBOLS:
+        if self._use_math_symbols and name in expression_rules.MATH_SYMBOLS:
             return "\\" + name, True
 
         if len(name) == 1 and name != "_":
