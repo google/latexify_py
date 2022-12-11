@@ -139,53 +139,8 @@ class FunctionCodegen(ast.NodeVisitor):
         latex += self.visit(current_stmt)
         return latex + r", & \mathrm{otherwise} \end{array} \right."
 
-#########
-
-# def visit_Match(self, node: ast.Match) -> str:
-#         """Visit a Match node"""
-#         if not (
-#             len(node.cases) >= 2
-#             and isinstance(node.cases[-1].pattern, ast.MatchAs)
-#             and node.cases[-1].pattern.name is None
-#         ):
-#             raise exceptions.LatexifySyntaxError(
-#                 "Match statement must contain the wildcard."
-#             )
-
-#         subject_latex = self._expression_codegen.visit(node.subject)
-#         case_latexes: list[str] = []
-
-#         for i, case in enumerate(node.cases):
-#             if len(case.body) != 1 or not isinstance(case.body[0], ast.Return):
-#                 raise exceptions.LatexifyNotSupportedError(
-#                     "Match cases must contain exactly 1 return statement."
-#                 )
-
-#             if i < len(node.cases) - 1:
-#                 body_latex = self.visit(case.body[0])
-#                 cond_latex = self.visit(case.pattern)
-#                 case_latexes.append(
-#                     body_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex
-#                 )
-#             else:
-#                 case_latexes.append(
-#                     self.visit(node.cases[-1].body[0]) + r", & \mathrm{otherwise}"
-#                 )
-
-#         return (
-#             r"\left\{ \begin{array}{ll} "
-#             + r" \\ ".join(case_latexes)
-#             + r" \end{array} \right."
-#         )
-
-#     def visit_MatchValue(self, node: ast.MatchValue) -> str:
-#         """Visit a MatchValue node"""
-#         latex = self._expression_codegen.visit(node.value)
-#         return " = " + latex
-
-############
     def visit_Match(self, node: ast.Match) -> str:
-        """Visit a Match node"""
+        """Visit a Match node."""
         if not (
             len(node.cases) >= 2
             and isinstance(node.cases[-1].pattern, ast.MatchAs)
@@ -208,7 +163,7 @@ class FunctionCodegen(ast.NodeVisitor):
             if i < len(node.cases) - 1:
                 body_latex = self.visit(case.body[0])
                 cond_latex = self.visit(case.pattern)
-                if case.guard:
+                if case.guard is not None:
                     cond_latex = self._expression_codegen.visit(case.guard)
                     subject_latex = ""  # getting variable from cond_latex
 
@@ -228,14 +183,16 @@ class FunctionCodegen(ast.NodeVisitor):
         return latex_final
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
-        """Visit a MatchValue node"""
+        """Visit a MatchValue node."""
         latex = self._expression_codegen.visit(node.value)
 
         return "subject_name = " + latex
 
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
-        """Visit a MatchAs node"""
-        """If MatchAs is a wildcard, return 'otherwise' case, else throw error"""
+        """
+        Visit a MatchAs node.
+        If MatchAs is a wildcard, return 'otherwise' case, else throw error
+        """
         if not (node.pattern):
             return ""
         else:
@@ -244,53 +201,13 @@ class FunctionCodegen(ast.NodeVisitor):
             )
 
     def visit_MatchOr(self, node: ast.MatchOr) -> str:
-        """Visit a MatchOr node"""
-        latex = ""
+        """Visit a MatchOr node."""
+        case_latexes: list[str] = []
         for i, pattern in enumerate(node.patterns):
             if i != 0:
-                latex += r" \lor " + self.visit(pattern)
+                case_latexes.append(
+                    r" \lor " + self.visit(pattern)
+                )
             else:
-                latex += self.visit(pattern)
-        return latex
-
-    def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
-        # ast.Constant class is added in Python 3.8
-        # ast.Num is the relevant node type in previous versions
-        if sys.version_info.minor < 8:
-            if isinstance(node.right, ast.Num):
-                if isinstance(node.op, ast.Add):
-                    if node.right.n == 1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Num(node.right.n - 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-                else:
-                    if node.right.n == -1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Num(node.right.n + 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-            else:
-                upper = "{" + self.visit(node) + "}"
-        else:
-            if isinstance(node.right, ast.Constant):
-                if isinstance(node.op, ast.Add):
-                    if node.right.value == 1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Constant(node.right.value - 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-                else:
-                    if node.right.value == -1:
-                        upper = "{" + self.visit(node.left) + "}"
-                    else:
-                        reduced_constant = ast.Constant(node.right.value + 1)
-                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
-                        upper = "{" + self.visit(new_node) + "}"
-            else:
-                upper = "{" + self.visit(node) + "}"
-
-        return upper
+                case_latexes.append(self.visit(pattern))
+        return "".join(case_latexes)

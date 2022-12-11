@@ -12,7 +12,7 @@ from latexify.codegen import function_codegen
 
 
 @test_utils.require_at_least(10)
-def test_functiondef_match() -> None:
+def test_visit_functiondef_match() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -36,7 +36,7 @@ def test_functiondef_match() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchvalue() -> None:
+def test_visit_match() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -58,7 +58,7 @@ def test_matchvalue() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_multiple_matchvalue() -> None:
+def test_visit_multiple_match_cases() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -83,7 +83,7 @@ def test_multiple_matchvalue() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_single_matchvalue_no_wildcards() -> None:
+def test_visit_single_match_case_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -102,7 +102,7 @@ def test_single_matchvalue_no_wildcards() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_multiple_matchvalue_no_wildcards() -> None:
+def test_visit_multiple_match_cases_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -123,7 +123,7 @@ def test_multiple_matchvalue_no_wildcards() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchas_nonempty() -> None:
+def test_visit_only_wildcard_in_matchas() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -144,7 +144,7 @@ def test_matchas_nonempty() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchvalue_no_return() -> None:
+def test_visit_match_case_no_return() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -165,7 +165,7 @@ def test_matchvalue_no_return() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchvalue_mutliple_statements() -> None:
+def test_visit_match_case_mutliple_statements() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -187,7 +187,7 @@ def test_matchvalue_mutliple_statements() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchcase_with_guard() -> None:
+def test_visit_match_case_with_if() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -209,7 +209,7 @@ def test_matchcase_with_guard() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchcase_with_and_guard() -> None:
+def test_visit_match_case_with_if_and() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -231,7 +231,7 @@ def test_matchcase_with_and_guard() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchcase_with_or_guard() -> None:
+def test_visit_matchcase_with_if_or() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -253,7 +253,7 @@ def test_matchcase_with_or_guard() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchcase_with_multiple_guards() -> None:
+def test_visit_match_case_with_combined_condition() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -275,7 +275,7 @@ def test_matchcase_with_multiple_guards() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchor() -> None:
+def test_visit_match_case_or() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
