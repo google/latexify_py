@@ -186,8 +186,8 @@ class FunctionCodegen(ast.NodeVisitor):
         return "subject_name = " + latex
 
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
-        """Visit a MatchAs node.
-        
+        """
+        Visit a MatchAs node.
         If MatchAs is a wildcard, return 'otherwise' case, otherwise throw an error.
         """
         if node.pattern is None:
