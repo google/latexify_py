@@ -54,8 +54,6 @@ class LatexifiedRepr(abc.ABC):
 class LatexifiedAlgorithm(LatexifiedRepr):
     """Algorithm with latex representation."""
 
-    _latex: str | None
-    _error: str | None
     _jupyter_latex: str | None
     _jupyter_error: str | None
 
