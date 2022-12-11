@@ -1,6 +1,10 @@
+"""End-to-end test cases of function expansion."""
+
+from __future__ import annotations
+
 import math
 
-from integration_tests import utils
+from integration_tests import integration_utils
 
 
 def test_atan2() -> None:
@@ -11,7 +15,7 @@ def test_atan2() -> None:
         r"\mathrm{solve}(x, y) ="
         r" \arctan \mathopen{}\left( \frac{y}{x} \mathclose{}\right)"
     )
-    utils.check_function(solve, latex, expand_functions={"atan2"})
+    integration_utils.check_function(solve, latex, expand_functions={"atan2"})
 
 
 def test_atan2_nested() -> None:
@@ -22,7 +26,7 @@ def test_atan2_nested() -> None:
         r"\mathrm{solve}(x, y) ="
         r" \arctan \mathopen{}\left( \frac{e^{y}}{e^{x}} \mathclose{}\right)"
     )
-    utils.check_function(solve, latex, expand_functions={"atan2", "exp"})
+    integration_utils.check_function(solve, latex, expand_functions={"atan2", "exp"})
 
 
 def test_exp() -> None:
@@ -30,7 +34,7 @@ def test_exp() -> None:
         return math.exp(x)
 
     latex = r"\mathrm{solve}(x) = e^{x}"
-    utils.check_function(solve, latex, expand_functions={"exp"})
+    integration_utils.check_function(solve, latex, expand_functions={"exp"})
 
 
 def test_exp_nested() -> None:
@@ -38,7 +42,7 @@ def test_exp_nested() -> None:
         return math.exp(math.exp(x))
 
     latex = r"\mathrm{solve}(x) = e^{e^{x}}"
-    utils.check_function(solve, latex, expand_functions={"exp"})
+    integration_utils.check_function(solve, latex, expand_functions={"exp"})
 
 
 def test_exp2() -> None:
@@ -46,7 +50,7 @@ def test_exp2() -> None:
         return math.exp2(x)
 
     latex = r"\mathrm{solve}(x) = 2^{x}"
-    utils.check_function(solve, latex, expand_functions={"exp2"})
+    integration_utils.check_function(solve, latex, expand_functions={"exp2"})
 
 
 def test_exp2_nested() -> None:
@@ -54,7 +58,7 @@ def test_exp2_nested() -> None:
         return math.exp2(math.exp2(x))
 
     latex = r"\mathrm{solve}(x) = 2^{2^{x}}"
-    utils.check_function(solve, latex, expand_functions={"exp2"})
+    integration_utils.check_function(solve, latex, expand_functions={"exp2"})
 
 
 def test_expm1() -> None:
@@ -62,7 +66,7 @@ def test_expm1() -> None:
         return math.expm1(x)
 
     latex = r"\mathrm{solve}(x) = \exp x - 1"
-    utils.check_function(solve, latex, expand_functions={"expm1"})
+    integration_utils.check_function(solve, latex, expand_functions={"expm1"})
 
 
 def test_expm1_nested() -> None:
@@ -70,7 +74,9 @@ def test_expm1_nested() -> None:
         return math.expm1(math.pow(y, z))
 
     latex = r"\mathrm{solve}(x, y, z) = e^{y^{z}} - 1"
-    utils.check_function(solve, latex, expand_functions={"expm1", "exp", "pow"})
+    integration_utils.check_function(
+        solve, latex, expand_functions={"expm1", "exp", "pow"}
+    )
 
 
 def test_hypot_without_attribute() -> None:
@@ -80,7 +86,7 @@ def test_hypot_without_attribute() -> None:
         return hypot(x, y, z)
 
     latex = r"\mathrm{solve}(x, y, z) = \sqrt{ x^{2} + y^{2} + z^{2} }"
-    utils.check_function(solve, latex, expand_functions={"hypot"})
+    integration_utils.check_function(solve, latex, expand_functions={"hypot"})
 
 
 def test_hypot() -> None:
@@ -88,7 +94,7 @@ def test_hypot() -> None:
         return math.hypot(x, y, z)
 
     latex = r"\mathrm{solve}(x, y, z) = \sqrt{ x^{2} + y^{2} + z^{2} }"
-    utils.check_function(solve, latex, expand_functions={"hypot"})
+    integration_utils.check_function(solve, latex, expand_functions={"hypot"})
 
 
 def test_hypot_nested() -> None:
@@ -99,7 +105,7 @@ def test_hypot_nested() -> None:
         r"\mathrm{solve}(a, b, x, y) ="
         r" \sqrt{ \sqrt{ a^{2} + b^{2} }^{2} + x^{2} + y^{2} }"
     )
-    utils.check_function(solve, latex, expand_functions={"hypot"})
+    integration_utils.check_function(solve, latex, expand_functions={"hypot"})
 
 
 def test_log1p() -> None:
@@ -107,7 +113,7 @@ def test_log1p() -> None:
         return math.log1p(x)
 
     latex = r"\mathrm{solve}(x) = \log \mathopen{}\left( 1 + x \mathclose{}\right)"
-    utils.check_function(solve, latex, expand_functions={"log1p"})
+    integration_utils.check_function(solve, latex, expand_functions={"log1p"})
 
 
 def test_log1p_nested() -> None:
@@ -115,7 +121,7 @@ def test_log1p_nested() -> None:
         return math.log1p(math.exp(x))
 
     latex = r"\mathrm{solve}(x) = \log \mathopen{}\left( 1 + e^{x} \mathclose{}\right)"
-    utils.check_function(solve, latex, expand_functions={"log1p", "exp"})
+    integration_utils.check_function(solve, latex, expand_functions={"log1p", "exp"})
 
 
 def test_pow_nested() -> None:
@@ -126,7 +132,7 @@ def test_pow_nested() -> None:
         r"\mathrm{solve}(w, x, y, z) = "
         r"\mathopen{}\left( w^{x} \mathclose{}\right)^{y^{z}}"
     )
-    utils.check_function(solve, latex, expand_functions={"pow"})
+    integration_utils.check_function(solve, latex, expand_functions={"pow"})
 
 
 def test_pow() -> None:
@@ -134,4 +140,4 @@ def test_pow() -> None:
         return math.pow(x, y)
 
     latex = r"\mathrm{solve}(x, y) = x^{y}"
-    utils.check_function(solve, latex, expand_functions={"pow"})
+    integration_utils.check_function(solve, latex, expand_functions={"pow"})

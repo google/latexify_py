@@ -26,8 +26,8 @@ def test_visit_functiondef_use_signature() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
-        def f(x):
-            return x
+            def f(x):
+                return x
             """
         )
     ).body[0]
@@ -50,9 +50,9 @@ def test_visit_functiondef_ignore_docstring() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
-        def f(x):
-            '''docstring'''
-            return x
+            def f(x):
+                '''docstring'''
+                return x
             """
         )
     ).body[0]
@@ -66,11 +66,11 @@ def test_visit_functiondef_ignore_multiple_constants() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
-        def f(x):
-            '''docstring'''
-            3
-            True
-            return x
+            def f(x):
+                '''docstring'''
+                3
+                True
+                return x
             """
         )
     ).body[0]
