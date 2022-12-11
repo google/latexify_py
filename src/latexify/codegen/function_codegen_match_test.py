@@ -28,7 +28,7 @@ def test_visit_functiondef_match() -> None:
     expected = (
         r"f(x) ="
         r" \left\{ \begin{array}{ll}"
-        r" 1, & \mathrm{if} \ x = 0 \\"
+        r"1, & \mathrm{if} \ x = 0 \\"
         r" 3 x, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
@@ -50,7 +50,7 @@ def test_visit_match() -> None:
     ).body[0]
     expected = (
         r"\left\{ \begin{array}{ll}"
-        r" 1, & \mathrm{if} \ x = 0 \\"
+        r"1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
@@ -74,7 +74,7 @@ def test_visit_multiple_match_cases() -> None:
     ).body[0]
     expected = (
         r"\left\{ \begin{array}{ll}"
-        r" 1, & \mathrm{if} \ x = 0 \\"
+        r"1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{if} \ x = 1 \\"
         r" 3, & \mathrm{otherwise}"
         r" \end{array} \right."
@@ -192,7 +192,7 @@ def test_visit_match_case_with_if() -> None:
         textwrap.dedent(
             """
             match x:
-                case x if x>0:
+                case x if x > 0:
                     return 1
                 case _:
                     return 2
@@ -202,7 +202,7 @@ def test_visit_match_case_with_if() -> None:
 
     assert (
         function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} "
+        == r"\left\{ \begin{array}{ll}"
         + r"1, & \mathrm{if} \ x > 0 \\ "
         + r"2, & \mathrm{otherwise} \end{array} \right."
     )
@@ -224,9 +224,9 @@ def test_visit_match_case_with_if_and() -> None:
 
     assert (
         function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} "
-        + r"\ x > 0 \land x \le 10 \\ "
-        + r"2, & \mathrm{otherwise} \end{array} \right."
+        == r"\left\{ \begin{array}{ll}1, & \mathrm{if} "
+        + r"\ x > 0 \land x \le 10 \\"
+        + r" 2, & \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -246,9 +246,9 @@ def test_visit_matchcase_with_if_or() -> None:
 
     assert (
         function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} 1, "
-        + r"& \mathrm{if} \ x > 0 \lor x \le 10 \\ "
-        + r"2, & \mathrm{otherwise} \end{array} \right."
+        == r"\left\{ \begin{array}{ll}1,"
+        + r" & \mathrm{if} \ x > 0 \lor x \le 10 \\"
+        + r" 2, & \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -268,9 +268,9 @@ def test_visit_match_case_with_combined_condition() -> None:
 
     assert (
         function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} 1, "
-        + r"& \mathrm{if} \ 0 < x \le 10 \\ 2, "
-        + r"& \mathrm{otherwise} \end{array} \right."
+        == r"\left\{ \begin{array}{ll}1,"
+        + r" & \mathrm{if} \ 0 < x \le 10 \\ 2,"
+        + r" & \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -290,6 +290,6 @@ def test_visit_match_case_or() -> None:
 
     assert (
         function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \lor x = 1 \\"
+        == r"\left\{ \begin{array}{ll}1, & \mathrm{if} \ x = 0 \lor x = 1 \\"
         + r" 2, & \mathrm{otherwise} \end{array} \right."
     )

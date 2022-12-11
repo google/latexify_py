@@ -164,16 +164,15 @@ class FunctionCodegen(ast.NodeVisitor):
                 cond_latex = self.visit(case.pattern)
                 if case.guard is not None:
                     cond_latex = self._expression_codegen.visit(case.guard)
-                    subject_latex = ""  # getting variable from cond_latex
 
                 case_latexes.append(body_latex + r", & \mathrm{if} \ " + cond_latex)
             else:
                 case_latexes.append(
-                    self.visit(node.cases[-1].body[0]) + r", & \mathrm{otherwise}"
+                    self.visit(case.body[0]) + r", & \mathrm{otherwise}"
                 )
 
         latex = (
-            r"\left\{ \begin{array}{ll} "
+            r"\left\{ \begin{array}{ll}"
             + r" \\ ".join(case_latexes)
             + r" \end{array} \right."
         )
@@ -184,7 +183,6 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node."""
         latex = self._expression_codegen.visit(node.value)
-
         return "subject_name = " + latex
 
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
@@ -203,8 +201,8 @@ class FunctionCodegen(ast.NodeVisitor):
         """Visit a MatchOr node."""
         case_latexes = []
         for i, pattern in enumerate(node.patterns):
-            if i != 0:
-                case_latexes.append(r" \lor " + self.visit(pattern))
-            else:
+            if i == 0:
                 case_latexes.append(self.visit(pattern))
+            else:
+                case_latexes.append(r" \lor " + self.visit(pattern))
         return "".join(case_latexes)
