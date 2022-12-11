@@ -21,5 +21,5 @@ from latexify.codegen import expression_rules
         (ast.Attribute(), expression_rules._INF_PRECEDENCE),
     ],
 )
-def test_get_precedence(tree: ast.AST, precedence: int) -> None:
-    assert expression_rules.get_precedence(tree) == precedence
+def test_get_precedence(node: ast.AST, precedence: int) -> None:
+    assert expression_rules.get_precedence(node) == precedence
