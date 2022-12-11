@@ -190,7 +190,7 @@ class FunctionCodegen(ast.NodeVisitor):
     def visit_MatchAs(self, node: ast.MatchAs) -> str:
         """Visit a MatchAs node.
         
-        If MatchAs is a wildcard, return 'otherwise' case, else throw error
+        If MatchAs is a wildcard, return 'otherwise' case, otherwise throw an error.
         """
         if not (node.pattern):
             return ""
