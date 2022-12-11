@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable, final
+from typing import Any, Callable
 
 from latexify import config as cfg
 from latexify import codegen, exceptions, parser
@@ -34,7 +34,6 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
     def __name__(self, val):
         self._fn.__name__ = val
 
-    @final
     def __call__(self, *args):
         return self._fn(*args)
 
