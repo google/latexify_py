@@ -104,3 +104,30 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         cond_latex = self._expression_codegen.visit(node.test)
         body_latex = " ".join(self.visit(stmt) for stmt in node.body)
         return rf"\While{{${cond_latex}$}} {body_latex} \EndWhile"
+
+
+class AlgorithmicJupyterCodegen(ast.NodeVisitor):
+    """Codegen for single algorithms, targeting the Jupyter Notebook environment.
+
+    This codegen works for Module with single FunctionDef node to generate a single
+    LaTeX expression of the given algorithm.
+    """
+
+    _identifier_converter: identifier_converter.IdentifierConverter
+
+    def __init__(
+        self, *, use_math_symbols: bool = False, use_set_symbols: bool = False
+    ) -> None:
+        """Initializer.
+
+        Args:
+            use_math_symbols: Whether to convert identifiers with a math symbol surface
+                (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
+            use_set_symbols: Whether to use set symbols or not.
+        """
+        self._expression_codegen = expression_codegen.ExpressionCodegen(
+            use_math_symbols=use_math_symbols, use_set_symbols=use_set_symbols
+        )
+        self._identifier_converter = identifier_converter.IdentifierConverter(
+            use_math_symbols=use_math_symbols
+        )
