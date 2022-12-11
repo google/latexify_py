@@ -192,7 +192,7 @@ class FunctionCodegen(ast.NodeVisitor):
         
         If MatchAs is a wildcard, return 'otherwise' case, otherwise throw an error.
         """
-        if not (node.pattern):
+        if node.pattern is None:
             return ""
         else:
             raise exceptions.LatexifySyntaxError(
