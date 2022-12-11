@@ -3,198 +3,9 @@
 from __future__ import annotations
 
 import ast
-import dataclasses
 
-from latexify import analyzers, ast_utils, constants, exceptions
-from latexify.codegen import codegen_utils, identifier_converter
-
-# Precedences of operators for BoolOp, BinOp, UnaryOp, and Compare nodes.
-# Note that this value affects only the appearance of surrounding parentheses for each
-# expression, and does not affect the AST itself.
-# See also:
-# https://docs.python.org/3/reference/expressions.html#operator-precedence
-_PRECEDENCES: dict[type[ast.AST], int] = {
-    ast.Pow: 120,
-    ast.UAdd: 110,
-    ast.USub: 110,
-    ast.Invert: 110,
-    ast.Mult: 100,
-    ast.MatMult: 100,
-    ast.Div: 100,
-    ast.FloorDiv: 100,
-    ast.Mod: 100,
-    ast.Add: 90,
-    ast.Sub: 90,
-    ast.LShift: 80,
-    ast.RShift: 80,
-    ast.BitAnd: 70,
-    ast.BitXor: 60,
-    ast.BitOr: 50,
-    ast.In: 40,
-    ast.NotIn: 40,
-    ast.Is: 40,
-    ast.IsNot: 40,
-    ast.Lt: 40,
-    ast.LtE: 40,
-    ast.Gt: 40,
-    ast.GtE: 40,
-    ast.NotEq: 40,
-    ast.Eq: 40,
-    # NOTE(odashi):
-    # We assume that the `not` operator has the same precedence with other unary
-    # operators `+`, `-` and `~`, because the LaTeX counterpart $\lnot$ looks to have a
-    # high precedence.
-    # ast.Not: 30,
-    ast.Not: 110,
-    ast.And: 20,
-    ast.Or: 10,
-}
-
-# NOTE(odashi):
-# Function invocation is treated as a unary operator with a higher precedence.
-# This ensures that the argument with a unary operator is wrapped:
-#     exp(x) --> \exp x
-#     exp(-x) --> \exp (-x)
-#     -exp(x) --> - \exp x
-_CALL_PRECEDENCE = _PRECEDENCES[ast.UAdd] + 1
-
-
-def _get_precedence(node: ast.AST) -> int:
-    """Obtains the precedence of the subtree.
-
-    Args:
-        node: Subtree to investigate.
-
-    Returns:
-        If `node` is a subtree with some operator, returns the precedence of the
-        operator. Otherwise, returns a number larger enough from other precedences.
-    """
-    if isinstance(node, ast.Call):
-        return _CALL_PRECEDENCE
-
-    if isinstance(node, (ast.BoolOp, ast.BinOp, ast.UnaryOp)):
-        return _PRECEDENCES[type(node.op)]
-
-    if isinstance(node, ast.Compare):
-        # Compare operators have the same precedence. It is enough to check only the
-        # first operator.
-        return _PRECEDENCES[type(node.ops[0])]
-
-    return 1_000_000
-
-
-@dataclasses.dataclass(frozen=True)
-class BinOperandRule:
-    """Syntax rules for operands of BinOp."""
-
-    # Whether to require wrapping operands by parentheses according to the precedence.
-    wrap: bool = True
-
-    # Whether to require wrapping operands by parentheses if the operand has the same
-    # precedence with this operator.
-    # This is used to control the behavior of non-associative operators.
-    force: bool = False
-
-
-@dataclasses.dataclass(frozen=True)
-class BinOpRule:
-    """Syntax rules for BinOp."""
-
-    # Left/middle/right syntaxes to wrap operands.
-    latex_left: str
-    latex_middle: str
-    latex_right: str
-
-    # Operand rules.
-    operand_left: BinOperandRule = dataclasses.field(default_factory=BinOperandRule)
-    operand_right: BinOperandRule = dataclasses.field(default_factory=BinOperandRule)
-
-    # Whether to assume the resulting syntax is wrapped by some bracket operators.
-    # If True, the parent operator can avoid wrapping this operator by parentheses.
-    is_wrapped: bool = False
-
-
-_BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
-    ast.Pow: BinOpRule(
-        "",
-        "^{",
-        "}",
-        operand_left=BinOperandRule(force=True),
-        operand_right=BinOperandRule(wrap=False),
-    ),
-    ast.Mult: BinOpRule("", r" \cdot ", ""),
-    ast.MatMult: BinOpRule("", r" \cdot ", ""),
-    ast.Div: BinOpRule(
-        r"\frac{",
-        "}{",
-        "}",
-        operand_left=BinOperandRule(wrap=False),
-        operand_right=BinOperandRule(wrap=False),
-    ),
-    ast.FloorDiv: BinOpRule(
-        r"\left\lfloor\frac{",
-        "}{",
-        r"}\right\rfloor",
-        operand_left=BinOperandRule(wrap=False),
-        operand_right=BinOperandRule(wrap=False),
-        is_wrapped=True,
-    ),
-    ast.Mod: BinOpRule(
-        "", r" \mathbin{\%} ", "", operand_right=BinOperandRule(force=True)
-    ),
-    ast.Add: BinOpRule("", " + ", ""),
-    ast.Sub: BinOpRule("", " - ", "", operand_right=BinOperandRule(force=True)),
-    ast.LShift: BinOpRule("", r" \ll ", "", operand_right=BinOperandRule(force=True)),
-    ast.RShift: BinOpRule("", r" \gg ", "", operand_right=BinOperandRule(force=True)),
-    ast.BitAnd: BinOpRule("", r" \mathbin{\&} ", ""),
-    ast.BitXor: BinOpRule("", r" \oplus ", ""),
-    ast.BitOr: BinOpRule("", r" \mathbin{|} ", ""),
-}
-
-# Typeset for BinOp of sets.
-_SET_BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
-    **_BIN_OP_RULES,
-    ast.Sub: BinOpRule(
-        "", r" \setminus ", "", operand_right=BinOperandRule(force=True)
-    ),
-    ast.BitAnd: BinOpRule("", r" \cap ", ""),
-    ast.BitXor: BinOpRule("", r" \mathbin{\triangle} ", ""),
-    ast.BitOr: BinOpRule("", r" \cup ", ""),
-}
-
-_UNARY_OPS: dict[type[ast.unaryop], str] = {
-    ast.Invert: r"\mathord{\sim} ",
-    ast.UAdd: "+",  # Explicitly adds the $+$ operator.
-    ast.USub: "-",
-    ast.Not: r"\lnot ",
-}
-
-_COMPARE_OPS: dict[type[ast.cmpop], str] = {
-    ast.Eq: "=",
-    ast.Gt: ">",
-    ast.GtE: r"\ge",
-    ast.In: r"\in",
-    ast.Is: r"\equiv",
-    ast.IsNot: r"\not\equiv",
-    ast.Lt: "<",
-    ast.LtE: r"\le",
-    ast.NotEq: r"\ne",
-    ast.NotIn: r"\notin",
-}
-
-# Typeset for Compare of sets.
-_SET_COMPARE_OPS: dict[type[ast.cmpop], str] = {
-    **_COMPARE_OPS,
-    ast.Gt: r"\supset",
-    ast.GtE: r"\supseteq",
-    ast.Lt: r"\subset",
-    ast.LtE: r"\subseteq",
-}
-
-_BOOL_OPS: dict[type[ast.boolop], str] = {
-    ast.And: r"\land",
-    ast.Or: r"\lor",
-}
+from latexify import analyzers, ast_utils, exceptions
+from latexify.codegen import codegen_utils, expression_rules, identifier_converter
 
 
 class ExpressionCodegen(ast.NodeVisitor):
@@ -202,7 +13,7 @@ class ExpressionCodegen(ast.NodeVisitor):
 
     _identifier_converter: identifier_converter.IdentifierConverter
 
-    _bin_op_rules: dict[type[ast.operator], BinOpRule]
+    _bin_op_rules: dict[type[ast.operator], expression_rules.BinOpRule]
     _compare_ops: dict[type[ast.cmpop], str]
 
     def __init__(
@@ -219,8 +30,16 @@ class ExpressionCodegen(ast.NodeVisitor):
             use_math_symbols=use_math_symbols
         )
 
-        self._bin_op_rules = _SET_BIN_OP_RULES if use_set_symbols else _BIN_OP_RULES
-        self._compare_ops = _SET_COMPARE_OPS if use_set_symbols else _COMPARE_OPS
+        self._bin_op_rules = (
+            expression_rules.SET_BIN_OP_RULES
+            if use_set_symbols
+            else expression_rules.BIN_OP_RULES
+        )
+        self._compare_ops = (
+            expression_rules.SET_COMPARE_OPS
+            if use_set_symbols
+            else expression_rules.COMPARE_OPS
+        )
 
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
@@ -420,17 +239,21 @@ class ExpressionCodegen(ast.NodeVisitor):
             return special_latex
 
         # Obtains the codegen rule.
-        rule = constants.BUILTIN_FUNCS.get(func_name) if func_name is not None else None
+        rule = (
+            expression_rules.BUILTIN_FUNCS.get(func_name)
+            if func_name is not None
+            else None
+        )
 
         if rule is None:
-            rule = constants.FunctionRule(self.visit(node.func))
+            rule = expression_rules.FunctionRule(self.visit(node.func))
 
         if rule.is_unary and len(node.args) == 1:
             # Unary function. Applies the same wrapping policy with the unary operators.
             # NOTE(odashi):
             # Factorial "x!" is treated as a special case: it requires both inner/outer
             # parentheses for correct interpretation.
-            precedence = _get_precedence(node)
+            precedence = expression_rules.get_precedence(node)
             arg = node.args[0]
             force_wrap = isinstance(arg, ast.Call) and (
                 func_name == "factorial"
@@ -507,7 +330,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             LaTeX form of `child`, with or without surrounding parentheses.
         """
         latex = self.visit(child)
-        child_prec = _get_precedence(child)
+        child_prec = expression_rules.get_precedence(child)
 
         if child_prec < parent_prec or force_wrap and child_prec == parent_prec:
             return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
@@ -518,7 +341,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         self,
         child: ast.expr,
         parent_prec: int,
-        operand_rule: BinOperandRule,
+        operand_rule: expression_rules.BinOperandRule,
     ) -> str:
         """Wraps the operand subtree of BinOp with parentheses.
 
@@ -536,7 +359,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         if isinstance(child, ast.Call):
             child_fn_name = ast_utils.extract_function_name_or_none(child)
             rule = (
-                constants.BUILTIN_FUNCS.get(child_fn_name)
+                expression_rules.BUILTIN_FUNCS.get(child_fn_name)
                 if child_fn_name is not None
                 else None
             )
@@ -548,10 +371,10 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         latex = self.visit(child)
 
-        if _BIN_OP_RULES[type(child.op)].is_wrapped:
+        if expression_rules.BIN_OP_RULES[type(child.op)].is_wrapped:
             return latex
 
-        child_prec = _get_precedence(child)
+        child_prec = expression_rules.get_precedence(child)
 
         if child_prec > parent_prec or (
             child_prec == parent_prec and not operand_rule.force
@@ -562,7 +385,7 @@ class ExpressionCodegen(ast.NodeVisitor):
 
     def visit_BinOp(self, node: ast.BinOp) -> str:
         """Visit a BinOp node."""
-        prec = _get_precedence(node)
+        prec = expression_rules.get_precedence(node)
         rule = self._bin_op_rules[type(node.op)]
         lhs = self._wrap_binop_operand(node.left, prec, rule.operand_left)
         rhs = self._wrap_binop_operand(node.right, prec, rule.operand_right)
@@ -570,12 +393,12 @@ class ExpressionCodegen(ast.NodeVisitor):
 
     def visit_UnaryOp(self, node: ast.UnaryOp) -> str:
         """Visit a UnaryOp node."""
-        latex = self._wrap_operand(node.operand, _get_precedence(node))
-        return _UNARY_OPS[type(node.op)] + latex
+        latex = self._wrap_operand(node.operand, expression_rules.get_precedence(node))
+        return expression_rules.UNARY_OPS[type(node.op)] + latex
 
     def visit_Compare(self, node: ast.Compare) -> str:
         """Visit a Compare node."""
-        parent_prec = _get_precedence(node)
+        parent_prec = expression_rules.get_precedence(node)
         lhs = self._wrap_operand(node.left, parent_prec)
         ops = [self._compare_ops[type(x)] for x in node.ops]
         rhs = [self._wrap_operand(x, parent_prec) for x in node.comparators]
@@ -584,9 +407,9 @@ class ExpressionCodegen(ast.NodeVisitor):
 
     def visit_BoolOp(self, node: ast.BoolOp) -> str:
         """Visit a BoolOp node."""
-        parent_prec = _get_precedence(node)
+        parent_prec = expression_rules.get_precedence(node)
         values = [self._wrap_operand(x, parent_prec) for x in node.values]
-        op = f" {_BOOL_OPS[type(node.op)]} "
+        op = f" {expression_rules.BOOL_OPS[type(node.op)]} "
         return op.join(values)
 
     def visit_IfExp(self, node: ast.IfExp) -> str:
