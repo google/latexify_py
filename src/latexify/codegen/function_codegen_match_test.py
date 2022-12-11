@@ -184,3 +184,112 @@ def test_matchvalue_mutliple_statements() -> None:
         match=r"^Match cases must contain exactly 1 return statement\.$",
     ):
         function_codegen.FunctionCodegen().visit(tree)
+
+
+@test_utils.require_at_least(10)
+def test_matchcase_with_guard() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case x if x>0:
+                    return 1
+                case _:
+                    return 2
+            """
+        )
+    ).body[0]
+
+    assert (
+        FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} "
+        + r"{1}, & \mathrm{if} \ {x > {0}} \\ "
+        + r"{2}, & \mathrm{otherwise}\end{array} \right."
+    )
+
+
+@test_utils.require_at_least(10)
+def test_matchcase_with_and_guard() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case x if x>0 and x<=10:
+                    return 1
+                case _:
+                    return 2
+            """
+        )
+    ).body[0]
+
+    assert (
+        FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} "
+        + r"\ {{x > {0}} \land {x \le {10}}} \\ "
+        + r"{2}, & \mathrm{otherwise}\end{array} \right."
+    )
+
+
+@test_utils.require_at_least(10)
+def test_matchcase_with_or_guard() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case x if x>0 or x<=10:
+                    return 1
+                case _:
+                    return 2
+            """
+        )
+    ).body[0]
+
+    assert (
+        FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} {1}, "
+        + r"& \mathrm{if} \ {{x > {0}} \lor {x \le {10}}} \\ "
+        + r"{2}, & \mathrm{otherwise}\end{array} \right."
+    )
+
+
+@test_utils.require_at_least(10)
+def test_matchcase_with_multiple_guards() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case x if 0 < x <= 10:
+                    return 1
+                case _:
+                    return 2
+            """
+        )
+    ).body[0]
+
+    assert (
+        FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} {1}, "
+        + r"& \mathrm{if} \ {{0} < x \le {10}} \\ {2}, "
+        + r"& \mathrm{otherwise}\end{array} \right."
+    )
+
+
+@test_utils.require_at_least(10)
+def test_matchor() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case 0 | 1:
+                    return 1
+                case _:
+                    return 2
+            """
+        )
+    ).body[0]
+
+    assert (
+        FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \lor x = {1} \\"
+        + r" {2}, & \mathrm{otherwise}\end{array} \right."
+    )
