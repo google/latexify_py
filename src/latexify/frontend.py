@@ -18,7 +18,7 @@ _COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
 class Environment(enum.Enum):
-    """The environment to target when generating LaTeX."""
+    """The target environment of the generated LaTeX."""
 
     IPYTHON = "ipython"
     LATEX = "latex"
