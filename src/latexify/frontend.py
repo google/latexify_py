@@ -18,11 +18,15 @@ _COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
 class Environment(enum.Enum):
+    """The environment to target when generating LaTeX."""
+
     IPYTHON = "ipython"
     LATEX = "latex"
 
 
 class Style(enum.Enum):
+    """The style of the generated LaTeX."""
+
     ALGORITHMIC = "algorithmic"
     EXPRESSION = "expression"
     FUNCTION = "function"
