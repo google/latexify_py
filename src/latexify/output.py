@@ -1,207 +1,122 @@
-"""Frontend interfaces of latexify."""
+"""Output of the frontend function decorators."""
 
 from __future__ import annotations
 
-import enum
-from collections.abc import Callable
-from typing import Any, overload
+import abc
+from typing import Any, Callable
 
-from latexify import codegen
-from latexify import config as cfg
-from latexify import output, parser, transformers
-
-# NOTE(odashi):
-# These prefixes are trimmed by default.
-# This behavior shouldn't be controlled by users in the current implementation because
-# some processes expects absense of these prefixes.
-_COMMON_PREFIXES = {"math", "numpy", "np"}
+from latexify import exceptions, frontend
 
 
-class Environment(enum.Enum):
-    JUPYTER_NOTEBOOK = "jupyter-notebook"
-    LATEX = "latex"
+class LatexifiedRepr(abc.ABC):
+    """Object with LaTeX representation."""
+
+    _fn: Callable[..., Any]
+    _latex: str | None
+    _error: str | None
+
+    def __init__(self, fn, **kwargs):
+        self._fn = fn
+
+    @property
+    def __doc__(self):
+        return self._fn.__doc__
+
+    @__doc__.setter
+    def __doc__(self, val):
+        self._fn.__doc__ = val
+
+    @property
+    def __name__(self):
+        return self._fn.__name__
+
+    @__name__.setter
+    def __name__(self, val):
+        self._fn.__name__ = val
+
+    def __call__(self, *args):
+        return self._fn(*args)
+
+    def __str__(self):
+        return self._latex if self._latex is not None else self._error
+
+    @abc.abstractmethod
+    def _repr_html_(self):
+        """IPython hook to display HTML visualization."""
+        ...
+
+    @abc.abstractmethod
+    def _repr_latex_(self):
+        """IPython hook to display LaTeX visualization."""
+        ...
 
 
-class Style(enum.Enum):
-    ALGORITHMIC = "algorithmic"
-    EXPRESSION = "expression"
-    FUNCTION = "function"
+class LatexifiedAlgorithm(LatexifiedRepr):
+    """Algorithm with latex representation."""
+
+    _latex: str | None
+    _error: str | None
+    _jupyter_latex: str | None
+    _jupyter_error: str | None
+
+    def __init__(self, fn, **kwargs):
+        super().__init__(fn)
+        try:
+            kwargs["environment"] = frontend.Environment.LATEX
+            self._latex = frontend.get_latex(fn, **kwargs)
+            self._error = None
+        except exceptions.LatexifyError as e:
+            self._latex = None
+            self._error = f"{type(e).__name__}: {str(e)}"
+        try:
+            kwargs["environment"] = frontend.Environment.JUPYTER_NOTEBOOK
+            self._jupyter_latex = frontend.get_latex(fn, **kwargs)
+            self._jupyter_error = None
+        except exceptions.LatexifyError as e:
+            self._jupyter_latex = None
+            self._jupyter_error = f"{type(e).__name__}: {str(e)}"
+
+    def _repr_html_(self):
+        """IPython hook to display HTML visualization."""
+        return (
+            '<span style="color: red;">' + self._jupyter_error + "</span>"
+            if self._jupyter_error is not None
+            else None
+        )
+
+    def _repr_latex_(self):
+        """IPython hook to display LaTeX visualization."""
+        return (
+            r"$ " + self._jupyter_latex + " $"
+            if self._jupyter_latex is not None
+            else self._jupyter_error
+        )
 
 
-def get_latex(
-    fn: Callable[..., Any],
-    *,
-    environment: Environment = Environment.LATEX,
-    style: Style = Style.FUNCTION,
-    config: cfg.Config | None = None,
-    **kwargs,
-) -> str:
-    """Obtains LaTeX description from the function's source.
+class LatexifiedFunction(LatexifiedRepr):
+    """Function with latex representation."""
 
-    Args:
-        fn: Reference to a function to analyze.
-        environment: Environment to target, the default is LATEX.
-        style: Style of the LaTeX description, the default is FUNCTION.
-        config: Use defined Config object, if it is None, it will be automatic assigned
-            with default value.
-        **kwargs: Dict of Config field values that could be defined individually
-            by users.
+    def __init__(self, fn, **kwargs):
+        super().__init__(fn, **kwargs)
+        try:
+            self._latex = frontend.get_latex(fn, **kwargs)
+            self._error = None
+        except exceptions.LatexifyError as e:
+            self._latex = None
+            self._error = f"{type(e).__name__}: {str(e)}"
 
-    Returns:
-        Generated LaTeX description.
+    def _repr_html_(self):
+        """IPython hook to display HTML visualization."""
+        return (
+            '<span style="color: red;">' + self._error + "</span>"
+            if self._error is not None
+            else None
+        )
 
-    Raises:
-        latexify.exceptions.LatexifyError: Something went wrong during conversion.
-    """
-    if style == Style.EXPRESSION:
-        kwargs["use_signature"] = kwargs.get("use_signature", False)
-
-    merged_config = cfg.Config.defaults().merge(config=config, **kwargs)
-
-    # Obtains the source AST.
-    tree = parser.parse_function(fn)
-
-    # Applies AST transformations.
-
-    prefixes = _COMMON_PREFIXES | (merged_config.prefixes or set())
-    tree = transformers.PrefixTrimmer(prefixes).visit(tree)
-
-    if merged_config.identifiers is not None:
-        tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
-    if merged_config.reduce_assignments:
-        tree = transformers.AssignmentReducer().visit(tree)
-    if merged_config.expand_functions is not None:
-        tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
-
-    # Generates LaTeX.
-    if style == Style.ALGORITHMIC:
-        if environment == Environment.LATEX:
-            return codegen.AlgorithmicCodegen(
-                use_math_symbols=merged_config.use_math_symbols,
-                use_set_symbols=merged_config.use_set_symbols,
-            ).visit(tree)
-        else:
-            return codegen.AlgorithmicJupyterCodegen(
-                use_math_symbols=merged_config.use_math_symbols,
-                use_set_symbols=merged_config.use_set_symbols,
-            ).visit(tree)
-    else:
-        return codegen.FunctionCodegen(
-            use_math_symbols=merged_config.use_math_symbols,
-            use_signature=merged_config.use_signature,
-            use_set_symbols=merged_config.use_set_symbols,
-        ).visit(tree)
-
-
-@overload
-def algorithmic(alg: Callable[..., Any], **kwargs: Any) -> output.LatexifiedAlgorithm:
-    ...
-
-
-@overload
-def algorithmic(
-    **kwargs: Any,
-) -> Callable[[Callable[..., Any]], output.LatexifiedAlgorithm]:
-    ...
-
-
-def algorithmic(
-    alg: Callable[..., Any] | None = None, **kwargs: Any
-) -> output.LatexifiedAlgorithm | Callable[
-    [Callable[..., Any]], output.LatexifiedAlgorithm
-]:
-    """Attach LaTeX pretty-printing to the given algorithm.
-
-    This function works with or without specifying the target algorithm as the
-    positional argument. The following two syntaxes works similarly.
-        - latexify.algorithmic(alg, **kwargs)
-        - latexify.algorithmic(**kwargs)(alg)
-
-    Args:
-        alg: Callable to be wrapped.
-        **kwargs: Arguments to control behavior. See also get_latex().
-
-    Returns:
-        - If `alg` is passed, returns the wrapped function.
-        - Otherwise, returns the wrapper function with given settings.
-    """
-    if "style" not in kwargs:
-        kwargs["style"] = Style.ALGORITHMIC
-
-    if alg is not None:
-        return output.LatexifiedAlgorithm(alg, **kwargs)
-
-    def wrapper(a):
-        return output.LatexifiedAlgorithm(a, **kwargs)
-
-    return wrapper
-
-
-@overload
-def function(fn: Callable[..., Any], **kwargs: Any) -> output.LatexifiedFunction:
-    ...
-
-
-@overload
-def function(
-    **kwargs: Any,
-) -> Callable[[Callable[..., Any]], output.LatexifiedFunction]:
-    ...
-
-
-def function(
-    fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> output.LatexifiedFunction | Callable[
-    [Callable[..., Any]], output.LatexifiedFunction
-]:
-    """Attach LaTeX pretty-printing to the given function.
-
-    This function works with or without specifying the target function as the positional
-    argument. The following two syntaxes works similarly.
-        - latexify.function(fn, **kwargs)
-        - latexify.function(**kwargs)(fn)
-
-    Args:
-        fn: Callable to be wrapped.
-        **kwargs: Arguments to control behavior. See also get_latex().
-
-    Returns:
-        - If `fn` is passed, returns the wrapped function.
-        - Otherwise, returns the wrapper function with given settings.
-    """
-    if fn is not None:
-        return output.LatexifiedFunction(fn, **kwargs)
-
-    def wrapper(f):
-        return output.LatexifiedFunction(f, **kwargs)
-
-    return wrapper
-
-
-@overload
-def expression(fn: Callable[..., Any], **kwargs: Any) -> output.LatexifiedFunction:
-    ...
-
-
-@overload
-def expression(
-    **kwargs: Any,
-) -> Callable[[Callable[..., Any]], output.LatexifiedFunction]:
-    ...
-
-
-def expression(
-    fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> output.LatexifiedFunction | Callable[
-    [Callable[..., Any]], output.LatexifiedFunction
-]:
-    """Attach LaTeX pretty-printing to the given function.
-
-    This function is a shortcut for `latexify.function` with the default parameter
-    `use_signature=False`.
-    """
-    kwargs["style"] = Style.EXPRESSION
-    if fn is not None:
-        return function(fn, **kwargs)
-    else:
-        return function(**kwargs)
+    def _repr_latex_(self):
+        """IPython hook to display LaTeX visualization."""
+        return (
+            r"$$ \displaystyle " + self._latex + " $$"
+            if self._latex is not None
+            else self._error
+        )
