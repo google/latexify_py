@@ -236,7 +236,7 @@ def test_visit_matchcase_with_if_or() -> None:
         textwrap.dedent(
             """
             match x:
-                case x if x>0 or x<=10:
+                case x if x > 0 or x <= 10:
                     return 1
                 case _:
                     return 2
