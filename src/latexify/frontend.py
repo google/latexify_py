@@ -198,7 +198,9 @@ def expression(
     This function is a shortcut for `latexify.function` with the default parameter
     `use_signature=False`.
     """
-    kwargs["style"] = Style.EXPRESSION
+    if "style" not in kwargs:
+        kwargs["style"] = Style.EXPRESSION
+
     if fn is not None:
         return function(fn, **kwargs)
     else:
