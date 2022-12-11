@@ -1,4 +1,4 @@
-"""Utilites for latexify.frontend."""
+"""Utilites for transformers."""
 
 from __future__ import annotations
 
@@ -16,7 +16,15 @@ _COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
 def apply_transformers(tree: ast.AST, config: cfg.Config) -> ast.AST:
-    # Applies AST transformations.
+    """Applies AST transformations.
+
+    Args:
+        tree: Tree of the function to apply transformers to.
+        config: Use defined Config object.
+
+    Returns:
+        A transformed AST.
+    """
     prefixes = _COMMON_PREFIXES | (config.prefixes or set())
     tree = transformers.PrefixTrimmer(prefixes).visit(tree)
 
