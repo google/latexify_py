@@ -141,42 +141,99 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_Match(self, node: ast.Match) -> str:
         """Visit a Match node"""
-        if not (
-            len(node.cases) >= 2
-            and isinstance(node.cases[-1].pattern, ast.MatchAs)
-            and node.cases[-1].pattern.name is None
-        ):
-            raise exceptions.LatexifySyntaxError(
-                "Match statement must contain the wildcard."
-            )
-
-        subject_latex = self._expression_codegen.visit(node.subject)
-        case_latexes: list[str] = []
-
-        for i, case in enumerate(node.cases):
-            if len(case.body) != 1 or not isinstance(case.body[0], ast.Return):
-                raise exceptions.LatexifyNotSupportedError(
-                    "Match cases must contain exactly 1 return statement."
+        latex = r"\left\{ \begin{array}{ll} "
+        subject_latex = self.visit(node.subject)
+        for i, match_case in enumerate(node.cases):
+            if len(match_case.body) != 1:
+                raise exceptions.LatexifySyntaxError(
+                    "Multiple statements are not supported in Match nodes."
                 )
+            true_latex = self.visit(match_case.body[0])
+            cond_latex = self.visit(match_case.pattern)
 
-            if i < len(node.cases) - 1:
-                body_latex = self.visit(case.body[0])
-                cond_latex = self.visit(case.pattern)
-                case_latexes.append(
-                    body_latex + r", & \mathrm{if} \ " + subject_latex + cond_latex
-                )
+            if i < len(node.cases) - 1:  # no wildcard cases
+                if match_case.guard:
+                    cond_latex = self.visit(match_case.guard)
+                    subject_latex = ""  # getting variable from cond_latex
+                if not cond_latex:
+                    raise exceptions.LatexifySyntaxError(
+                        "Match subtrees must contain only one wildcard at the end."
+                    )
+                latex += true_latex + r", & \mathrm{if} \ " + cond_latex + r" \\ "
             else:
-                case_latexes.append(
-                    self.visit(node.cases[-1].body[0]) + r", & \mathrm{otherwise}"
-                )
-
-        return (
-            r"\left\{ \begin{array}{ll} "
-            + r" \\ ".join(case_latexes)
-            + r" \end{array} \right."
-        )
+                if cond_latex:
+                    raise exceptions.LatexifySyntaxError(
+                        "Match subtrees must contain only one wildcard at the end."
+                    )
+                latex += true_latex + r", & \mathrm{otherwise}"
+        latex += r"\end{array} \right."
+        latex_final = latex.replace("subject_name", subject_latex)
+        return latex_final
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
         """Visit a MatchValue node"""
-        latex = self._expression_codegen.visit(node.value)
-        return " = " + latex
+        latex = self.visit(node.value)
+
+        return "subject_name = " + latex
+
+    def visit_MatchAs(self, node: ast.MatchAs) -> str:
+        """Visit a MatchAs node"""
+        """If MatchAs is a wildcard, return 'otherwise' case, else throw error"""
+        if not (node.pattern):
+            return ""
+        else:
+            raise exceptions.LatexifySyntaxError(
+                "Nonempty as-patterns are not supported in MatchAs nodes."
+            )
+
+    def visit_MatchOr(self, node: ast.MatchOr) -> str:
+        """Visit a MatchOr node"""
+        latex = ""
+        for i, pattern in enumerate(node.patterns):
+            if i != 0:
+                latex += r" \lor " + self.visit(pattern)
+            else:
+                latex += self.visit(pattern)
+        return latex
+
+    def _reduce_stop_parameter(self, node: ast.BinOp) -> str:
+        # ast.Constant class is added in Python 3.8
+        # ast.Num is the relevant node type in previous versions
+        if sys.version_info.minor < 8:
+            if isinstance(node.right, ast.Num):
+                if isinstance(node.op, ast.Add):
+                    if node.right.n == 1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Num(node.right.n - 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+                else:
+                    if node.right.n == -1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Num(node.right.n + 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(node) + "}"
+        else:
+            if isinstance(node.right, ast.Constant):
+                if isinstance(node.op, ast.Add):
+                    if node.right.value == 1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(node.right.value - 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+                else:
+                    if node.right.value == -1:
+                        upper = "{" + self.visit(node.left) + "}"
+                    else:
+                        reduced_constant = ast.Constant(node.right.value + 1)
+                        new_node = ast.BinOp(node.left, node.op, reduced_constant)
+                        upper = "{" + self.visit(new_node) + "}"
+            else:
+                upper = "{" + self.visit(node) + "}"
+
+        return upper
