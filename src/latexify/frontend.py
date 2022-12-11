@@ -8,7 +8,7 @@ from typing import Any, overload
 
 from latexify import codegen
 from latexify import config as cfg
-from latexify import exceptions, parser, transformers
+from latexify import output, parser, transformers
 
 # NOTE(odashi):
 # These prefixes are trimmed by default.
@@ -17,15 +17,21 @@ from latexify import exceptions, parser, transformers
 _COMMON_PREFIXES = {"math", "numpy", "np"}
 
 
+class Environment(enum.Enum):
+    IPYTHON = "ipython"
+    LATEX = "latex"
+
+
 class Style(enum.Enum):
+    ALGORITHMIC = "algorithmic"
     EXPRESSION = "expression"
     FUNCTION = "function"
-    ALGORITHMIC = "algorithmic"
 
 
 def get_latex(
     fn: Callable[..., Any],
     *,
+    environment: Environment = Environment.LATEX,
     style: Style = Style.FUNCTION,
     config: cfg.Config | None = None,
     **kwargs,
@@ -34,6 +40,7 @@ def get_latex(
 
     Args:
         fn: Reference to a function to analyze.
+        environment: Environment to target, the default is LATEX.
         style: Style of the LaTeX description, the default is FUNCTION.
         config: Use defined Config object, if it is None, it will be automatic assigned
             with default value.
@@ -68,10 +75,14 @@ def get_latex(
 
     # Generates LaTeX.
     if style == Style.ALGORITHMIC:
-        return codegen.AlgorithmicCodegen(
-            use_math_symbols=merged_config.use_math_symbols,
-            use_set_symbols=merged_config.use_set_symbols,
-        ).visit(tree)
+        if environment == Environment.LATEX:
+            return codegen.AlgorithmicCodegen(
+                use_math_symbols=merged_config.use_math_symbols,
+                use_set_symbols=merged_config.use_set_symbols,
+            ).visit(tree)
+        else:
+            # TODO(ZibingZhang): will implement in a follow-up PR
+            raise NotImplementedError
     else:
         return codegen.FunctionCodegen(
             use_math_symbols=merged_config.use_math_symbols,
@@ -80,74 +91,67 @@ def get_latex(
         ).visit(tree)
 
 
-class LatexifiedFunction:
-    """Function with latex representation."""
-
-    _fn: Callable[..., Any]
-    _latex: str | None
-    _error: str | None
-
-    def __init__(self, fn, **kwargs):
-        self._fn = fn
-        try:
-            self._latex = get_latex(fn, **kwargs)
-            self._error = None
-        except exceptions.LatexifyError as e:
-            self._latex = None
-            self._error = f"{type(e).__name__}: {str(e)}"
-
-    @property
-    def __doc__(self):
-        return self._fn.__doc__
-
-    @__doc__.setter
-    def __doc__(self, val):
-        self._fn.__doc__ = val
-
-    @property
-    def __name__(self):
-        return self._fn.__name__
-
-    @__name__.setter
-    def __name__(self, val):
-        self._fn.__name__ = val
-
-    def __call__(self, *args):
-        return self._fn(*args)
-
-    def __str__(self):
-        return self._latex if self._latex is not None else self._error
-
-    def _repr_html_(self):
-        """IPython hook to display HTML visualization."""
-        return (
-            '<span style="color: red;">' + self._error + "</span>"
-            if self._error is not None
-            else None
-        )
-
-    def _repr_latex_(self):
-        """IPython hook to display LaTeX visualization."""
-        return (
-            r"$$ \displaystyle " + self._latex + " $$"
-            if self._latex is not None
-            else self._error
-        )
-
-
 @overload
-def function(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+def algorithmic(alg: Callable[..., Any], **kwargs: Any) -> output.LatexifiedAlgorithm:
     ...
 
 
 @overload
-def function(**kwargs: Any) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+def algorithmic(
+    **kwargs: Any,
+) -> Callable[[Callable[..., Any]], output.LatexifiedAlgorithm]:
+    ...
+
+
+def algorithmic(
+    alg: Callable[..., Any] | None = None, **kwargs: Any
+) -> output.LatexifiedAlgorithm | Callable[
+    [Callable[..., Any]], output.LatexifiedAlgorithm
+]:
+    """Attach LaTeX pretty-printing to the given algorithm.
+
+    This function works with or without specifying the target algorithm as the
+    positional argument. The following two syntaxes works similarly.
+        - latexify.algorithmic(alg, **kwargs)
+        - latexify.algorithmic(**kwargs)(alg)
+
+    Args:
+        alg: Callable to be wrapped.
+        **kwargs: Arguments to control behavior. See also get_latex().
+
+    Returns:
+        - If `alg` is passed, returns the wrapped function.
+        - Otherwise, returns the wrapper function with given settings.
+    """
+    if "style" not in kwargs:
+        kwargs["style"] = Style.ALGORITHMIC
+
+    if alg is not None:
+        return output.LatexifiedAlgorithm(alg, **kwargs)
+
+    def wrapper(a):
+        return output.LatexifiedAlgorithm(a, **kwargs)
+
+    return wrapper
+
+
+@overload
+def function(fn: Callable[..., Any], **kwargs: Any) -> output.LatexifiedFunction:
+    ...
+
+
+@overload
+def function(
+    **kwargs: Any,
+) -> Callable[[Callable[..., Any]], output.LatexifiedFunction]:
     ...
 
 
 def function(
     fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+) -> output.LatexifiedFunction | Callable[
+    [Callable[..., Any]], output.LatexifiedFunction
+]:
     """Attach LaTeX pretty-printing to the given function.
 
     This function works with or without specifying the target function as the positional
@@ -164,27 +168,31 @@ def function(
         - Otherwise, returns the wrapper function with given settings.
     """
     if fn is not None:
-        return LatexifiedFunction(fn, **kwargs)
+        return output.LatexifiedFunction(fn, **kwargs)
 
     def wrapper(f):
-        return LatexifiedFunction(f, **kwargs)
+        return output.LatexifiedFunction(f, **kwargs)
 
     return wrapper
 
 
 @overload
-def expression(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+def expression(fn: Callable[..., Any], **kwargs: Any) -> output.LatexifiedFunction:
     ...
 
 
 @overload
-def expression(**kwargs: Any) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+def expression(
+    **kwargs: Any,
+) -> Callable[[Callable[..., Any]], output.LatexifiedFunction]:
     ...
 
 
 def expression(
     fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+) -> output.LatexifiedFunction | Callable[
+    [Callable[..., Any]], output.LatexifiedFunction
+]:
     """Attach LaTeX pretty-printing to the given function.
 
     This function is a shortcut for `latexify.function` with the default parameter
