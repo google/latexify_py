@@ -137,8 +137,8 @@ def test_matchas_nonempty() -> None:
     ).body[0]
 
     with pytest.raises(
-        exceptions.LatexifyNotSupportedError,
-        match=r"^Unsupported AST: MatchAs$",
+        exceptions.LatexifySyntaxError,
+        match=r"^Nonempty as-patterns are not supported in MatchAs nodes.$",
     ):
         function_codegen.FunctionCodegen().visit(tree)
 
@@ -201,10 +201,10 @@ def test_matchcase_with_guard() -> None:
     ).body[0]
 
     assert (
-        FunctionCodegen().visit(tree)
+        function_codegen.FunctionCodegen().visit(tree)
         == r"\left\{ \begin{array}{ll} "
-        + r"{1}, & \mathrm{if} \ {x > {0}} \\ "
-        + r"{2}, & \mathrm{otherwise}\end{array} \right."
+        + r"1, & \mathrm{if} \ x > 0 \\ "
+        + r"2, & \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -223,10 +223,10 @@ def test_matchcase_with_and_guard() -> None:
     ).body[0]
 
     assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} "
-        + r"\ {{x > {0}} \land {x \le {10}}} \\ "
-        + r"{2}, & \mathrm{otherwise}\end{array} \right."
+        function_codegen.FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} "
+        + r"\ x > 0 \land x \le 10 \\ "
+        + r"2, & \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -245,10 +245,10 @@ def test_matchcase_with_or_guard() -> None:
     ).body[0]
 
     assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} {1}, "
-        + r"& \mathrm{if} \ {{x > {0}} \lor {x \le {10}}} \\ "
-        + r"{2}, & \mathrm{otherwise}\end{array} \right."
+        function_codegen.FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} 1, "
+        + r"& \mathrm{if} \ x > 0 \lor x \le 10 \\ "
+        + r"2, & \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -267,10 +267,10 @@ def test_matchcase_with_multiple_guards() -> None:
     ).body[0]
 
     assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} {1}, "
-        + r"& \mathrm{if} \ {{0} < x \le {10}} \\ {2}, "
-        + r"& \mathrm{otherwise}\end{array} \right."
+        function_codegen.FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} 1, "
+        + r"& \mathrm{if} \ 0 < x \le 10 \\ 2, "
+        + r"& \mathrm{otherwise} \end{array} \right."
     )
 
 
@@ -289,7 +289,7 @@ def test_matchor() -> None:
     ).body[0]
 
     assert (
-        FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll} {1}, & \mathrm{if} \ x = {0} \lor x = {1} \\"
-        + r" {2}, & \mathrm{otherwise}\end{array} \right."
+        function_codegen.FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \lor x = 1 \\"
+        + r" 2, & \mathrm{otherwise} \end{array} \right."
     )
