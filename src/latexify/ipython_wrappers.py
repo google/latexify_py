@@ -1,19 +1,19 @@
-"""Output of the frontend function decorators."""
+"""Wrapper objects for IPython to display output."""
 
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable
+from typing import Any, Callable, final
 
-from latexify import exceptions, frontend
+from latexify import config as cfg
+from latexify import codegen, exceptions, parser
+from latexify.transformers import transformer_utils
 
 
-class LatexifiedRepr(abc.ABC):
+class LatexifiedRepr(metaclass=abc.ABCMeta):
     """Object with LaTeX representation."""
 
     _fn: Callable[..., Any]
-    _latex: str | None
-    _error: str | None
 
     def __init__(self, fn, **kwargs):
         self._fn = fn
@@ -34,11 +34,9 @@ class LatexifiedRepr(abc.ABC):
     def __name__(self, val):
         self._fn.__name__ = val
 
+    @final
     def __call__(self, *args):
         return self._fn(*args)
-
-    def __str__(self):
-        return self._latex if self._latex is not None else self._error
 
     @abc.abstractmethod
     def _repr_html_(self):
@@ -54,25 +52,40 @@ class LatexifiedRepr(abc.ABC):
 class LatexifiedAlgorithm(LatexifiedRepr):
     """Algorithm with latex representation."""
 
+    _latex: str | None
+    _error: str | None
     _ipython_latex: str | None
     _ipython_error: str | None
 
     def __init__(self, fn, **kwargs):
         super().__init__(fn)
+        merged_config = cfg.Config.defaults().merge(**kwargs)
+
+        # Obtains the source AST.
+        tree = parser.parse_function(fn)
+        tree = transformer_utils.apply_transformers(tree, merged_config)
+
+        # Generates LaTeX.
         try:
-            kwargs["environment"] = frontend.Environment.LATEX
-            self._latex = frontend.get_latex(fn, **kwargs)
+            self._latex = codegen.AlgorithmicCodegen(
+                use_math_symbols=merged_config.use_math_symbols,
+                use_set_symbols=merged_config.use_set_symbols,
+            ).visit(tree)
             self._error = None
         except exceptions.LatexifyError as e:
             self._latex = None
             self._error = f"{type(e).__name__}: {str(e)}"
+
         try:
-            kwargs["environment"] = frontend.Environment.IPYTHON
-            self._ipython_latex = frontend.get_latex(fn, **kwargs)
+            # TODO(ZibingZhang): implement algorithmic codegen for IPython
+            self._ipython_latex = None
             self._ipython_error = None
         except exceptions.LatexifyError as e:
             self._ipython_latex = None
             self._ipython_error = f"{type(e).__name__}: {str(e)}"
+
+    def __str__(self):
+        return self._latex if self._latex is not None else self._error
 
     def _repr_html_(self):
         """IPython hook to display HTML visualization."""
@@ -94,14 +107,32 @@ class LatexifiedAlgorithm(LatexifiedRepr):
 class LatexifiedFunction(LatexifiedRepr):
     """Function with latex representation."""
 
+    _latex: str | None
+    _error: str | None
+
     def __init__(self, fn, **kwargs):
         super().__init__(fn, **kwargs)
+
+        merged_config = cfg.Config.defaults().merge(**kwargs)
+
+        # Obtains the source AST.
+        tree = parser.parse_function(fn)
+        tree = transformer_utils.apply_transformers(tree, merged_config)
+
+        # Generates LaTeX.
         try:
-            self._latex = frontend.get_latex(fn, **kwargs)
+            self._latex = codegen.FunctionCodegen(
+                use_math_symbols=merged_config.use_math_symbols,
+                use_signature=merged_config.use_signature,
+                use_set_symbols=merged_config.use_set_symbols,
+            ).visit(tree)
             self._error = None
         except exceptions.LatexifyError as e:
             self._latex = None
             self._error = f"{type(e).__name__}: {str(e)}"
+
+    def __str__(self):
+        return self._latex if self._latex is not None else self._error
 
     def _repr_html_(self):
         """IPython hook to display HTML visualization."""
