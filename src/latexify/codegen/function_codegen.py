@@ -201,7 +201,7 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_MatchOr(self, node: ast.MatchOr) -> str:
         """Visit a MatchOr node."""
-        case_latexes: list[str] = []
+        case_latexes = []
         for i, pattern in enumerate(node.patterns):
             if i != 0:
                 case_latexes.append(r" \lor " + self.visit(pattern))
