@@ -2,64 +2,82 @@
 
 from __future__ import annotations
 
-import warnings
+import enum
 from collections.abc import Callable
-from typing import Any
+from typing import Any, overload
 
-from latexify import codegen, exceptions, parser, transformers
+from latexify import codegen
+from latexify import config as cfg
+from latexify import exceptions, parser, transformers
+
+# NOTE(odashi):
+# These prefixes are trimmed by default.
+# This behavior shouldn't be controlled by users in the current implementation because
+# some processes expects absense of these prefixes.
+_COMMON_PREFIXES = {"math", "numpy", "np"}
+
+
+class Style(enum.Enum):
+    EXPRESSION = "expression"
+    FUNCTION = "function"
+    ALGORITHMIC = "algorithmic"
 
 
 def get_latex(
     fn: Callable[..., Any],
     *,
-    identifiers: dict[str, str] | None = None,
-    reduce_assignments: bool = False,
-    use_math_symbols: bool = False,
-    use_raw_function_name: bool = False,
-    use_signature: bool = True,
-    use_set_symbols: bool = False,
+    style: Style = Style.FUNCTION,
+    config: cfg.Config | None = None,
+    **kwargs,
 ) -> str:
     """Obtains LaTeX description from the function's source.
 
     Args:
         fn: Reference to a function to analyze.
-        identifiers: If set, the mapping to replace identifier names in the function.
-            Keys are the original names of the identifiers, and corresponding values are
-            the replacements.
-            Both keys and values have to represent valid Python identifiers:
-            ^[A-Za-z_][A-Za-z0-9_]*$
-        reduce_assignments: If True, assignment statements are used to synthesize
-            the final expression.
-        use_math_symbols: Whether to convert identifiers with a math symbol surface
-            (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
-        use_raw_function_name: Whether to keep underscores "_" in the function name,
-            or convert it to subscript.
-        use_signature: Whether to add the function signature before the expression or
-            not.
-        use_set_symbols: Whether to use set symbols or not.
+        style: Style of the LaTeX description, the default is FUNCTION.
+        config: Use defined Config object, if it is None, it will be automatic assigned
+            with default value.
+        **kwargs: Dict of Config field values that could be defined individually
+            by users.
 
     Returns:
-        Generatee LaTeX description.
+        Generated LaTeX description.
 
     Raises:
         latexify.exceptions.LatexifyError: Something went wrong during conversion.
     """
+    if style == Style.EXPRESSION:
+        kwargs["use_signature"] = kwargs.get("use_signature", False)
+
+    merged_config = cfg.Config.defaults().merge(config=config, **kwargs)
+
     # Obtains the source AST.
     tree = parser.parse_function(fn)
 
     # Applies AST transformations.
-    if identifiers is not None:
-        tree = transformers.IdentifierReplacer(identifiers).visit(tree)
-    if reduce_assignments:
+
+    prefixes = _COMMON_PREFIXES | (merged_config.prefixes or set())
+    tree = transformers.PrefixTrimmer(prefixes).visit(tree)
+
+    if merged_config.identifiers is not None:
+        tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
+    if merged_config.reduce_assignments:
         tree = transformers.AssignmentReducer().visit(tree)
+    if merged_config.expand_functions is not None:
+        tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
 
     # Generates LaTeX.
-    return codegen.FunctionCodegen(
-        use_math_symbols=use_math_symbols,
-        use_raw_function_name=use_raw_function_name,
-        use_signature=use_signature,
-        use_set_symbols=use_set_symbols,
-    ).visit(tree)
+    if style == Style.ALGORITHMIC:
+        return codegen.AlgorithmicCodegen(
+            use_math_symbols=merged_config.use_math_symbols,
+            use_set_symbols=merged_config.use_set_symbols,
+        ).visit(tree)
+    else:
+        return codegen.FunctionCodegen(
+            use_math_symbols=merged_config.use_math_symbols,
+            use_signature=merged_config.use_signature,
+            use_set_symbols=merged_config.use_set_symbols,
+        ).visit(tree)
 
 
 class LatexifiedFunction:
@@ -117,45 +135,63 @@ class LatexifiedFunction:
         )
 
 
-def function(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Translate a function into a corresponding LaTeX representation.
+@overload
+def function(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+    ...
+
+
+@overload
+def function(**kwargs: Any) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    ...
+
+
+def function(
+    fn: Callable[..., Any] | None = None, **kwargs: Any
+) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Attach LaTeX pretty-printing to the given function.
 
     This function works with or without specifying the target function as the positional
     argument. The following two syntaxes works similarly.
-        - with_latex(fn, **kwargs)
-        - with_latex(**kwargs)(fn)
+        - latexify.function(fn, **kwargs)
+        - latexify.function(**kwargs)(fn)
 
     Args:
-        *args: No argument, or a callable.
+        fn: Callable to be wrapped.
         **kwargs: Arguments to control behavior. See also get_latex().
 
     Returns:
-        - If the target function is passed directly, returns the wrapped function.
+        - If `fn` is passed, returns the wrapped function.
         - Otherwise, returns the wrapper function with given settings.
     """
-    if len(args) == 1 and isinstance(args[0], Callable):
-        return LatexifiedFunction(args[0], **kwargs)
-
-    def wrapper(fn):
+    if fn is not None:
         return LatexifiedFunction(fn, **kwargs)
+
+    def wrapper(f):
+        return LatexifiedFunction(f, **kwargs)
 
     return wrapper
 
 
-def expression(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Translate a function into a LaTeX representation without the signature.
+@overload
+def expression(fn: Callable[..., Any], **kwargs: Any) -> LatexifiedFunction:
+    ...
+
+
+@overload
+def expression(**kwargs: Any) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
+    ...
+
+
+def expression(
+    fn: Callable[..., Any] | None = None, **kwargs: Any
+) -> LatexifiedFunction | Callable[[Callable[..., Any]], LatexifiedFunction]:
+    """Attach LaTeX pretty-printing to the given function.
 
     This function is a shortcut for `latexify.function` with the default parameter
     `use_signature=False`.
     """
-    kwargs["use_signature"] = kwargs.get("use_signature", False)
-    return function(*args, **kwargs)
-
-
-def with_latex(*args, **kwargs) -> Callable[[Callable[..., Any]], LatexifiedFunction]:
-    """Deprecated. use `latexify.function` instead."""
-    warnings.warn(
-        "`latexify.with_latex` is deprecated. Use `latexify.function` instead.",
-        DeprecationWarning,
-    )
-    return function(*args, **kwargs)
+    kwargs["style"] = Style.EXPRESSION
+    if fn is not None:
+        return function(fn, **kwargs)
+    else:
+        return function(**kwargs)

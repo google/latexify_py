@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 import re
 import sys
-from typing import ClassVar
+from typing import ClassVar, cast
 
 
 class IdentifierReplacer(ast.NodeTransformer):
@@ -47,37 +47,35 @@ class IdentifierReplacer(ast.NodeTransformer):
         """Helper function to replace arg names."""
         return [ast.arg(arg=self._mapping.get(a.arg, a.arg)) for a in args]
 
-    def _visit_children(self, children: list[ast.AST]) -> list[ast.AST]:
-        """Helper function to visit all children."""
-        return [self.visit(child) for child in children]
-
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
-        """Visitor of FunctionDef."""
+        """Visit a FunctionDef node."""
+        visited = cast(ast.FunctionDef, super().generic_visit(node))
+
         if sys.version_info.minor < 8:
             args = ast.arguments(
-                args=self._replace_args(node.args.args),
-                kwonlyargs=self._replace_args(node.args.kwonlyargs),
-                kw_defaults=self._visit_children(node.args.kw_defaults),
-                defaults=self._visit_children(node.args.defaults),
+                args=self._replace_args(visited.args.args),
+                kwonlyargs=self._replace_args(visited.args.kwonlyargs),
+                kw_defaults=visited.args.kw_defaults,
+                defaults=visited.args.defaults,
             )
         else:
             args = ast.arguments(
-                posonlyargs=self._replace_args(node.args.posonlyargs),  # from 3.8
-                args=self._replace_args(node.args.args),
-                kwonlyargs=self._replace_args(node.args.kwonlyargs),
-                kw_defaults=self._visit_children(node.args.kw_defaults),
-                defaults=self._visit_children(node.args.defaults),
+                posonlyargs=self._replace_args(visited.args.posonlyargs),  # from 3.8
+                args=self._replace_args(visited.args.args),
+                kwonlyargs=self._replace_args(visited.args.kwonlyargs),
+                kw_defaults=visited.args.kw_defaults,
+                defaults=visited.args.defaults,
             )
 
         return ast.FunctionDef(
-            name=self._mapping.get(node.name, node.name),
+            name=self._mapping.get(visited.name, visited.name),
             args=args,
-            body=self._visit_children(node.body),
-            decorator_list=self._visit_children(node.decorator_list),
+            body=visited.body,
+            decorator_list=visited.decorator_list,
         )
 
     def visit_Name(self, node: ast.Name) -> ast.Name:
-        """Visitor of Name."""
+        """Visit a Name node."""
         return ast.Name(
             id=self._mapping.get(node.id, node.id),
             ctx=node.ctx,
