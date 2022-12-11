@@ -150,7 +150,6 @@ class FunctionCodegen(ast.NodeVisitor):
                 "Match statement must contain the wildcard."
             )
 
-
         subject_latex = self._expression_codegen.visit(node.subject)
         case_latexes: list[str] = []
 
@@ -167,19 +166,19 @@ class FunctionCodegen(ast.NodeVisitor):
                     cond_latex = self._expression_codegen.visit(case.guard)
                     subject_latex = ""  # getting variable from cond_latex
 
-                case_latexes.append(
-                    body_latex + r", & \mathrm{if} \ " + cond_latex
-                )
+                case_latexes.append(body_latex + r", & \mathrm{if} \ " + cond_latex)
             else:
                 case_latexes.append(
                     self.visit(node.cases[-1].body[0]) + r", & \mathrm{otherwise}"
                 )
 
-        latex = (r"\left\{ \begin{array}{ll} " 
+        latex = (
+            r"\left\{ \begin{array}{ll} "
             + r" \\ ".join(case_latexes)
-            + r" \end{array} \right.")
-                
-        latex_final = latex.replace("subject_name", subject_latex) 
+            + r" \end{array} \right."
+        )
+
+        latex_final = latex.replace("subject_name", subject_latex)
         return latex_final
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:
@@ -205,9 +204,7 @@ class FunctionCodegen(ast.NodeVisitor):
         case_latexes: list[str] = []
         for i, pattern in enumerate(node.patterns):
             if i != 0:
-                case_latexes.append(
-                    r" \lor " + self.visit(pattern)
-                )
+                case_latexes.append(r" \lor " + self.visit(pattern))
             else:
                 case_latexes.append(self.visit(pattern))
         return "".join(case_latexes)
