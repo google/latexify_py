@@ -15,7 +15,10 @@ class AlgorithmicCodegen(ast.NodeVisitor):
     LaTeX expression of the given algorithm.
     """
 
+    _SPACES_PER_INDENT = 4
+
     _identifier_converter: identifier_converter.IdentifierConverter
+    _indent: int
 
     def __init__(
         self, *, use_math_symbols: bool = False, use_set_symbols: bool = False
@@ -33,6 +36,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         self._identifier_converter = identifier_converter.IdentifierConverter(
             use_math_symbols=use_math_symbols
         )
+        self._indent = 0
 
     def generic_visit(self, node: ast.AST) -> str:
         raise exceptions.LatexifyNotSupportedError(
@@ -46,11 +50,11 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         ]
         operands.append(self._expression_codegen.visit(node.value))
         operands_latex = r" \gets ".join(operands)
-        return rf"\State ${operands_latex}$"
+        return rf"{self._prefix()}\State ${operands_latex}$"
 
     def visit_Expr(self, node: ast.Expr) -> str:
         """Visit an Expr node."""
-        return rf"\State ${self._expression_codegen.visit(node.value)}$"
+        return rf"{self._prefix()}\State ${self._expression_codegen.visit(node.value)}$"
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
@@ -58,29 +62,42 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         arg_strs = [
             self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
         ]
-        # Body
-        body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
-        return (
-            rf"\begin{{algorithmic}}"
-            rf" \Function{{{node.name}}}{{${', '.join(arg_strs)}$}}"
-            f" {' '.join(body_strs)}"
-            r" \EndFunction"
-            rf" \end{{algorithmic}}"
+
+        latex = f"{self._prefix()}\\begin{{algorithmic}}\n"
+
+        self._indent += 1
+        latex += (
+            f"{self._prefix()}\\Function{{{node.name}}}{{${', '.join(arg_strs)}$}}\n"
         )
+
+        # Body
+        self._indent += 1
+        body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
+        self._indent -= 1
+        body_latex = "\n".join(body_strs)
+
+        latex += f"{body_latex}\n{self._prefix()}\\EndFunction\n"
+        self._indent -= 1
+
+        return latex + rf"{self._prefix()}\end{{algorithmic}}"
 
     # TODO(ZibingZhang): support \ELSIF
     def visit_If(self, node: ast.If) -> str:
         """Visit an If node."""
         cond_latex = self._expression_codegen.visit(node.test)
-        body_latex = " ".join(self.visit(stmt) for stmt in node.body)
+        self._indent += 1
+        body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
+        self._indent -= 1
 
-        latex = rf"\If{{${cond_latex}$}} {body_latex}"
+        latex = f"{self._prefix()}\\If{{${cond_latex}$}}\n{body_latex}"
 
         if node.orelse:
-            latex += r" \Else "
-            latex += " ".join(self.visit(stmt) for stmt in node.orelse)
+            latex += f"\n{self._prefix()}\\Else\n"
+            self._indent += 1
+            latex += "\n".join(self.visit(stmt) for stmt in node.orelse)
+            self._indent -= 1
 
-        return latex + r" \EndIf"
+        return latex + f"\n{self._prefix()}\\EndIf"
 
     def visit_Module(self, node: ast.Module) -> str:
         """Visit a Module node."""
@@ -89,9 +106,12 @@ class AlgorithmicCodegen(ast.NodeVisitor):
     def visit_Return(self, node: ast.Return) -> str:
         """Visit a Return node."""
         return (
-            rf"\State \Return ${self._expression_codegen.visit(node.value)}$"
+            (
+                rf"{self._prefix()}\State \Return"
+                f" ${self._expression_codegen.visit(node.value)}$"
+            )
             if node.value is not None
-            else r"\State \Return"
+            else rf"{self._prefix()}\State \Return"
         )
 
     def visit_While(self, node: ast.While) -> str:
@@ -102,5 +122,14 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             )
 
         cond_latex = self._expression_codegen.visit(node.test)
-        body_latex = " ".join(self.visit(stmt) for stmt in node.body)
-        return rf"\While{{${cond_latex}$}} {body_latex} \EndWhile"
+        self._indent += 1
+        body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
+        self._indent -= 1
+        return (
+            f"{self._prefix()}\\While{{${cond_latex}$}}\n"
+            f"{body_latex}\n"
+            rf"{self._prefix()}\EndWhile"
+        )
+
+    def _prefix(self) -> str:
+        return self._indent * self._SPACES_PER_INDENT * " "
