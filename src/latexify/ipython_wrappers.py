@@ -73,7 +73,7 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             self._error = f"{type(e).__name__}: {str(e)}"
 
         try:
-            self._ipython_latex = self._latex = generate_latex.get_latex(
+            self._ipython_latex = generate_latex.get_latex(
                 fn, style=generate_latex.Style.IPYTHON_ALGORITHMIC, **kwargs
             )
             self._ipython_error = None
