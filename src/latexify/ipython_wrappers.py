@@ -42,12 +42,12 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
         ...
 
     @abc.abstractmethod
-    def _repr_html_(self) -> str | None:
+    def _repr_html_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display HTML visualization."""
         ...
 
     @abc.abstractmethod
-    def _repr_latex_(self) -> str | None:
+    def _repr_latex_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display LaTeX visualization."""
         ...
 
@@ -91,7 +91,7 @@ class LatexifiedAlgorithm(LatexifiedRepr):
                 "Unable to get a string representation of the function."
             )
 
-    def _repr_html_(self) -> str | None:
+    def _repr_html_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display HTML visualization."""
         return (
             '<span style="color: red;">' + self._ipython_error + "</span>"
@@ -99,7 +99,7 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             else None
         )
 
-    def _repr_latex_(self) -> str | None:
+    def _repr_latex_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display LaTeX visualization."""
         return (
             r"$ " + self._ipython_latex + " $"
@@ -136,7 +136,7 @@ class LatexifiedFunction(LatexifiedRepr):
                 "Unable to get a string representation of the function."
             )
 
-    def _repr_html_(self) -> str | None:
+    def _repr_html_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display HTML visualization."""
         return (
             '<span style="color: red;">' + self._error + "</span>"
@@ -144,7 +144,7 @@ class LatexifiedFunction(LatexifiedRepr):
             else None
         )
 
-    def _repr_latex_(self) -> str | None:
+    def _repr_latex_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display LaTeX visualization."""
         return (
             r"$$ \displaystyle " + self._latex + " $$"
