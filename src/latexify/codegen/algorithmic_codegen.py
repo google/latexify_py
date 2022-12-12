@@ -64,7 +64,6 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         ]
 
         latex = f"{self._prefix()}\\begin{{algorithmic}}\n"
-
         self._indent += 1
         latex += (
             f"{self._prefix()}\\Function{{{node.name}}}{{${', '.join(arg_strs)}$}}\n"
@@ -78,7 +77,6 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
         latex += f"{body_latex}\n{self._prefix()}\\EndFunction\n"
         self._indent -= 1
-
         return latex + rf"{self._prefix()}\end{{algorithmic}}"
 
     # TODO(ZibingZhang): support \ELSIF
