@@ -5,8 +5,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Callable
 
-from latexify import exceptions
-from latexify.codegen import generate_latex
+from latexify import exceptions, generate_latex
 
 
 class LatexifiedRepr(metaclass=abc.ABCMeta):

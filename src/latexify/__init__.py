@@ -7,8 +7,7 @@ try:
 except Exception:
     __version__ = ""
 
-from latexify import frontend
-from latexify.codegen import generate_latex
+from latexify import frontend, generate_latex
 
 Style = generate_latex.Style
 

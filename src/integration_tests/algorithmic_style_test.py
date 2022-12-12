@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from latexify.codegen import generate_latex
+from latexify import generate_latex
 
 
 def check_algorithm(

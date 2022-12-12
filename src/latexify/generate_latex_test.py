@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from latexify.codegen import generate_latex
+from latexify import generate_latex
 
 
 def test_get_latex_identifiers() -> None:
