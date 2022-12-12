@@ -19,16 +19,16 @@ def test_get_latex_identifiers() -> None:
 
 
 def test_get_latex_prefixes() -> None:
-    math = numpy = np = abc = object()
+    abc = object()
 
     def f(x):
-        return math.a + numpy.b + np.c + abc.d + x.y.z.e
+        return abc.d + x.y.z.e
 
-    latex_without_flag = r"f(x) = a + b + c + \mathrm{abc}.d + x.y.z.e"
-    latex_with_flag1 = r"f(x) = a + b + c + d + x.y.z.e"
-    latex_with_flag2 = r"f(x) = a + b + c + \mathrm{abc}.d + y.z.e"
-    latex_with_flag3 = r"f(x) = a + b + c + \mathrm{abc}.d + z.e"
-    latex_with_flag4 = r"f(x) = a + b + c + d + e"
+    latex_without_flag = r"f(x) = \mathrm{abc}.d + x.y.z.e"
+    latex_with_flag1 = r"f(x) = d + x.y.z.e"
+    latex_with_flag2 = r"f(x) = \mathrm{abc}.d + y.z.e"
+    latex_with_flag3 = r"f(x) = \mathrm{abc}.d + z.e"
+    latex_with_flag4 = r"f(x) = d + e"
 
     assert generate_latex.get_latex(f) == latex_without_flag
     assert generate_latex.get_latex(f, prefixes=set()) == latex_without_flag
