@@ -45,8 +45,8 @@ def algorithmic(
     if fn is not None:
         return ipython_wrappers.LatexifiedAlgorithm(fn, **kwargs)
 
-    def wrapper(a):
-        return ipython_wrappers.LatexifiedAlgorithm(a, **kwargs)
+    def wrapper(f):
+        return ipython_wrappers.LatexifiedAlgorithm(f, **kwargs)
 
     return wrapper
 
