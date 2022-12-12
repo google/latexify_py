@@ -33,6 +33,8 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
     def __name__(self, val):
         self._fn.__name__ = val
 
+    # After Python 3.7
+    # @final
     def __call__(self, *args):
         return self._fn(*args)
 
