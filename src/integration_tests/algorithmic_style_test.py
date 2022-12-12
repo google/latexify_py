@@ -35,7 +35,6 @@ def test_factorial() -> None:
         else:
             return n * fact(n - 1)
 
-    # noqa: E501
     latex = textwrap.dedent(
         r"""
         \begin{algorithmic}
