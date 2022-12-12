@@ -8,13 +8,7 @@ from typing import Any
 
 from latexify import codegen
 from latexify import config as cfg
-from latexify import parser, transformers
-
-# NOTE(odashi):
-# These prefixes are trimmed by default.
-# This behavior shouldn't be controlled by users in the current implementation because
-# some processes expects absense of these prefixes.
-_COMMON_PREFIXES = {"math", "numpy", "np"}
+from latexify import exceptions, parser, transformers
 
 
 class Style(enum.Enum):
@@ -72,7 +66,7 @@ def get_latex(
         ).visit(tree)
     elif style == Style.IPYTHON_ALGORITHMIC:
         # TODO(ZibingZhang): implement algorithmic codegen for ipython
-        raise NotImplementedError
+        raise exceptions.LatexifyNotSupportedError
     else:
         if style == Style.EXPRESSION:
             kwargs["use_signature"] = kwargs.get("use_signature", False)

@@ -13,37 +13,41 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
 
     _fn: Callable[..., Any]
 
-    def __init__(self, fn, **kwargs):
+    def __init__(self, fn: Callable[..., Any], **kwargs) -> None:
         self._fn = fn
 
     @property
-    def __doc__(self):
+    def __doc__(self) -> str | None:
         return self._fn.__doc__
 
     @__doc__.setter
-    def __doc__(self, val):
+    def __doc__(self, val) -> None:
         self._fn.__doc__ = val
 
     @property
-    def __name__(self):
+    def __name__(self) -> str:
         return self._fn.__name__
 
     @__name__.setter
-    def __name__(self, val):
+    def __name__(self, val) -> None:
         self._fn.__name__ = val
 
     # After Python 3.7
     # @final
-    def __call__(self, *args):
+    def __call__(self, *args) -> Any:
         return self._fn(*args)
 
     @abc.abstractmethod
-    def _repr_html_(self):
+    def __str__(self) -> str:
+        ...
+
+    @abc.abstractmethod
+    def _repr_html_(self) -> str | None:
         """IPython hook to display HTML visualization."""
         ...
 
     @abc.abstractmethod
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str | None:
         """IPython hook to display LaTeX visualization."""
         ...
 
@@ -56,7 +60,7 @@ class LatexifiedAlgorithm(LatexifiedRepr):
     _ipython_latex: str | None
     _ipython_error: str | None
 
-    def __init__(self, fn, **kwargs):
+    def __init__(self, fn: Callable[..., Any], **kwargs) -> None:
         super().__init__(fn)
 
         try:
@@ -77,10 +81,17 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             self._ipython_latex = None
             self._ipython_error = f"{type(e).__name__}: {str(e)}"
 
-    def __str__(self):
-        return self._latex if self._latex is not None else self._error
+    def __str__(self) -> str:
+        if self._latex is not None:
+            return self._latex
+        elif self._error is not None:
+            return self._error
+        else:
+            raise exceptions.LatexifyError(
+                "Unable to get a string representation of the function."
+            )
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str | None:
         """IPython hook to display HTML visualization."""
         return (
             '<span style="color: red;">' + self._ipython_error + "</span>"
@@ -88,7 +99,7 @@ class LatexifiedAlgorithm(LatexifiedRepr):
             else None
         )
 
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str | None:
         """IPython hook to display LaTeX visualization."""
         return (
             r"$ " + self._ipython_latex + " $"
@@ -103,7 +114,7 @@ class LatexifiedFunction(LatexifiedRepr):
     _latex: str | None
     _error: str | None
 
-    def __init__(self, fn, **kwargs):
+    def __init__(self, fn: Callable[..., Any], **kwargs) -> None:
         super().__init__(fn, **kwargs)
 
         try:
@@ -115,10 +126,17 @@ class LatexifiedFunction(LatexifiedRepr):
             self._latex = None
             self._error = f"{type(e).__name__}: {str(e)}"
 
-    def __str__(self):
-        return self._latex if self._latex is not None else self._error
+    def __str__(self) -> str:
+        if self._latex is not None:
+            return self._latex
+        elif self._error is not None:
+            return self._error
+        else:
+            raise exceptions.LatexifyError(
+                "Unable to get a string representation of the function."
+            )
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str | None:
         """IPython hook to display HTML visualization."""
         return (
             '<span style="color: red;">' + self._error + "</span>"
@@ -126,7 +144,7 @@ class LatexifiedFunction(LatexifiedRepr):
             else None
         )
 
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str | None:
         """IPython hook to display LaTeX visualization."""
         return (
             r"$$ \displaystyle " + self._latex + " $$"
