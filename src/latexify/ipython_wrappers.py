@@ -8,7 +8,7 @@ from typing import Any, Callable
 from latexify import codegen
 from latexify import config as cfg
 from latexify import exceptions, parser
-from latexify.transformers import transformer_utils
+from latexify.codegen import generate_latex
 
 
 class LatexifiedRepr(metaclass=abc.ABCMeta):
@@ -59,27 +59,20 @@ class LatexifiedAlgorithm(LatexifiedRepr):
 
     def __init__(self, fn, **kwargs):
         super().__init__(fn)
-        merged_config = cfg.Config.defaults().merge(**kwargs)
 
-        # Obtains the transformed source AST.
-        tree = transformer_utils.apply_transformers(
-            parser.parse_function(fn), merged_config
-        )
-
-        # Generates LaTeX.
         try:
-            self._latex = codegen.AlgorithmicCodegen(
-                use_math_symbols=merged_config.use_math_symbols,
-                use_set_symbols=merged_config.use_set_symbols,
-            ).visit(tree)
+            self._latex = generate_latex.get_latex(
+                fn, style=generate_latex.Style.ALGORITHMIC, **kwargs
+            )
             self._error = None
         except exceptions.LatexifyError as e:
             self._latex = None
             self._error = f"{type(e).__name__}: {str(e)}"
 
         try:
-            # TODO(ZibingZhang): implement algorithmic codegen for IPython
-            self._ipython_latex = None
+            self._ipython_latex = self._latex = generate_latex.get_latex(
+                fn, style=generate_latex.Style.IPYTHON_ALGORITHMIC, **kwargs
+            )
             self._ipython_error = None
         except exceptions.LatexifyError as e:
             self._ipython_latex = None
@@ -114,20 +107,10 @@ class LatexifiedFunction(LatexifiedRepr):
     def __init__(self, fn, **kwargs):
         super().__init__(fn, **kwargs)
 
-        merged_config = cfg.Config.defaults().merge(**kwargs)
-
-        # Obtains the transformed source AST.
-        tree = transformer_utils.apply_transformers(
-            parser.parse_function(fn), merged_config
-        )
-
-        # Generates LaTeX.
         try:
-            self._latex = codegen.FunctionCodegen(
-                use_math_symbols=merged_config.use_math_symbols,
-                use_signature=merged_config.use_signature,
-                use_set_symbols=merged_config.use_set_symbols,
-            ).visit(tree)
+            self._latex = self._latex = generate_latex.get_latex(
+                fn, style=generate_latex.Style.FUNCTION, **kwargs
+            )
             self._error = None
         except exceptions.LatexifyError as e:
             self._latex = None
