@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from latexify import exceptions, generate_latex
 
