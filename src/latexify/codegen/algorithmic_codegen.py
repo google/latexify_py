@@ -7,7 +7,7 @@ import contextlib
 from collections.abc import Generator
 
 from latexify import exceptions
-from latexify.codegen import expression_codegen, identifier_converter
+from latexify.codegen import expression_codegen, identifier_converter, latex_utils
 
 
 class AlgorithmicCodegen(ast.NodeVisitor):
@@ -60,6 +60,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             rf"\State ${self._expression_codegen.visit(node.value)}$"
         )
 
+    # TODO(ZibingZhang): supported nested function definitions
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
         # Arguments
@@ -67,9 +68,8 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
         ]
 
-        latex = self._add_indent("\\begin{algorithmic}\n")
         with self._increment_level():
-            latex += self._add_indent(
+            latex = self._add_indent(
                 f"\\Function{{{node.name}}}{{${', '.join(arg_strs)}$}}\n"
             )
 
@@ -79,8 +79,9 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             body_latex = "\n".join(body_strs)
 
             latex += f"{body_latex}\n"
-            latex += self._add_indent("\\EndFunction\n")
-        return latex + self._add_indent(r"\end{algorithmic}")
+            latex += self._add_indent("\\EndFunction")
+
+        return latex_utils.environment("algorithmic", separator="\n", content=latex)
 
     # TODO(ZibingZhang): support \ELSIF
     def visit_If(self, node: ast.If) -> str:

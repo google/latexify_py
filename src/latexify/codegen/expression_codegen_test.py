@@ -233,96 +233,96 @@ def test_visit_call(code: str, latex: str) -> None:
         ),
         ("(f(x))", r" f \mathopen{}\left( x \mathclose{}\right)"),
         # Single comprehension
-        ("(i for i in x)", r"_{i \in x}^{} \mathopen{}\left({i}\mathclose{}\right)"),
+        ("(i for i in x)", r"_{i \in x}^{} \mathopen{}\left( {i} \mathclose{}\right)"),
         (
             "(i for i in [1, 2])",
             r"_{i \in \mathopen{}\left[ 1, 2 \mathclose{}\right]}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"\mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in {1, 2})",
             r"_{i \in \mathopen{}\left\{ 1, 2 \mathclose{}\right\}}^{}"
-            r" \mathopen{}\left({i}\mathclose{}\right)",
+            r" \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in f(x))",
             r"_{i \in f \mathopen{}\left( x \mathclose{}\right)}^{}"
-            r" \mathopen{}\left({i}\mathclose{}\right)",
+            r" \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n))",
-            r"_{i = 0}^{n - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n + 1))",
-            r"_{i = 0}^{n} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n + 2))",
-            r"_{i = 0}^{n + 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n + 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             # ast.parse() does not recognize negative integers.
             "(i for i in range(n - -1))",
-            r"_{i = 0}^{n - -1 - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n - -1 - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n - 1))",
-            r"_{i = 0}^{n - 2} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n - 2} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n + m))",
-            r"_{i = 0}^{n + m - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n + m - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n - m))",
-            r"_{i = 0}^{n - m - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{n - m - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(3))",
-            r"_{i = 0}^{2} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{2} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(3 + 1))",
-            r"_{i = 0}^{3} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{3} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(3 + 2))",
-            r"_{i = 0}^{3 + 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{3 + 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(3 - 1))",
-            r"_{i = 0}^{3 - 2} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{3 - 2} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             # ast.parse() does not recognize negative integers.
             "(i for i in range(3 - -1))",
-            r"_{i = 0}^{3 - -1 - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{3 - -1 - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(3 + m))",
-            r"_{i = 0}^{3 + m - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{3 + m - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(3 - m))",
-            r"_{i = 0}^{3 - m - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 0}^{3 - m - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n, m))",
-            r"_{i = n}^{m - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = n}^{m - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(1, m))",
-            r"_{i = 1}^{m - 1} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = 1}^{m - 1} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n, 3))",
-            r"_{i = n}^{2} \mathopen{}\left({i}\mathclose{}\right)",
+            r"_{i = n}^{2} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in range(n, m, k))",
             r"_{i \in \mathrm{range} \mathopen{}\left( n, m, k \mathclose{}\right)}^{}"
-            r" \mathopen{}\left({i}\mathclose{}\right)",
+            r" \mathopen{}\left( {i} \mathclose{}\right)",
         ),
     ],
 )
@@ -342,41 +342,41 @@ def test_visit_call_sum_prod(src_suffix: str, dest_suffix: str) -> None:
         (
             "sum(i for y in x for i in y)",
             r"\sum_{y \in x}^{} \sum_{i \in y}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"\mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "sum(i for y in x for z in y for i in z)",
             r"\sum_{y \in x}^{} \sum_{z \in y}^{} \sum_{i \in z}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"\mathopen{}\left( {i} \mathclose{}\right)",
         ),
         # 3 clauses
         (
             "prod(i for y in x for i in y)",
             r"\prod_{y \in x}^{} \prod_{i \in y}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"\mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "prod(i for y in x for z in y for i in z)",
             r"\prod_{y \in x}^{} \prod_{z \in y}^{} \prod_{i \in z}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"\mathopen{}\left( {i} \mathclose{}\right)",
         ),
         # reduce stop parameter
         (
             "sum(i for i in range(n+1))",
-            r"\sum_{i = 0}^{n} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\sum_{i = 0}^{n} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "prod(i for i in range(n-1))",
-            r"\prod_{i = 0}^{n - 2} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\prod_{i = 0}^{n - 2} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         # reduce stop parameter
         (
             "sum(i for i in range(n+1))",
-            r"\sum_{i = 0}^{n} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\sum_{i = 0}^{n} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "prod(i for i in range(n-1))",
-            r"\prod_{i = 0}^{n - 2} \mathopen{}\left({i}\mathclose{}\right)",
+            r"\prod_{i = 0}^{n - 2} \mathopen{}\left( {i} \mathclose{}\right)",
         ),
     ],
 )
@@ -393,7 +393,7 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
             "(i for i in x if i < y)",
             r"_{\mathopen{}\left( i \in x \mathclose{}\right) "
             r"\land \mathopen{}\left( i < y \mathclose{}\right)}^{} "
-            r"\mathopen{}\left({i}\mathclose{}\right)",
+            r"\mathopen{}\left( {i} \mathclose{}\right)",
         ),
         (
             "(i for i in x if i < y if f(i))",
@@ -401,7 +401,7 @@ def test_visit_call_sum_prod_multiple_comprehension(code: str, latex: str) -> No
             r" \land \mathopen{}\left( i < y \mathclose{}\right)"
             r" \land \mathopen{}\left( f \mathopen{}\left("
             r" i \mathclose{}\right) \mathclose{}\right)}^{}"
-            r" \mathopen{}\left({i}\mathclose{}\right)",
+            r" \mathopen{}\left( {i} \mathclose{}\right)",
         ),
     ],
 )
@@ -419,27 +419,27 @@ def test_visit_call_sum_prod_with_if(src_suffix: str, dest_suffix: str) -> None:
     [
         (
             "x if x < y else y",
-            r"\left\{ \begin{array}{ll}"
+            r"\mathopen{}\left\{ \begin{array}{ll}"
             r" x, & \mathrm{if} \ x < y \\"
             r" y, & \mathrm{otherwise}"
-            r" \end{array} \right.",
+            r" \end{array} \mathclose{}\right\}",
         ),
         (
             "x if x < y else (y if y < z else z)",
-            r"\left\{ \begin{array}{ll}"
+            r"\mathopen{}\left\{ \begin{array}{ll}"
             r" x, & \mathrm{if} \ x < y \\"
             r" y, & \mathrm{if} \ y < z \\"
             r" z, & \mathrm{otherwise}"
-            r" \end{array} \right.",
+            r" \end{array} \mathclose{}\right\}",
         ),
         (
             "x if x < y else (y if y < z else (z if z < w else w))",
-            r"\left\{ \begin{array}{ll}"
+            r"\mathopen{}\left\{ \begin{array}{ll}"
             r" x, & \mathrm{if} \ x < y \\"
             r" y, & \mathrm{if} \ y < z \\"
             r" z, & \mathrm{if} \ z < w \\"
             r" w, & \mathrm{otherwise}"
-            r" \end{array} \right.",
+            r" \end{array} \mathclose{}\right\}",
         ),
     ],
 )
@@ -934,7 +934,7 @@ def test_numpy_array(code: str, latex: str) -> None:
         ("zeros((1, 1, 1))", r"\mathbf{0}^{1 \times 1 \times 1}"),
         ("zeros((2, 3, 5))", r"\mathbf{0}^{2 \times 3 \times 5}"),
         # Unsupported
-        ("zeros()", r"\mathrm{zeros} \mathopen{}\left( \mathclose{}\right)"),
+        ("zeros()", r"\mathrm{zeros} \mathopen{}\left(  \mathclose{}\right)"),
         ("zeros(x)", r"\mathrm{zeros} \mathopen{}\left( x \mathclose{}\right)"),
         ("zeros(0, x)", r"\mathrm{zeros} \mathopen{}\left( 0, x \mathclose{}\right)"),
         (
@@ -958,7 +958,7 @@ def test_zeros(code: str, latex: str) -> None:
         ("identity(1)", r"\mathbf{I}_{1}"),
         ("identity(2)", r"\mathbf{I}_{2}"),
         # Unsupported
-        ("identity()", r"\mathrm{identity} \mathopen{}\left( \mathclose{}\right)"),
+        ("identity()", r"\mathrm{identity} \mathopen{}\left(  \mathclose{}\right)"),
         ("identity(x)", r"\mathrm{identity} \mathopen{}\left( x \mathclose{}\right)"),
         (
             "identity(0, x)",
