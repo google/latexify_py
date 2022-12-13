@@ -144,8 +144,8 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         return self._indent_level * self._SPACES_PER_INDENT * " " + line
 
 
-class AlgorithmicJupyterCodegen(ast.NodeVisitor):
-    """Codegen for single algorithms targeting the Jupyter Notebook environment.
+class IPythonAlgorithmicCodegen(ast.NodeVisitor):
+    """Codegen for single algorithms targeting IPython.
 
     This codegen works for Module with single FunctionDef node to generate a single
     LaTeX expression of the given algorithm.

@@ -177,7 +177,7 @@ def test_visit_while_with_else() -> None:
 def test_visit_assign_jupyter(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.Assign)
-    assert algorithmic_codegen.AlgorithmicJupyterCodegen().visit(node) == latex
+    assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -206,7 +206,7 @@ def test_visit_assign_jupyter(code: str, latex: str) -> None:
 def test_visit_functiondef_jupyter(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.FunctionDef)
-    assert algorithmic_codegen.AlgorithmicJupyterCodegen().visit(node) == latex
+    assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -235,7 +235,7 @@ def test_visit_functiondef_jupyter(code: str, latex: str) -> None:
 def test_visit_if_jupyter(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.If)
-    assert algorithmic_codegen.AlgorithmicJupyterCodegen().visit(node) == latex
+    assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -254,7 +254,7 @@ def test_visit_if_jupyter(code: str, latex: str) -> None:
 def test_visit_return_jupyter(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.Return)
-    assert algorithmic_codegen.AlgorithmicJupyterCodegen().visit(node) == latex
+    assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
 
 
 @pytest.mark.parametrize(
@@ -273,7 +273,7 @@ def test_visit_return_jupyter(code: str, latex: str) -> None:
 def test_visit_while_jupyter(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.While)
-    assert algorithmic_codegen.AlgorithmicJupyterCodegen().visit(node) == latex
+    assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
 
 
 def test_visit_while_with_else_jupyter() -> None:
@@ -292,4 +292,4 @@ def test_visit_while_with_else_jupyter() -> None:
         exceptions.LatexifyNotSupportedError,
         match="^While statement with the else clause is not supported$",
     ):
-        algorithmic_codegen.AlgorithmicJupyterCodegen().visit(node)
+        algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node)

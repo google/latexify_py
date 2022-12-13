@@ -5,12 +5,13 @@ from __future__ import annotations
 import textwrap
 from typing import Any, Callable
 
-from latexify import get_latex
+from latexify import generate_latex
 
 
 def check_algorithm(
     fn: Callable[..., Any],
     latex: str,
+    style: generate_latex.Style,
     **kwargs,
 ) -> None:
     """Helper to check if the obtained function has the expected LaTeX form.
@@ -18,13 +19,14 @@ def check_algorithm(
     Args:
         fn: Function to check.
         latex: LaTeX form of `fn`.
+        style: The style of the output.
         **kwargs: Arguments passed to `frontend.get_latex`.
     """
     # Checks the syntax:
     #     def fn(...):
     #         ...
     #     latexified = get_latex(fn, style=ALGORITHM, **kwargs)
-    latexified = get_latex(fn, style=frontend.Style.ALGORITHMIC, **kwargs)
+    latexified = generate_latex.get_latex(fn, style=style, **kwargs)
     assert latexified == latex
 
 
@@ -48,7 +50,7 @@ def test_factorial() -> None:
         \end{algorithmic}
         """  # noqa: E501
     ).strip()
-    check_algorithm(fact, latex)
+    check_algorithm(fact, latex, generate_latex.Style.ALGORITHMIC)
 
 
 def test_collatz() -> None:
@@ -80,7 +82,7 @@ def test_collatz() -> None:
         \end{algorithmic}
         """
     ).strip()
-    check_algorithm(collatz, latex)
+    check_algorithm(collatz, latex, generate_latex.Style.ALGORITHMIC)
 
 
 def test_factorial_jupyter() -> None:
@@ -96,12 +98,12 @@ def test_factorial_jupyter() -> None:
         r" \displaystyle \hspace{32pt} \mathbf{return} \ 1 \\"
         r" \displaystyle \hspace{16pt} \mathbf{else} \\"
         r" \displaystyle \hspace{32pt}"
-        r" \mathbf{return} \ n"
+        r" \mathbf{return} \ n \cdot"
         r" \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right) \\"
         r" \displaystyle \hspace{16pt} \mathbf{end \ if} \\"
         r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
     )
-    check_algorithm(fact, latex, environment=get_latex.JUPYTER_NOTEBOOK)
+    check_algorithm(fact, latex, generate_latex.Style.IPYTHON_ALGORITHMIC)
 
 
 def test_collatz_jupyter() -> None:
@@ -122,7 +124,7 @@ def test_collatz_jupyter() -> None:
         r" \displaystyle \hspace{32pt} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"
         r" \displaystyle \hspace{48pt} n \gets \left\lfloor\frac{n}{2}\right\rfloor \\"
         r" \displaystyle \hspace{32pt} \mathbf{else} \\"
-        r" \displaystyle \hspace{48pt} n \gets 3 n + 1 \\"
+        r" \displaystyle \hspace{48pt} n \gets 3 \cdot n + 1 \\"
         r" \displaystyle \hspace{32pt} \mathbf{end \ if} \\"
         r" \displaystyle \hspace{32pt}"
         r" \mathrm{iterations} \gets \mathrm{iterations} + 1 \\"
@@ -130,4 +132,4 @@ def test_collatz_jupyter() -> None:
         r" \displaystyle \hspace{16pt} \mathbf{return} \ \mathrm{iterations} \\"
         r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
     )
-    check_algorithm(collatz, latex, environment=frontend.Environment.JUPYTER_NOTEBOOK)
+    check_algorithm(collatz, latex, generate_latex.Style.IPYTHON_ALGORITHMIC)
