@@ -454,8 +454,8 @@ def test_if_then_else(code: str, latex: str) -> None:
     [
         # x op y
         ("x**y", r"x^{y}"),
-        ("x * y", r"x y"),
-        ("x @ y", r"x y"),
+        ("x * y", r"x \cdot y"),
+        ("x @ y", r"x \cdot y"),
         ("x / y", r"\frac{x}{y}"),
         ("x // y", r"\left\lfloor\frac{x}{y}\right\rfloor"),
         ("x % y", r"x \mathbin{\%} y"),
@@ -468,8 +468,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x | y", R"x \mathbin{|} y"),
         # (x op y) op z
         ("(x**y)**z", r"\mathopen{}\left( x^{y} \mathclose{}\right)^{z}"),
-        ("(x * y) * z", r"x y z"),
-        ("(x @ y) @ z", r"x y z"),
+        ("(x * y) * z", r"x \cdot y \cdot z"),
+        ("(x @ y) @ z", r"x \cdot y \cdot z"),
         ("(x / y) / z", r"\frac{\frac{x}{y}}{z}"),
         (
             "(x // y) // z",
@@ -485,8 +485,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("(x | y) | z", r"x \mathbin{|} y \mathbin{|} z"),
         # x op (y op z)
         ("x**(y**z)", r"x^{y^{z}}"),
-        ("x * (y * z)", r"x y z"),
-        ("x @ (y @ z)", r"x y z"),
+        ("x * (y * z)", r"x \cdot y \cdot z"),
+        ("x @ (y @ z)", r"x \cdot y \cdot z"),
         ("x / (y / z)", r"\frac{x}{\frac{y}{z}}"),
         (
             "x // (y // z)",
@@ -504,9 +504,9 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x ^ (y ^ z)", r"x \oplus y \oplus z"),
         ("x | (y | z)", r"x \mathbin{|} y \mathbin{|} z"),
         # x OP y op z
-        ("x**y * z", r"x^{y} z"),
-        ("x * y + z", r"x y + z"),
-        ("x @ y + z", r"x y + z"),
+        ("x**y * z", r"x^{y} \cdot z"),
+        ("x * y + z", r"x \cdot y + z"),
+        ("x @ y + z", r"x \cdot y + z"),
         ("x / y + z", r"\frac{x}{y} + z"),
         ("x // y + z", r"\left\lfloor\frac{x}{y}\right\rfloor + z"),
         ("x % y + z", r"x \mathbin{\%} y + z"),
@@ -517,9 +517,9 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x & y ^ z", r"x \mathbin{\&} y \oplus z"),
         ("x ^ y | z", r"x \oplus y \mathbin{|} z"),
         # x OP (y op z)
-        ("x**(y * z)", r"x^{y z}"),
-        ("x * (y + z)", r"x \mathopen{}\left( y + z \mathclose{}\right)"),
-        ("x @ (y + z)", r"x \mathopen{}\left( y + z \mathclose{}\right)"),
+        ("x**(y * z)", r"x^{y \cdot z}"),
+        ("x * (y + z)", r"x \cdot \mathopen{}\left( y + z \mathclose{}\right)"),
+        ("x @ (y + z)", r"x \cdot \mathopen{}\left( y + z \mathclose{}\right)"),
         ("x / (y + z)", r"\frac{x}{y + z}"),
         ("x // (y + z)", r"\left\lfloor\frac{x}{y + z}\right\rfloor"),
         ("x % (y + z)", r"x \mathbin{\%} \mathopen{}\left( y + z \mathclose{}\right)"),
@@ -542,9 +542,9 @@ def test_if_then_else(code: str, latex: str) -> None:
             r"x \oplus \mathopen{}\left( y \mathbin{|} z \mathclose{}\right)",
         ),
         # x op y OP z
-        ("x * y**z", r"x y^{z}"),
-        ("x + y * z", r"x + y z"),
-        ("x + y @ z", r"x + y z"),
+        ("x * y**z", r"x \cdot y^{z}"),
+        ("x + y * z", r"x + y \cdot z"),
+        ("x + y @ z", r"x + y \cdot z"),
         ("x + y / z", r"x + \frac{y}{z}"),
         ("x + y // z", r"x + \left\lfloor\frac{y}{z}\right\rfloor"),
         ("x + y % z", r"x + y \mathbin{\%} z"),
@@ -555,9 +555,9 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x ^ y & z", r"x \oplus y \mathbin{\&} z"),
         ("x | y ^ z", r"x \mathbin{|} y \oplus z"),
         # (x op y) OP z
-        ("(x * y)**z", r"\mathopen{}\left( x y \mathclose{}\right)^{z}"),
-        ("(x + y) * z", r"\mathopen{}\left( x + y \mathclose{}\right) z"),
-        ("(x + y) @ z", r"\mathopen{}\left( x + y \mathclose{}\right) z"),
+        ("(x * y)**z", r"\mathopen{}\left( x \cdot y \mathclose{}\right)^{z}"),
+        ("(x + y) * z", r"\mathopen{}\left( x + y \mathclose{}\right) \cdot z"),
+        ("(x + y) @ z", r"\mathopen{}\left( x + y \mathclose{}\right) \cdot z"),
         ("(x + y) / z", r"\frac{x + y}{z}"),
         ("(x + y) // z", r"\left\lfloor\frac{x + y}{z}\right\rfloor"),
         ("(x + y) % z", r"\mathopen{}\left( x + y \mathclose{}\right) \mathbin{\%} z"),
@@ -589,8 +589,8 @@ def test_if_then_else(code: str, latex: str) -> None:
             r" f \mathopen{}\left( x \mathclose{}\right)"
             r" \mathclose{}\right)^{y}",
         ),
-        ("x * f(y)", r"x f \mathopen{}\left( y \mathclose{}\right)"),
-        ("f(x) * y", r"f \mathopen{}\left( x \mathclose{}\right) y"),
+        ("x * f(y)", r"x \cdot f \mathopen{}\left( y \mathclose{}\right)"),
+        ("f(x) * y", r"f \mathopen{}\left( x \mathclose{}\right) \cdot y"),
         ("x / f(y)", r"\frac{x}{f \mathopen{}\left( y \mathclose{}\right)}"),
         ("f(x) / y", r"\frac{f \mathopen{}\left( x \mathclose{}\right)}{y}"),
         ("x + f(y)", r"x + f \mathopen{}\left( y \mathclose{}\right)"),
@@ -600,8 +600,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         # With UnaryOp
         ("x**-y", r"x^{-y}"),
         ("(-x)**y", r"\mathopen{}\left( -x \mathclose{}\right)^{y}"),
-        ("x * -y", r"x -y"),  # TODO(odashi): google/latexify_py#89
-        ("-x * y", r"-x y"),
+        ("x * -y", r"x \cdot -y"),  # TODO(odashi): google/latexify_py#89
+        ("-x * y", r"-x \cdot y"),
         ("x / -y", r"\frac{x}{-y}"),
         ("-x / y", r"\frac{-x}{y}"),
         ("x + -y", r"x + -y"),
@@ -609,8 +609,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         # With Compare
         ("x**(y == z)", r"x^{y = z}"),
         ("(x == y)**z", r"\mathopen{}\left( x = y \mathclose{}\right)^{z}"),
-        ("x * (y == z)", r"x \mathopen{}\left( y = z \mathclose{}\right)"),
-        ("(x == y) * z", r"\mathopen{}\left( x = y \mathclose{}\right) z"),
+        ("x * (y == z)", r"x \cdot \mathopen{}\left( y = z \mathclose{}\right)"),
+        ("(x == y) * z", r"\mathopen{}\left( x = y \mathclose{}\right) \cdot z"),
         ("x / (y == z)", r"\frac{x}{y = z}"),
         ("(x == y) / z", r"\frac{x = y}{z}"),
         ("x + (y == z)", r"x + \mathopen{}\left( y = z \mathclose{}\right)"),
@@ -618,8 +618,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         # With BoolOp
         ("x**(y and z)", r"x^{y \land z}"),
         ("(x and y)**z", r"\mathopen{}\left( x \land y \mathclose{}\right)^{z}"),
-        ("x * (y and z)", r"x \mathopen{}\left( y \land z \mathclose{}\right)"),
-        ("(x and y) * z", r"\mathopen{}\left( x \land y \mathclose{}\right) z"),
+        ("x * (y and z)", r"x \cdot \mathopen{}\left( y \land z \mathclose{}\right)"),
+        ("(x and y) * z", r"\mathopen{}\left( x \land y \mathclose{}\right) \cdot z"),
         ("x / (y and z)", r"\frac{x}{y \land z}"),
         ("(x and y) / z", r"\frac{x \land y}{z}"),
         ("x + (y and z)", r"x + \mathopen{}\left( y \land z \mathclose{}\right)"),
