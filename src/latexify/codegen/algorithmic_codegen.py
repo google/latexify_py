@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
-from typing import Generator
+from collections.abc import Generator
 
 from latexify import exceptions
 from latexify.codegen import expression_codegen, identifier_converter
