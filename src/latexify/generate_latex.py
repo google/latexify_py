@@ -15,7 +15,6 @@ class Style(enum.Enum):
     """The style of the generated LaTeX."""
 
     ALGORITHMIC = "algorithmic"
-    EXPRESSION = "expression"
     FUNCTION = "function"
     IPYTHON_ALGORITHMIC = "ipython-algorithmic"
 
@@ -67,11 +66,11 @@ def get_latex(
     elif style == Style.IPYTHON_ALGORITHMIC:
         # TODO(ZibingZhang): implement algorithmic codegen for ipython
         raise exceptions.LatexifyNotSupportedError
-    else:
-        if style == Style.EXPRESSION:
-            kwargs["use_signature"] = kwargs.get("use_signature", False)
+    elif style == Style.FUNCTION:
         return codegen.FunctionCodegen(
             use_math_symbols=merged_config.use_math_symbols,
             use_signature=merged_config.use_signature,
             use_set_symbols=merged_config.use_set_symbols,
         ).visit(tree)
+
+    raise ValueError(f"Unrecognized style: {style}")

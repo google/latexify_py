@@ -119,7 +119,11 @@ def expression(
     `use_signature=False`.
     """
     kwargs["use_signature"] = kwargs.get("use_signature", False)
+
     if fn is not None:
-        return function(fn, **kwargs)
-    else:
-        return function(**kwargs)
+        return ipython_wrappers.LatexifiedFunction(fn, **kwargs)
+
+    def wrapper(f):
+        return ipython_wrappers.LatexifiedFunction(f, **kwargs)
+
+    return wrapper
