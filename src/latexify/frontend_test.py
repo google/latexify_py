@@ -11,24 +11,24 @@ def test_get_latex_identifiers() -> None:
 
     identifiers = {"myfn": "f", "myvar": "x"}
 
-    latex_without_flag = r"\mathrm{myfn}(\mathrm{myvar}) = 3 \mathrm{myvar}"
-    latex_with_flag = r"f(x) = 3 x"
+    latex_without_flag = r"\mathrm{myfn}(\mathrm{myvar}) = 3 \cdot \mathrm{myvar}"
+    latex_with_flag = r"f(x) = 3 \cdot x"
 
     assert frontend.get_latex(myfn) == latex_without_flag
     assert frontend.get_latex(myfn, identifiers=identifiers) == latex_with_flag
 
 
 def test_get_latex_prefixes() -> None:
-    math = numpy = np = abc = object()
+    abc = object()
 
     def f(x):
-        return math.a + numpy.b + np.c + abc.d + x.y.z.e
+        return abc.d + x.y.z.e
 
-    latex_without_flag = r"f(x) = a + b + c + \mathrm{abc}.d + x.y.z.e"
-    latex_with_flag1 = r"f(x) = a + b + c + d + x.y.z.e"
-    latex_with_flag2 = r"f(x) = a + b + c + \mathrm{abc}.d + y.z.e"
-    latex_with_flag3 = r"f(x) = a + b + c + \mathrm{abc}.d + z.e"
-    latex_with_flag4 = r"f(x) = a + b + c + d + e"
+    latex_without_flag = r"f(x) = \mathrm{abc}.d + x.y.z.e"
+    latex_with_flag1 = r"f(x) = d + x.y.z.e"
+    latex_with_flag2 = r"f(x) = \mathrm{abc}.d + y.z.e"
+    latex_with_flag3 = r"f(x) = \mathrm{abc}.d + z.e"
+    latex_with_flag4 = r"f(x) = d + e"
 
     assert frontend.get_latex(f) == latex_without_flag
     assert frontend.get_latex(f, prefixes=set()) == latex_without_flag
@@ -44,8 +44,8 @@ def test_get_latex_reduce_assignments() -> None:
         y = 3 * x
         return y
 
-    latex_without_flag = r"\begin{array}{l} y = 3 x \\ f(x) = y \end{array}"
-    latex_with_flag = r"f(x) = 3 x"
+    latex_without_flag = r"\begin{array}{l} y = 3 \cdot x \\ f(x) = y \end{array}"
+    latex_with_flag = r"f(x) = 3 \cdot x"
 
     assert frontend.get_latex(f) == latex_without_flag
     assert frontend.get_latex(f, reduce_assignments=False) == latex_without_flag

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import textwrap
 from typing import Any, Callable
 
-from latexify import frontend
+from latexify import get_latex
 
 
 def check_algorithm(
@@ -23,7 +24,7 @@ def check_algorithm(
     #     def fn(...):
     #         ...
     #     latexified = get_latex(fn, style=ALGORITHM, **kwargs)
-    latexified = frontend.get_latex(fn, style=frontend.Style.ALGORITHMIC, **kwargs)
+    latexified = get_latex(fn, style=frontend.Style.ALGORITHMIC, **kwargs)
     assert latexified == latex
 
 
@@ -34,17 +35,19 @@ def test_factorial() -> None:
         else:
             return n * fact(n - 1)
 
-    latex = (
-        r"\begin{algorithmic}"
-        r" \Function{fact}{$n$}"
-        r" \If{$n = 0$}"
-        r" \State \Return $1$"
-        r" \Else"
-        r" \State \Return $n \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$"
-        r" \EndIf"
-        r" \EndFunction"
-        r" \end{algorithmic}"
-    )
+    latex = textwrap.dedent(
+        r"""
+        \begin{algorithmic}
+            \Function{fact}{$n$}
+                \If{$n = 0$}
+                    \State \Return $1$
+                \Else
+                    \State \Return $n \cdot \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$
+                \EndIf
+            \EndFunction
+        \end{algorithmic}
+        """  # noqa: E501
+    ).strip()
     check_algorithm(fact, latex)
 
 
@@ -59,21 +62,24 @@ def test_collatz() -> None:
             iterations = iterations + 1
         return iterations
 
-    latex = (
-        r"\begin{algorithmic}"
-        r" \Function{collatz}{$n$}"
-        r" \State $\mathrm{iterations} \gets 0$"
-        r" \While{$n > 1$}"
-        r" \If{$n \mathbin{\%} 2 = 0$}"
-        r" \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$"
-        r" \Else \State $n \gets 3 n + 1$"
-        r" \EndIf"
-        r" \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$"
-        r" \EndWhile"
-        r" \State \Return $\mathrm{iterations}$"
-        r" \EndFunction"
-        r" \end{algorithmic}"
-    )
+    latex = textwrap.dedent(
+        r"""
+        \begin{algorithmic}
+            \Function{collatz}{$n$}
+                \State $\mathrm{iterations} \gets 0$
+                \While{$n > 1$}
+                    \If{$n \mathbin{\%} 2 = 0$}
+                        \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$
+                    \Else
+                        \State $n \gets 3 \cdot n + 1$
+                    \EndIf
+                    \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$
+                \EndWhile
+                \State \Return $\mathrm{iterations}$
+            \EndFunction
+        \end{algorithmic}
+        """
+    ).strip()
     check_algorithm(collatz, latex)
 
 
@@ -95,7 +101,7 @@ def test_factorial_jupyter() -> None:
         r" \displaystyle \hspace{16pt} \mathbf{end \ if} \\"
         r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
     )
-    check_algorithm(fact, latex, environment=frontend.Environment.JUPYTER_NOTEBOOK)
+    check_algorithm(fact, latex, environment=get_latex.JUPYTER_NOTEBOOK)
 
 
 def test_collatz_jupyter() -> None:
