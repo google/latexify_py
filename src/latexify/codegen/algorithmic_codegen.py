@@ -186,11 +186,11 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         ]
         operands.append(self._expression_codegen.visit(node.value))
         operands_latex = r" \gets ".join(operands)
-        return rf"{self._add_prefix()}{operands_latex}"
+        return self._add_prefix() + operands_latex
 
     def visit_Expr(self, node: ast.Expr) -> str:
         """Visit an Expr node."""
-        return rf"{self._add_prefix()}{self._expression_codegen.visit(node.value)}"
+        return self._add_prefix() + self._expression_codegen.visit(node.value)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
