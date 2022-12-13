@@ -7,11 +7,11 @@ try:
 except Exception:
     __version__ = ""
 
-from latexify import frontend
+from latexify import frontend, generate_latex
 
-Style = frontend.Style
+Style = generate_latex.Style
 
-get_latex = frontend.get_latex
+get_latex = generate_latex.get_latex
 
 function = frontend.function
 expression = frontend.expression

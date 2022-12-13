@@ -5,7 +5,7 @@ from __future__ import annotations
 import textwrap
 from typing import Any, Callable
 
-from latexify import frontend
+from latexify import generate_latex
 
 
 def check_algorithm(
@@ -24,7 +24,9 @@ def check_algorithm(
     #     def fn(...):
     #         ...
     #     latexified = get_latex(fn, style=ALGORITHM, **kwargs)
-    latexified = frontend.get_latex(fn, style=frontend.Style.ALGORITHMIC, **kwargs)
+    latexified = generate_latex.get_latex(
+        fn, style=generate_latex.Style.ALGORITHMIC, **kwargs
+    )
     assert latexified == latex
 
 
