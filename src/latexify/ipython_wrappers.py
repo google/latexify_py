@@ -127,14 +127,7 @@ class LatexifiedFunction(LatexifiedRepr):
             self._error = f"{type(e).__name__}: {str(e)}"
 
     def __str__(self) -> str:
-        if self._latex is not None:
-            return self._latex
-        elif self._error is not None:
-            return self._error
-        else:
-            raise exceptions.LatexifyError(
-                "Unable to get a string representation of the function."
-            )
+        return self._latex if self._latex is not None else cast(str, self._error)
 
     def _repr_html_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display HTML visualization."""
