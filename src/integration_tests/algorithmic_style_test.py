@@ -42,13 +42,12 @@ def test_factorial() -> None:
                 \If{$n = 0$}
                     \State \Return $1$
                 \Else
-                    \State \Return $n \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$
+                    \State \Return $n \cdot \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$
                 \EndIf
             \EndFunction
         \end{algorithmic}
         """  # noqa: E501
     ).strip()
-
     check_algorithm(fact, latex)
 
 
@@ -72,7 +71,7 @@ def test_collatz() -> None:
                     \If{$n \mathbin{\%} 2 = 0$}
                         \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$
                     \Else
-                        \State $n \gets 3 n + 1$
+                        \State $n \gets 3 \cdot n + 1$
                     \EndIf
                     \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$
                 \EndWhile
