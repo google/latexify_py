@@ -13,5 +13,6 @@ Style = generate_latex.Style
 
 get_latex = generate_latex.get_latex
 
-function = frontend.function
+algorithmic = frontend.algorithmic
 expression = frontend.expression
+function = frontend.function
