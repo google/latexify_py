@@ -95,7 +95,7 @@ class LatexifiedAlgorithm(LatexifiedRepr):
     def _repr_latex_(self) -> str | tuple[str, dict[str, Any]] | None:
         """IPython hook to display LaTeX visualization."""
         return (
-            f"$ {self._ipython_latex} $"
+            "$ " + self._ipython_latex + " $"
             if self._ipython_latex is not None
             else self._ipython_error
         )
