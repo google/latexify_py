@@ -21,7 +21,7 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
         return self._fn.__doc__
 
     @__doc__.setter
-    def __doc__(self, val) -> None:
+    def __doc__(self, val: str | None) -> None:
         self._fn.__doc__ = val
 
     @property
