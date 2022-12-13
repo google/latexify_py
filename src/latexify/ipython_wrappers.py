@@ -29,7 +29,7 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
         return self._fn.__name__
 
     @__name__.setter
-    def __name__(self, val) -> None:
+    def __name__(self, val: str) -> None:
         self._fn.__name__ = val
 
     # After Python 3.7
