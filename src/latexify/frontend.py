@@ -118,9 +118,7 @@ def expression(
     This function is a shortcut for `latexify.function` with the default parameter
     `use_signature=False`.
     """
-    if "use_signature" not in kwargs:
-        kwargs["use_signature"] = False
-
+    kwargs["use_signature"] = kwargs.get("use_signature", False)
     if fn is not None:
         return function(fn, **kwargs)
     else:
