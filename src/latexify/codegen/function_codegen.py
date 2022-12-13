@@ -6,7 +6,12 @@ import ast
 import sys
 
 from latexify import ast_utils, exceptions
-from latexify.codegen import codegen_utils, expression_codegen, identifier_converter
+from latexify.codegen import (
+    codegen_utils,
+    expression_codegen,
+    identifier_converter,
+    latex_utils,
+)
 
 
 class FunctionCodegen(ast.NodeVisitor):
@@ -103,7 +108,9 @@ class FunctionCodegen(ast.NodeVisitor):
 
         # Definition with several assignments. Wrap all statements with array.
         body_strs.append(return_str)
-        return r"\begin{array}{l} " + r" \\ ".join(body_strs) + r" \end{array}"
+        return latex_utils.environment(
+            "array", args=["l"], content=r" \\ ".join(body_strs)
+        )
 
     def visit_Assign(self, node: ast.Assign) -> str:
         """Visit an Assign node."""
@@ -121,8 +128,7 @@ class FunctionCodegen(ast.NodeVisitor):
 
     def visit_If(self, node: ast.If) -> str:
         """Visit an If node."""
-        latex = r"\left\{ \begin{array}{ll} "
-
+        latex = ""
         current_stmt: ast.stmt = node
 
         while isinstance(current_stmt, ast.If):
@@ -137,7 +143,10 @@ class FunctionCodegen(ast.NodeVisitor):
             current_stmt = current_stmt.orelse[0]
 
         latex += self.visit(current_stmt)
-        return latex + r", & \mathrm{otherwise} \end{array} \right."
+        latex += r", & \mathrm{otherwise}"
+        return latex_utils.curly(
+            latex_utils.environment("array", args=["ll"], content=latex)
+        )
 
     def visit_Match(self, node: ast.Match) -> str:
         """Visit a Match node"""
@@ -170,10 +179,10 @@ class FunctionCodegen(ast.NodeVisitor):
                     self.visit(node.cases[-1].body[0]) + r", & \mathrm{otherwise}"
                 )
 
-        return (
-            r"\left\{ \begin{array}{ll} "
-            + r" \\ ".join(case_latexes)
-            + r" \end{array} \right."
+        return latex_utils.curly(
+            latex_utils.environment(
+                "array", args=["ll"], content=r" \\ ".join(case_latexes)
+            )
         )
 
     def visit_MatchValue(self, node: ast.MatchValue) -> str:

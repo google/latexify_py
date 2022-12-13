@@ -5,7 +5,12 @@ from __future__ import annotations
 import ast
 
 from latexify import analyzers, ast_utils, exceptions
-from latexify.codegen import codegen_utils, expression_rules, identifier_converter
+from latexify.codegen import (
+    codegen_utils,
+    expression_rules,
+    identifier_converter,
+    latex_utils,
+)
 
 
 class ExpressionCodegen(ast.NodeVisitor):
@@ -49,38 +54,30 @@ class ExpressionCodegen(ast.NodeVisitor):
     def visit_Tuple(self, node: ast.Tuple) -> str:
         """Visit a Tuple node."""
         elts = [self.visit(elt) for elt in node.elts]
-        return r"\mathopen{}\left( " + r", ".join(elts) + r" \mathclose{}\right)"
+        return latex_utils.paren(", ".join(elts))
 
     def visit_List(self, node: ast.List) -> str:
         """Visit a List node."""
         elts = [self.visit(elt) for elt in node.elts]
-        return r"\mathopen{}\left[ " + r", ".join(elts) + r" \mathclose{}\right]"
+        return latex_utils.square(", ".join(elts))
 
     def visit_Set(self, node: ast.Set) -> str:
         """Visit a Set node."""
         elts = [self.visit(elt) for elt in node.elts]
-        return r"\mathopen{}\left\{ " + r", ".join(elts) + r" \mathclose{}\right\}"
+        return latex_utils.curly(", ".join(elts))
 
     def visit_ListComp(self, node: ast.ListComp) -> str:
         """Visit a ListComp node."""
         generators = [self.visit(comp) for comp in node.generators]
-        return (
-            r"\mathopen{}\left[ "
-            + self.visit(node.elt)
-            + r" \mid "
-            + ", ".join(generators)
-            + r" \mathclose{}\right]"
+        return latex_utils.square(
+            self.visit(node.elt) + r" \mid " + ", ".join(generators)
         )
 
     def visit_SetComp(self, node: ast.SetComp) -> str:
         """Visit a SetComp node."""
         generators = [self.visit(comp) for comp in node.generators]
-        return (
-            r"\mathopen{}\left\{ "
-            + self.visit(node.elt)
-            + r" \mid "
-            + ", ".join(generators)
-            + r" \mathclose{}\right\}"
+        return latex_utils.curly(
+            self.visit(node.elt) + r" \mid " + ", ".join(generators)
         )
 
     def visit_comprehension(self, node: ast.comprehension) -> str:
@@ -92,7 +89,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             return target
 
         conds = [target] + [self.visit(cond) for cond in node.ifs]
-        wrapped = [r"\mathopen{}\left( " + s + r" \mathclose{}\right)" for s in conds]
+        wrapped = [latex_utils.paren(cond) for cond in conds]
         return r" \land ".join(wrapped)
 
     def _generate_sum_prod(self, node: ast.Call) -> str | None:
@@ -118,10 +115,7 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         elt, scripts = self._get_sum_prod_info(node.args[0])
         scripts_str = [rf"{command}_{{{lo}}}^{{{up}}}" for lo, up in scripts]
-        return (
-            " ".join(scripts_str)
-            + rf" \mathopen{{}}\left({{{elt}}}\mathclose{{}}\right)"
-        )
+        return " ".join(scripts_str) + " " + latex_utils.paren(f"{{{elt}}}")
 
     def _generate_matrix(self, node: ast.Call) -> str | None:
         """Generates matrix expression.
@@ -135,8 +129,8 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         def generate_matrix_from_array(data: list[list[str]]) -> str:
             """Helper to generate a bmatrix environment."""
-            contents = r" \\ ".join(" & ".join(row) for row in data)
-            return r"\begin{bmatrix} " + contents + r" \end{bmatrix}"
+            content = r" \\ ".join(" & ".join(row) for row in data)
+            return latex_utils.environment("bmatrix", content=content)
 
         arg = node.args[0]
         if not isinstance(arg, ast.List) or not arg.elts:
@@ -268,9 +262,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             else:
                 elements = [
                     rule.left,
-                    r"\mathopen{}\left(",
-                    arg_latex,
-                    r"\mathclose{}\right)",
+                    latex_utils.paren(arg_latex),
                     rule.right,
                 ]
 
@@ -333,7 +325,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         child_prec = expression_rules.get_precedence(child)
 
         if child_prec < parent_prec or force_wrap and child_prec == parent_prec:
-            return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
+            return latex_utils.paren(latex)
 
         return latex
 
@@ -381,7 +373,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         ):
             return latex
 
-        return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
+        return latex_utils.paren(latex)
 
     def visit_BinOp(self, node: ast.BinOp) -> str:
         """Visit a BinOp node."""
@@ -414,8 +406,7 @@ class ExpressionCodegen(ast.NodeVisitor):
 
     def visit_IfExp(self, node: ast.IfExp) -> str:
         """Visit an IfExp node"""
-        latex = r"\left\{ \begin{array}{ll} "
-
+        latex = ""
         current_expr: ast.expr = node
 
         while isinstance(current_expr, ast.IfExp):
@@ -425,7 +416,10 @@ class ExpressionCodegen(ast.NodeVisitor):
             current_expr = current_expr.orelse
 
         latex += self.visit(current_expr)
-        return latex + r", & \mathrm{otherwise} \end{array} \right."
+        latex += r", & \mathrm{otherwise}"
+        return latex_utils.curly(
+            latex_utils.environment("array", args=["ll"], content=latex)
+        )
 
     def _get_sum_prod_range(self, node: ast.comprehension) -> tuple[str, str] | None:
         """Helper to process range(...) for sum and prod functions.

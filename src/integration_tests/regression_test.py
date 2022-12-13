@@ -24,10 +24,10 @@ def test_sinc() -> None:
 
     latex = (
         r"\mathrm{sinc}(x) ="
-        r" \left\{ \begin{array}{ll}"
+        r" \mathopen{}\left\{ \begin{array}{ll}"
         r" 1, & \mathrm{if} \ x = 0 \\"
         r" \frac{\sin x}{x}, & \mathrm{otherwise}"
-        r" \end{array} \right."
+        r" \end{array} \mathclose{}\right\}"
     )
     integration_utils.check_function(sinc, latex)
 
@@ -54,7 +54,7 @@ def test_sum_with_limit_1arg() -> None:
 
     latex = (
         r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n - 1}"
-        r" \mathopen{}\left({i^{2}}\mathclose{}\right)"
+        r" \mathopen{}\left( {i^{2}} \mathclose{}\right)"
     )
     integration_utils.check_function(sum_with_limit, latex)
 
@@ -65,7 +65,7 @@ def test_sum_with_limit_2args() -> None:
 
     latex = (
         r"\mathrm{sum\_with\_limit}(a, n) = \sum_{i = a}^{n - 1} "
-        r"\mathopen{}\left({i^{2}}\mathclose{}\right)"
+        r"\mathopen{}\left( {i^{2}} \mathclose{}\right)"
     )
     integration_utils.check_function(sum_with_limit, latex)
 
@@ -76,7 +76,7 @@ def test_sum_with_reducible_limit() -> None:
 
     latex = (
         r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n} "
-        r"\mathopen{}\left({i}\mathclose{}\right)"
+        r"\mathopen{}\left( {i} \mathclose{}\right)"
     )
     integration_utils.check_function(sum_with_limit, latex)
 
@@ -87,7 +87,7 @@ def test_sum_with_irreducible_limit() -> None:
 
     latex = (
         r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n 3 - 1} "
-        r"\mathopen{}\left({i}\mathclose{}\right)"
+        r"\mathopen{}\left( {i} \mathclose{}\right)"
     )
     integration_utils.check_function(sum_with_limit, latex)
 
@@ -98,7 +98,7 @@ def test_prod_with_limit_1arg() -> None:
 
     latex = (
         r"\mathrm{prod\_with\_limit}(n) = "
-        r"\prod_{i = 0}^{n - 1} \mathopen{}\left({i^{2}}\mathclose{}\right)"
+        r"\prod_{i = 0}^{n - 1} \mathopen{}\left( {i^{2}} \mathclose{}\right)"
     )
     integration_utils.check_function(prod_with_limit, latex)
 
@@ -109,7 +109,7 @@ def test_prod_with_limit_2args() -> None:
 
     latex = (
         r"\mathrm{prod\_with\_limit}(a, n) = "
-        r"\prod_{i = a}^{n - 1} \mathopen{}\left({i^{2}}\mathclose{}\right)"
+        r"\prod_{i = a}^{n - 1} \mathopen{}\left( {i^{2}} \mathclose{}\right)"
     )
     integration_utils.check_function(prod_with_limit, latex)
 
@@ -120,7 +120,7 @@ def test_prod_with_reducible_limits() -> None:
 
     latex = (
         r"\mathrm{prod\_with\_limit}(n) = "
-        r"\prod_{i = 0}^{n - 2} \mathopen{}\left({i}\mathclose{}\right)"
+        r"\prod_{i = 0}^{n - 2} \mathopen{}\left( {i} \mathclose{}\right)"
     )
     integration_utils.check_function(prod_with_limit, latex)
 
@@ -131,7 +131,7 @@ def test_prod_with_irreducible_limit() -> None:
 
     latex = (
         r"\mathrm{prod\_with\_limit}(n) = "
-        r"\prod_{i = 0}^{n 3 - 1} \mathopen{}\left({i}\mathclose{}\right)"
+        r"\prod_{i = 0}^{n 3 - 1} \mathopen{}\left( {i} \mathclose{}\right)"
     )
     integration_utils.check_function(prod_with_limit, latex)
 
@@ -204,12 +204,12 @@ def test_reduce_assignments_with_if() -> None:
     integration_utils.check_function(
         sigmoid,
         (
-            r"\mathrm{sigmoid}(x) = \left\{ \begin{array}{ll} "
+            r"\mathrm{sigmoid}(x) = \mathopen{}\left\{ \begin{array}{ll} "
             r"\frac{1}{1 + \exp \mathopen{}\left( -x \mathclose{}\right)}, & "
             r"\mathrm{if} \ x > 0 \\ "
             r"\frac{\exp x}{\exp x + 1}, & "
             r"\mathrm{otherwise} "
-            r"\end{array} \right."
+            r"\end{array} \mathclose{}\right\}"
         ),
         reduce_assignments=True,
     )

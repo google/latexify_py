@@ -27,10 +27,10 @@ def test_functiondef_match() -> None:
     )
     expected = (
         r"f(x) ="
-        r" \left\{ \begin{array}{ll}"
+        r" \mathopen{}\left\{ \begin{array}{ll}"
         r" 1, & \mathrm{if} \ x = 0 \\"
         r" 3 x, & \mathrm{otherwise}"
-        r" \end{array} \right."
+        r" \end{array} \mathclose{}\right\}"
     )
     assert function_codegen.FunctionCodegen().visit(tree) == expected
 
@@ -49,10 +49,10 @@ def test_matchvalue() -> None:
         )
     ).body[0]
     expected = (
-        r"\left\{ \begin{array}{ll}"
+        r"\mathopen{}\left\{ \begin{array}{ll}"
         r" 1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{otherwise}"
-        r" \end{array} \right."
+        r" \end{array} \mathclose{}\right\}"
     )
     assert function_codegen.FunctionCodegen().visit(tree) == expected
 
@@ -73,11 +73,11 @@ def test_multiple_matchvalue() -> None:
         )
     ).body[0]
     expected = (
-        r"\left\{ \begin{array}{ll}"
+        r"\mathopen{}\left\{ \begin{array}{ll}"
         r" 1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{if} \ x = 1 \\"
         r" 3, & \mathrm{otherwise}"
-        r" \end{array} \right."
+        r" \end{array} \mathclose{}\right\}"
     )
     assert function_codegen.FunctionCodegen().visit(tree) == expected
 
