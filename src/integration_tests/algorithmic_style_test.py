@@ -93,15 +93,15 @@ def test_factorial_jupyter() -> None:
             return n * fact(n - 1)
 
     latex = (
-        r"\displaystyle \hspace{0pt} \mathbf{function} \ \mathrm{FACT}(n) \\"
-        r" \displaystyle \hspace{16pt} \mathbf{if} \ n = 0 \\"
-        r" \displaystyle \hspace{32pt} \mathbf{return} \ 1 \\"
-        r" \displaystyle \hspace{16pt} \mathbf{else} \\"
-        r" \displaystyle \hspace{32pt}"
+        r"\mathbf{function} \ \mathrm{FACT}(n) \\"
+        r" \hspace{1em} \mathbf{if} \ n = 0 \\"
+        r" \hspace{2em} \mathbf{return} \ 1 \\"
+        r" \hspace{1em} \mathbf{else} \\"
+        r" \hspace{2em}"
         r" \mathbf{return} \ n \cdot"
         r" \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right) \\"
-        r" \displaystyle \hspace{16pt} \mathbf{end \ if} \\"
-        r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
+        r" \hspace{1em} \mathbf{end \ if} \\"
+        r" \mathbf{end \ function}"
     )
     check_algorithm(fact, latex, generate_latex.Style.IPYTHON_ALGORITHMIC)
 
@@ -118,18 +118,19 @@ def test_collatz_jupyter() -> None:
         return iterations
 
     latex = (
-        r"\displaystyle \hspace{0pt} \mathbf{function} \ \mathrm{COLLATZ}(n) \\"
-        r" \displaystyle \hspace{16pt} \mathrm{iterations} \gets 0 \\"
-        r" \displaystyle \hspace{16pt} \mathbf{while} \ n > 1 \\"
-        r" \displaystyle \hspace{32pt} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"
-        r" \displaystyle \hspace{48pt} n \gets \left\lfloor\frac{n}{2}\right\rfloor \\"
-        r" \displaystyle \hspace{32pt} \mathbf{else} \\"
-        r" \displaystyle \hspace{48pt} n \gets 3 \cdot n + 1 \\"
-        r" \displaystyle \hspace{32pt} \mathbf{end \ if} \\"
-        r" \displaystyle \hspace{32pt}"
+        r"\mathbf{function} \ \mathrm{COLLATZ}(n) \\"
+        r" \hspace{1em} \mathrm{iterations} \gets 0 \\"
+        r" \hspace{1em} \mathbf{while} \ n > 1 \\"
+        r" \hspace{2em} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"
+        r" \hspace{3em} n \gets \left\lfloor\frac{n}{2}\right\rfloor \\"
+        r" \hspace{2em} \mathbf{else} \\"
+        r" \hspace{3em} n \gets 3 \cdot n + 1 \\"
+        r" \hspace{2em} \mathbf{end \ if} \\"
+        r" \hspace{2em}"
         r" \mathrm{iterations} \gets \mathrm{iterations} + 1 \\"
-        r" \displaystyle \hspace{16pt} \mathbf{end \ while} \\"
-        r" \displaystyle \hspace{16pt} \mathbf{return} \ \mathrm{iterations} \\"
-        r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
+        r" \hspace{1em} \mathbf{end \ while} \\"
+        r" \hspace{1em} \mathbf{return} \ \mathrm{iterations} \\"
+        r" \mathbf{end \ function}"
     )
+
     check_algorithm(collatz, latex, generate_latex.Style.IPYTHON_ALGORITHMIC)

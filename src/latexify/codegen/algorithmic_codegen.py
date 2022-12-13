@@ -151,7 +151,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
     LaTeX expression of the given algorithm.
     """
 
-    _PT_PER_INDENT = 16
+    _EM_PER_INDENT = 1
 
     _identifier_converter: identifier_converter.IdentifierConverter
     _indent_level: int
@@ -186,11 +186,11 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         ]
         operands.append(self._expression_codegen.visit(node.value))
         operands_latex = r" \gets ".join(operands)
-        return rf"{self._add_prefix()} {operands_latex}"
+        return rf"{self._add_prefix()}{operands_latex}"
 
     def visit_Expr(self, node: ast.Expr) -> str:
         """Visit an Expr node."""
-        return rf"{self._add_prefix()} {self._expression_codegen.visit(node.value)}"
+        return rf"{self._add_prefix()}{self._expression_codegen.visit(node.value)}"
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
@@ -204,10 +204,10 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         body = r" \\ ".join(body_strs)
 
         return (
-            rf"{self._add_prefix()} \mathbf{{function}}"
+            rf"{self._add_prefix()}\mathbf{{function}}"
             rf" \ \mathrm{{{node.name.upper()}}}({', '.join(arg_strs)}) \\"
             rf" {body} \\"
-            rf" {self._add_prefix()} \mathbf{{end \ function}}"
+            rf" {self._add_prefix()}\mathbf{{end \ function}}"
         )
 
     # TODO(ZibingZhang): support \ELSIF
@@ -216,14 +216,14 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         cond_latex = self._expression_codegen.visit(node.test)
         with self._increment_level():
             body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
-        latex = rf"{self._add_prefix()} \mathbf{{if}} \ {cond_latex} \\ {body_latex}"
+        latex = rf"{self._add_prefix()}\mathbf{{if}} \ {cond_latex} \\ {body_latex}"
 
         if node.orelse:
-            latex += rf" \\ {self._add_prefix()} \mathbf{{else}} \\ "
+            latex += rf" \\ {self._add_prefix()}\mathbf{{else}} \\ "
             with self._increment_level():
                 latex += r" \\ ".join(self.visit(stmt) for stmt in node.orelse)
 
-        return latex + rf" \\ {self._add_prefix()} \mathbf{{end \ if}}"
+        return latex + rf" \\ {self._add_prefix()}\mathbf{{end \ if}}"
 
     def visit_Module(self, node: ast.Module) -> str:
         """Visit a Module node."""
@@ -232,10 +232,10 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
     def visit_Return(self, node: ast.Return) -> str:
         """Visit a Return node."""
         return (
-            rf"{self._add_prefix()} \mathbf{{return}}"
+            rf"{self._add_prefix()}\mathbf{{return}}"
             rf" \ {self._expression_codegen.visit(node.value)}"
             if node.value is not None
-            else rf"{self._add_prefix()} \mathbf{{return}}"
+            else rf"{self._add_prefix()}\mathbf{{return}}"
         )
 
     def visit_While(self, node: ast.While) -> str:
@@ -249,9 +249,9 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         with self._increment_level():
             body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
         return (
-            rf"{self._add_prefix()} \mathbf{{while}} \ {cond_latex} \\ "
+            rf"{self._add_prefix()}\mathbf{{while}} \ {cond_latex} \\ "
             rf"{body_latex} \\ "
-            rf"{self._add_prefix()} \mathbf{{end \ while}}"
+            rf"{self._add_prefix()}\mathbf{{end \ while}}"
         )
 
     @contextlib.contextmanager
@@ -262,4 +262,8 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         self._indent_level -= 1
 
     def _add_prefix(self) -> str:
-        return rf"\displaystyle \hspace{{{self._indent_level * self._PT_PER_INDENT}pt}}"
+        return (
+            rf"\hspace{{{self._indent_level * self._EM_PER_INDENT}em}} "
+            if self._indent_level > 0
+            else ""
+        )

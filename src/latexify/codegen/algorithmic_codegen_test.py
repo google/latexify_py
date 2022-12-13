@@ -170,8 +170,8 @@ def test_visit_while_with_else() -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("x = 3", r"\displaystyle \hspace{0pt} x \gets 3"),
-        ("a = b = 0", r"\displaystyle \hspace{0pt} a \gets b \gets 0"),
+        ("x = 3", r"x \gets 3"),
+        ("a = b = 0", r"a \gets b \gets 0"),
     ],
 )
 def test_visit_assign_jupyter(code: str, latex: str) -> None:
@@ -186,24 +186,24 @@ def test_visit_assign_jupyter(code: str, latex: str) -> None:
         (
             "def f(x): return x",
             (
-                r"\displaystyle \hspace{0pt} \mathbf{function}"
+                r"\mathbf{function}"
                 r" \ \mathrm{F}(x) \\"
-                r" \displaystyle \hspace{16pt} \mathbf{return} \ x \\"
-                r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
+                r" \hspace{1em} \mathbf{return} \ x \\"
+                r" \mathbf{end \ function}"
             ),
         ),
         (
             "def f(a, b, c): return 3",
             (
-                r"\displaystyle \hspace{0pt} \mathbf{function}"
+                r"\mathbf{function}"
                 r" \ \mathrm{F}(a, b, c) \\"
-                r" \displaystyle \hspace{16pt} \mathbf{return} \ 3 \\"
-                r" \displaystyle \hspace{0pt} \mathbf{end \ function}"
+                r" \hspace{1em} \mathbf{return} \ 3 \\"
+                r" \mathbf{end \ function}"
             ),
         ),
     ],
 )
-def test_visit_functiondef_jupyter(code: str, latex: str) -> None:
+def test_visit_functiondef_ipython(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.FunctionDef)
     assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
@@ -215,24 +215,24 @@ def test_visit_functiondef_jupyter(code: str, latex: str) -> None:
         (
             "if x < y: return x",
             (
-                r"\displaystyle \hspace{0pt} \mathbf{if} \ x < y \\"
-                r" \displaystyle \hspace{16pt} \mathbf{return} \ x \\"
-                r" \displaystyle \hspace{0pt} \mathbf{end \ if}"
+                r"\mathbf{if} \ x < y \\"
+                r" \hspace{1em} \mathbf{return} \ x \\"
+                r" \mathbf{end \ if}"
             ),
         ),
         (
             "if True: x\nelse: y",
             (
-                r"\displaystyle \hspace{0pt} \mathbf{if} \ \mathrm{True} \\"
-                r" \displaystyle \hspace{16pt} x \\"
-                r" \displaystyle \hspace{0pt} \mathbf{else} \\"
-                r" \displaystyle \hspace{16pt} y \\"
-                r" \displaystyle \hspace{0pt} \mathbf{end \ if}"
+                r"\mathbf{if} \ \mathrm{True} \\"
+                r" \hspace{1em} x \\"
+                r" \mathbf{else} \\"
+                r" \hspace{1em} y \\"
+                r" \mathbf{end \ if}"
             ),
         ),
     ],
 )
-def test_visit_if_jupyter(code: str, latex: str) -> None:
+def test_visit_if_ipython(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.If)
     assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
@@ -243,15 +243,15 @@ def test_visit_if_jupyter(code: str, latex: str) -> None:
     [
         (
             "return x + y",
-            r"\displaystyle \hspace{0pt} \mathbf{return} \ x + y",
+            r"\mathbf{return} \ x + y",
         ),
         (
             "return",
-            r"\displaystyle \hspace{0pt} \mathbf{return}",
+            r"\mathbf{return}",
         ),
     ],
 )
-def test_visit_return_jupyter(code: str, latex: str) -> None:
+def test_visit_return_ipython(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.Return)
     assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
@@ -263,20 +263,20 @@ def test_visit_return_jupyter(code: str, latex: str) -> None:
         (
             "while x < y: x = x + 1",
             (
-                r"\displaystyle \hspace{0pt} \mathbf{while} \ x < y \\"
-                r" \displaystyle \hspace{16pt} x \gets x + 1 \\"
-                r" \displaystyle \hspace{0pt} \mathbf{end \ while}"
+                r"\mathbf{while} \ x < y \\"
+                r" \hspace{1em} x \gets x + 1 \\"
+                r" \mathbf{end \ while}"
             ),
         )
     ],
 )
-def test_visit_while_jupyter(code: str, latex: str) -> None:
+def test_visit_while_ipython(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.While)
     assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
 
 
-def test_visit_while_with_else_jupyter() -> None:
+def test_visit_while_with_else_ipython() -> None:
     node = ast.parse(
         textwrap.dedent(
             """
