@@ -68,37 +68,33 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         ]
 
         latex = self._add_indent("\\begin{algorithmic}\n")
-        self._indent_level += 1
-        latex += self._add_indent(
-            f"\\Function{{{node.name}}}{{${', '.join(arg_strs)}$}}\n"
-        )
+        with self._increment_level():
+            latex += self._add_indent(
+                f"\\Function{{{node.name}}}{{${', '.join(arg_strs)}$}}\n"
+            )
 
-        # Body
-        self._indent_level += 1
-        body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
-        self._indent_level -= 1
-        body_latex = "\n".join(body_strs)
+            with self._increment_level():
+                # Body
+                body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
+            body_latex = "\n".join(body_strs)
 
-        latex += f"{body_latex}\n"
-        latex += self._add_indent("\\EndFunction\n")
-        self._indent_level -= 1
+            latex += f"{body_latex}\n"
+            latex += self._add_indent("\\EndFunction\n")
         return latex + self._add_indent(r"\end{algorithmic}")
 
     # TODO(ZibingZhang): support \ELSIF
     def visit_If(self, node: ast.If) -> str:
         """Visit an If node."""
         cond_latex = self._expression_codegen.visit(node.test)
-        self._indent_level += 1
-        body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
-        self._indent_level -= 1
+        with self._increment_level():
+            body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
 
         latex = self._add_indent(f"\\If{{${cond_latex}$}}\n{body_latex}")
 
         if node.orelse:
             latex += "\n" + self._add_indent(r"\Else") + "\n"
-            self._indent_level += 1
-            latex += "\n".join(self.visit(stmt) for stmt in node.orelse)
-            self._indent_level -= 1
+            with self._increment_level():
+                latex += "\n".join(self.visit(stmt) for stmt in node.orelse)
 
         return latex + "\n" + self._add_indent(r"\EndIf")
 
@@ -124,9 +120,8 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             )
 
         cond_latex = self._expression_codegen.visit(node.test)
-        self._indent_level += 1
-        body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
-        self._indent_level -= 1
+        with self._increment_level():
+            body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
         return (
             self._add_indent(f"\\While{{${cond_latex}$}}\n")
             + f"{body_latex}\n"
