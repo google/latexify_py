@@ -11,7 +11,10 @@ def test_quadratic_solution() -> None:
     def solve(a, b, c):
         return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
-    latex = r"\mathrm{solve}(a, b, c) = \frac{-b + \sqrt{ b^{2} - 4 a c }}{2 a}"
+    latex = (
+        r"\mathrm{solve}(a, b, c) ="
+        r" \frac{-b + \sqrt{ b^{2} - 4 \cdot a \cdot c }}{2 \cdot a}"
+    )
     integration_utils.check_function(solve, latex)
 
 
@@ -36,13 +39,15 @@ def test_x_times_beta() -> None:
     def xtimesbeta(x, beta):
         return x * beta
 
-    latex_without_symbols = r"\mathrm{xtimesbeta}(x, \mathrm{beta}) = x \mathrm{beta}"
+    latex_without_symbols = (
+        r"\mathrm{xtimesbeta}(x, \mathrm{beta}) = x \cdot \mathrm{beta}"
+    )
     integration_utils.check_function(xtimesbeta, latex_without_symbols)
     integration_utils.check_function(
         xtimesbeta, latex_without_symbols, use_math_symbols=False
     )
 
-    latex_with_symbols = r"\mathrm{xtimesbeta}(x, \beta) = x \beta"
+    latex_with_symbols = r"\mathrm{xtimesbeta}(x, \beta) = x \cdot \beta"
     integration_utils.check_function(
         xtimesbeta, latex_with_symbols, use_math_symbols=True
     )
@@ -86,7 +91,7 @@ def test_sum_with_irreducible_limit() -> None:
         return sum(i for i in range(n * 3))
 
     latex = (
-        r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n 3 - 1} "
+        r"\mathrm{sum\_with\_limit}(n) = \sum_{i = 0}^{n \cdot 3 - 1} "
         r"\mathopen{}\left( {i} \mathclose{}\right)"
     )
     integration_utils.check_function(sum_with_limit, latex)
@@ -131,7 +136,7 @@ def test_prod_with_irreducible_limit() -> None:
 
     latex = (
         r"\mathrm{prod\_with\_limit}(n) = "
-        r"\prod_{i = 0}^{n 3 - 1} \mathopen{}\left( {i} \mathclose{}\right)"
+        r"\prod_{i = 0}^{n \cdot 3 - 1} \mathopen{}\left( {i} \mathclose{}\right)"
     )
     integration_utils.check_function(prod_with_limit, latex)
 
@@ -140,7 +145,7 @@ def test_nested_function() -> None:
     def nested(x):
         return 3 * x
 
-    integration_utils.check_function(nested, r"\mathrm{nested}(x) = 3 x")
+    integration_utils.check_function(nested, r"\mathrm{nested}(x) = 3 \cdot x")
 
 
 def test_double_nested_function() -> None:
@@ -150,7 +155,7 @@ def test_double_nested_function() -> None:
 
         return inner
 
-    integration_utils.check_function(nested(3), r"\mathrm{inner}(y) = x y")
+    integration_utils.check_function(nested(3), r"\mathrm{inner}(y) = x \cdot y")
 
 
 def test_reduce_assignments() -> None:
@@ -160,11 +165,11 @@ def test_reduce_assignments() -> None:
 
     integration_utils.check_function(
         f,
-        r"\begin{array}{l} a = x + x \\ f(x) = 3 a \end{array}",
+        r"\begin{array}{l} a = x + x \\ f(x) = 3 \cdot a \end{array}",
     )
     integration_utils.check_function(
         f,
-        r"f(x) = 3 \mathopen{}\left( x + x \mathclose{}\right)",
+        r"f(x) = 3 \cdot \mathopen{}\left( x + x \mathclose{}\right)",
         reduce_assignments=True,
     )
 
@@ -176,18 +181,18 @@ def test_reduce_assignments_double() -> None:
         return 3 * b
 
     latex_without_option = (
-        r"\begin{array}{l} "
-        r"a = x^{2} \\ "
-        r"b = a + a \\ "
-        r"f(x) = 3 b "
-        r"\end{array}"
+        r"\begin{array}{l}"
+        r" a = x^{2} \\"
+        r" b = a + a \\"
+        r" f(x) = 3 \cdot b"
+        r" \end{array}"
     )
 
     integration_utils.check_function(f, latex_without_option)
     integration_utils.check_function(f, latex_without_option, reduce_assignments=False)
     integration_utils.check_function(
         f,
-        r"f(x) = 3 \mathopen{}\left( x^{2} + x^{2} \mathclose{}\right)",
+        r"f(x) = 3 \cdot \mathopen{}\left( x^{2} + x^{2} \mathclose{}\right)",
         reduce_assignments=True,
     )
 
@@ -220,10 +225,10 @@ def test_sub_bracket() -> None:
         return ((a + b) - b) / (a - b) - (a + b) - (a - b) - (a * b)
 
     latex = (
-        r"\mathrm{solve}(a, b) = "
-        r"\frac{a + b - b}{a - b} - \mathopen{}\left( "
-        r"a + b \mathclose{}\right) - \mathopen{}\left( "
-        r"a - b \mathclose{}\right) - a b"
+        r"\mathrm{solve}(a, b) ="
+        r" \frac{a + b - b}{a - b} - \mathopen{}\left("
+        r" a + b \mathclose{}\right) - \mathopen{}\left("
+        r" a - b \mathclose{}\right) - a \cdot b"
     )
     integration_utils.check_function(solve, latex)
 

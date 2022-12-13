@@ -121,8 +121,8 @@ BIN_OP_RULES: dict[type[ast.operator], BinOpRule] = {
         operand_left=BinOperandRule(force=True),
         operand_right=BinOperandRule(wrap=False),
     ),
-    ast.Mult: BinOpRule("", " ", ""),
-    ast.MatMult: BinOpRule("", " ", ""),
+    ast.Mult: BinOpRule("", r" \cdot ", ""),
+    ast.MatMult: BinOpRule("", r" \cdot ", ""),
     ast.Div: BinOpRule(
         r"\frac{",
         "}{",
