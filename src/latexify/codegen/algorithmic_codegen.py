@@ -60,6 +60,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             rf"\State ${self._expression_codegen.visit(node.value)}$"
         )
 
+    # TODO(ZibingZhang): support nested functions
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
         # Arguments
@@ -192,6 +193,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         """Visit an Expr node."""
         return self._add_prefix() + self._expression_codegen.visit(node.value)
 
+    # TODO(ZibingZhang): support nested functions
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
         # Arguments
@@ -204,10 +206,12 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         body = r" \\ ".join(body_strs)
 
         return (
-            rf"{self._add_prefix()}\mathbf{{function}}"
-            rf" \ \mathrm{{{node.name.upper()}}}({', '.join(arg_strs)}) \\"
+            r"\begin{array}{l}"
+            rf" {self._add_prefix()}\mathbf{{function}}"
+            rf" \ \texttt{{{node.name.upper()}}}({', '.join(arg_strs)}) \\"
             rf" {body} \\"
             rf" {self._add_prefix()}\mathbf{{end \ function}}"
+            r" \end{array}"
         )
 
     # TODO(ZibingZhang): support \ELSIF

@@ -28,7 +28,8 @@ def test_factorial() -> None:
         """  # noqa: E501
     ).strip()
     ipython_latex = (
-        r"\mathbf{function} \ \mathrm{FACT}(n) \\"
+        r"\begin{array}{l}"
+        r" \mathbf{function} \ \texttt{FACT}(n) \\"
         r" \hspace{1em} \mathbf{if} \ n = 0 \\"
         r" \hspace{2em} \mathbf{return} \ 1 \\"
         r" \hspace{1em} \mathbf{else} \\"
@@ -37,6 +38,7 @@ def test_factorial() -> None:
         r" \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right) \\"
         r" \hspace{1em} \mathbf{end \ if} \\"
         r" \mathbf{end \ function}"
+        r" \end{array}"
     )
     integration_utils.check_algorithm(fact, latex, ipython_latex)
 
@@ -71,7 +73,8 @@ def test_collatz() -> None:
         """
     ).strip()
     ipython_latex = (
-        r"\mathbf{function} \ \mathrm{COLLATZ}(n) \\"
+        r"\begin{array}{l}"
+        r" \mathbf{function} \ \texttt{COLLATZ}(n) \\"
         r" \hspace{1em} \mathrm{iterations} \gets 0 \\"
         r" \hspace{1em} \mathbf{while} \ n > 1 \\"
         r" \hspace{2em} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"
@@ -84,5 +87,6 @@ def test_collatz() -> None:
         r" \hspace{1em} \mathbf{end \ while} \\"
         r" \hspace{1em} \mathbf{return} \ \mathrm{iterations} \\"
         r" \mathbf{end \ function}"
+        r" \end{array}"
     )
     integration_utils.check_algorithm(collatz, latex, ipython_latex)
