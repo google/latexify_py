@@ -29,7 +29,7 @@ def test_factorial() -> None:
     ).strip()
     ipython_latex = (
         r"\begin{array}{l}"
-        r" \mathbf{function} \ \texttt{FACT}(n) \\"
+        r" \mathbf{function} \ \mathrm{fact}(n) \\"
         r" \hspace{1em} \mathbf{if} \ n = 0 \\"
         r" \hspace{2em} \mathbf{return} \ 1 \\"
         r" \hspace{1em} \mathbf{else} \\"
@@ -74,7 +74,7 @@ def test_collatz() -> None:
     ).strip()
     ipython_latex = (
         r"\begin{array}{l}"
-        r" \mathbf{function} \ \texttt{COLLATZ}(n) \\"
+        r" \mathbf{function} \ \mathrm{collatz}(n) \\"
         r" \hspace{1em} \mathrm{iterations} \gets 0 \\"
         r" \hspace{1em} \mathbf{while} \ n > 1 \\"
         r" \hspace{2em} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"

@@ -209,7 +209,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         return (
             r"\begin{array}{l} "
             + self._add_indent(r"\mathbf{function}")
-            + rf" \ \texttt{{{node.name.upper()}}}({', '.join(arg_strs)})"
+            + rf" \ \mathrm{{{node.name}}}({', '.join(arg_strs)})"
             + self._LINE_BREAK
             + body
             + self._LINE_BREAK

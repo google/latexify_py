@@ -188,7 +188,7 @@ def test_visit_assign_jupyter(code: str, latex: str) -> None:
             (
                 r"\begin{array}{l}"
                 r" \mathbf{function}"
-                r" \ \texttt{F}(x) \\"
+                r" \ \mathrm{f}(x) \\"
                 r" \hspace{1em} \mathbf{return} \ x \\"
                 r" \mathbf{end \ function}"
                 r" \end{array}"
@@ -199,7 +199,7 @@ def test_visit_assign_jupyter(code: str, latex: str) -> None:
             (
                 r"\begin{array}{l}"
                 r" \mathbf{function}"
-                r" \ \texttt{F}(a, b, c) \\"
+                r" \ \mathrm{f}(a, b, c) \\"
                 r" \hspace{1em} \mathbf{return} \ 3 \\"
                 r" \mathbf{end \ function}"
                 r" \end{array}"
