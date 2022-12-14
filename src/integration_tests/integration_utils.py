@@ -26,7 +26,7 @@ def check_function(
     if not kwargs:
         latexified = frontend.function(fn)
         assert str(latexified) == latex
-        assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
+        assert latexified._repr_latex_() == r"$$ \displaystyle " + latex + " $$"
 
     # Checks the syntax:
     #     @function(**kwargs)
@@ -34,7 +34,7 @@ def check_function(
     #         ...
     latexified = frontend.function(**kwargs)(fn)
     assert str(latexified) == latex
-    assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
+    assert latexified._repr_latex_() == r"$$ \displaystyle " + latex + " $$"
 
     # Checks the syntax:
     #     def fn(...):
@@ -42,7 +42,7 @@ def check_function(
     #     latexified = function(fn, **kwargs)
     latexified = frontend.function(fn, **kwargs)
     assert str(latexified) == latex
-    assert latexified._repr_latex_() == rf"$$ \displaystyle {latex} $$"
+    assert latexified._repr_latex_() == r"$$ \displaystyle " + latex + " $$"
 
 
 def check_algorithm(
@@ -66,7 +66,7 @@ def check_algorithm(
     if not kwargs:
         latexified = frontend.algorithmic(fn)
         assert str(latexified) == latex
-        assert latexified._repr_latex_() == f"$ {ipython_latex} $"
+        assert latexified._repr_latex_() == "$ " + ipython_latex + " $"
 
     # Checks the syntax:
     #     @algorithmic(**kwargs)
@@ -74,7 +74,7 @@ def check_algorithm(
     #         ...
     latexified = frontend.algorithmic(**kwargs)(fn)
     assert str(latexified) == latex
-    assert latexified._repr_latex_() == f"$ {ipython_latex} $"
+    assert latexified._repr_latex_() == "$ " + ipython_latex + " $"
 
     # Checks the syntax:
     #     def fn(...):
@@ -82,4 +82,4 @@ def check_algorithm(
     #     latexified = algorithmic(fn, **kwargs)
     latexified = frontend.algorithmic(fn, **kwargs)
     assert str(latexified) == latex
-    assert latexified._repr_latex_() == f"$ {ipython_latex} $"
+    assert latexified._repr_latex_() == "$ " + ipython_latex + " $"
