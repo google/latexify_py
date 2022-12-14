@@ -79,7 +79,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
                 body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
             body_latex = "\n".join(body_strs)
 
-            latex += body_latex + "\n"
+            latex += f"{body_latex}\n"
             latex += self._add_indent("\\EndFunction\n")
         return latex + self._add_indent(r"\end{algorithmic}")
 
@@ -97,7 +97,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             with self._increment_level():
                 latex += "\n".join(self.visit(stmt) for stmt in node.orelse)
 
-        return latex + "\n" + self._add_indent(r"\EndIf")
+        return f"{latex}\n" + self._add_indent(r"\EndIf")
 
     def visit_Module(self, node: ast.Module) -> str:
         """Visit a Module node."""
@@ -125,8 +125,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
         return (
             self._add_indent(f"\\While{{${cond_latex}$}}\n")
-            + body_latex
-            + "\n"
+            + f"{body_latex}\n"
             + self._add_indent(r"\EndWhile")
         )
 
@@ -211,9 +210,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
             r"\begin{array}{l} "
             + self._add_indent(r"\mathbf{function}")
             + rf" \ \mathrm{{{node.name}}}({', '.join(arg_strs)})"
-            + self._LINE_BREAK
-            + body
-            + self._LINE_BREAK
+            + f"{self._LINE_BREAK}{body}{self._LINE_BREAK}"
             + self._add_indent(r"\mathbf{end \ function}")
             + r" \end{array}"
         )
@@ -225,7 +222,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         with self._increment_level():
             body_latex = self._LINE_BREAK.join(self.visit(stmt) for stmt in node.body)
         latex = self._add_indent(
-            r"\mathbf{if} \ " + cond_latex + self._LINE_BREAK + body_latex
+            rf"\mathbf{{if}} \ {cond_latex}{self._LINE_BREAK}{body_latex}"
         )
 
         if node.orelse:
@@ -242,8 +239,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
     def visit_Return(self, node: ast.Return) -> str:
         """Visit a Return node."""
         return (
-            self._add_indent(r"\mathbf{return}")
-            + r" \ "
+            self._add_indent(r"\mathbf{return} \ ")
             + self._expression_codegen.visit(node.value)
             if node.value is not None
             else self._add_indent(r"\mathbf{return}")
@@ -261,10 +257,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
             body_latex = self._LINE_BREAK.join(self.visit(stmt) for stmt in node.body)
         return (
             self._add_indent(r"\mathbf{while} \ ")
-            + cond_latex
-            + self._LINE_BREAK
-            + body_latex
-            + self._LINE_BREAK
+            + f"{cond_latex}{self._LINE_BREAK}{body_latex}{self._LINE_BREAK}"
             + self._add_indent(r"\mathbf{end \ while}")
         )
 
