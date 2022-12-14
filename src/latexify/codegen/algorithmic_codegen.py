@@ -224,7 +224,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         with self._increment_level():
             body_latex = self._LINE_BREAK.join(self.visit(stmt) for stmt in node.body)
         latex = self._add_indent(
-            rf"\mathbf{{if}} \ {cond_latex}{self._LINE_BREAK}{body_latex}"
+            rf"\mathbf{{if}} \ " + cond_latex + self._LINE_BREAK + body_latex
         )
 
         if node.orelse:
