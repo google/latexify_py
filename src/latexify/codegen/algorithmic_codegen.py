@@ -79,7 +79,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
                 body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
             body_latex = "\n".join(body_strs)
 
-            latex += f"{body_latex}\n"
+            latex += body_latex + "\n"
             latex += self._add_indent("\\EndFunction\n")
         return latex + self._add_indent(r"\end{algorithmic}")
 
@@ -90,10 +90,10 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         with self._increment_level():
             body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
 
-        latex = self._add_indent(f"\\If{{${cond_latex}$}}\n{body_latex}")
+        latex = self._add_indent(f"\\If{{${cond_latex}$}}\n" + body_latex)
 
         if node.orelse:
-            latex += "\n" + self._add_indent(r"\Else") + "\n"
+            latex += "\n" + self._add_indent("\\Else\n")
             with self._increment_level():
                 latex += "\n".join(self.visit(stmt) for stmt in node.orelse)
 
@@ -125,7 +125,8 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
         return (
             self._add_indent(f"\\While{{${cond_latex}$}}\n")
-            + f"{body_latex}\n"
+            + body_latex
+            + "\n"
             + self._add_indent(r"\EndWhile")
         )
 
