@@ -153,6 +153,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
     """
 
     _EM_PER_INDENT = 1
+    _LINE_BREAK = r" \\ "
 
     _identifier_converter: identifier_converter.IdentifierConverter
     _indent_level: int
@@ -203,14 +204,15 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         # Body
         with self._increment_level():
             body_strs: list[str] = [self.visit(stmt) for stmt in node.body]
-        body = r" \\ ".join(body_strs)
+        body = self._LINE_BREAK.join(body_strs)
 
         return (
             r"\begin{array}{l} "
             + self._add_indent(r"\mathbf{function}")
-            + rf" \ \texttt{{{node.name.upper()}}}({', '.join(arg_strs)}) \\ "
+            + rf" \ \texttt{{{node.name.upper()}}}({', '.join(arg_strs)})"
+            + self._LINE_BREAK
             + body
-            + r" \\ "
+            + self._LINE_BREAK
             + self._add_indent(r"\mathbf{end \ function}")
             + r" \end{array}"
         )
@@ -220,15 +222,17 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         """Visit an If node."""
         cond_latex = self._expression_codegen.visit(node.test)
         with self._increment_level():
-            body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
-        latex = self._add_indent(rf"\mathbf{{if}} \ {cond_latex} \\ {body_latex}")
+            body_latex = self._LINE_BREAK.join(self.visit(stmt) for stmt in node.body)
+        latex = self._add_indent(
+            rf"\mathbf{{if}} \ {cond_latex}{self._LINE_BREAK}{body_latex}"
+        )
 
         if node.orelse:
-            latex += r" \\ " + self._add_indent(r"\mathbf{else} \\ ")
+            latex += self._LINE_BREAK + self._add_indent(r"\mathbf{else} \\ ")
             with self._increment_level():
-                latex += r" \\ ".join(self.visit(stmt) for stmt in node.orelse)
+                latex += self._LINE_BREAK.join(self.visit(stmt) for stmt in node.orelse)
 
-        return latex + r" \\ " + self._add_indent(r"\mathbf{end \ if}")
+        return latex + self._LINE_BREAK + self._add_indent(r"\mathbf{end \ if}")
 
     def visit_Module(self, node: ast.Module) -> str:
         """Visit a Module node."""
@@ -252,13 +256,13 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
 
         cond_latex = self._expression_codegen.visit(node.test)
         with self._increment_level():
-            body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
+            body_latex = self._LINE_BREAK.join(self.visit(stmt) for stmt in node.body)
         return (
             self._add_indent(r"\mathbf{while} \ ")
             + cond_latex
-            + r" \\ "
+            + self._LINE_BREAK
             + body_latex
-            + r" \\ "
+            + self._LINE_BREAK
             + self._add_indent(r"\mathbf{end \ while}")
         )
 
