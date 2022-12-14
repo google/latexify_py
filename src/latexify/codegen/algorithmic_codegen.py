@@ -137,10 +137,10 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         self._indent_level -= 1
 
     def _add_indent(self, line: str) -> str:
-        """Adds whitespace before the line.
+        """Adds an indent before the line.
 
         Args:
-            line: The line to add whitespace to.
+            line: The line to add an indent to.
         """
         return self._indent_level * self._SPACES_PER_INDENT * " " + line
 
@@ -187,11 +187,11 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         ]
         operands.append(self._expression_codegen.visit(node.value))
         operands_latex = r" \gets ".join(operands)
-        return self._add_prefix() + operands_latex
+        return self._add_indent(operands_latex)
 
     def visit_Expr(self, node: ast.Expr) -> str:
         """Visit an Expr node."""
-        return self._add_prefix() + self._expression_codegen.visit(node.value)
+        return self._add_indent(self._expression_codegen.visit(node.value))
 
     # TODO(ZibingZhang): support nested functions
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
@@ -206,12 +206,13 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         body = r" \\ ".join(body_strs)
 
         return (
-            r"\begin{array}{l}"
-            rf" {self._add_prefix()}\mathbf{{function}}"
-            rf" \ \texttt{{{node.name.upper()}}}({', '.join(arg_strs)}) \\"
-            rf" {body} \\"
-            rf" {self._add_prefix()}\mathbf{{end \ function}}"
-            r" \end{array}"
+            r"\begin{array}{l} "
+            + self._add_indent(r"\mathbf{function}")
+            + rf" \ \texttt{{{node.name.upper()}}}({', '.join(arg_strs)}) \\ "
+            + body
+            + r" \\ "
+            + self._add_indent(r"\mathbf{end \ function}")
+            + r" \end{array}"
         )
 
     # TODO(ZibingZhang): support \ELSIF
@@ -220,14 +221,14 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         cond_latex = self._expression_codegen.visit(node.test)
         with self._increment_level():
             body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
-        latex = rf"{self._add_prefix()}\mathbf{{if}} \ {cond_latex} \\ {body_latex}"
+        latex = self._add_indent(rf"\mathbf{{if}} \ {cond_latex} \\ {body_latex}")
 
         if node.orelse:
-            latex += rf" \\ {self._add_prefix()}\mathbf{{else}} \\ "
+            latex += r" \\ " + self._add_indent(r"\mathbf{else} \\ ")
             with self._increment_level():
                 latex += r" \\ ".join(self.visit(stmt) for stmt in node.orelse)
 
-        return latex + rf" \\ {self._add_prefix()}\mathbf{{end \ if}}"
+        return latex + r" \\ " + self._add_indent(r"\mathbf{end \ if}")
 
     def visit_Module(self, node: ast.Module) -> str:
         """Visit a Module node."""
@@ -236,10 +237,10 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
     def visit_Return(self, node: ast.Return) -> str:
         """Visit a Return node."""
         return (
-            rf"{self._add_prefix()}\mathbf{{return}}"
-            rf" \ {self._expression_codegen.visit(node.value)}"
+            self._add_indent(r"\mathbf{return}")
+            + rf" \ {self._expression_codegen.visit(node.value)}"
             if node.value is not None
-            else rf"{self._add_prefix()}\mathbf{{return}}"
+            else self._add_indent(r"\mathbf{return}")
         )
 
     def visit_While(self, node: ast.While) -> str:
@@ -253,9 +254,12 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         with self._increment_level():
             body_latex = r" \\ ".join(self.visit(stmt) for stmt in node.body)
         return (
-            rf"{self._add_prefix()}\mathbf{{while}} \ {cond_latex} \\ "
-            rf"{body_latex} \\ "
-            rf"{self._add_prefix()}\mathbf{{end \ while}}"
+            self._add_indent(r"\mathbf{while} \ ")
+            + cond_latex
+            + r" \\ "
+            + body_latex
+            + r" \\ "
+            + self._add_indent(r"\mathbf{end \ while}")
         )
 
     @contextlib.contextmanager
@@ -265,9 +269,14 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         yield
         self._indent_level -= 1
 
-    def _add_prefix(self) -> str:
+    def _add_indent(self, line: str) -> str:
+        """Adds an indent before the line.
+
+        Args:
+            line: The line to add an indent to.
+        """
         return (
-            rf"\hspace{{{self._indent_level * self._EM_PER_INDENT}em}} "
+            rf"\hspace{{{self._indent_level * self._EM_PER_INDENT}em}} {line}"
             if self._indent_level > 0
-            else ""
+            else line
         )
