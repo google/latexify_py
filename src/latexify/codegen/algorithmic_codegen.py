@@ -242,7 +242,8 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         """Visit a Return node."""
         return (
             self._add_indent(r"\mathbf{return}")
-            + rf" \ {self._expression_codegen.visit(node.value)}"
+            + r" \ "
+            + self._expression_codegen.visit(node.value)
             if node.value is not None
             else self._add_indent(r"\mathbf{return}")
         )
