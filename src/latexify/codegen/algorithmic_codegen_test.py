@@ -174,7 +174,7 @@ def test_visit_while_with_else() -> None:
         ("a = b = 0", r"a \gets b \gets 0"),
     ],
 )
-def test_visit_assign_jupyter(code: str, latex: str) -> None:
+def test_visit_assign_ipython(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.Assign)
     assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
@@ -188,7 +188,7 @@ def test_visit_assign_jupyter(code: str, latex: str) -> None:
             (
                 r"\begin{array}{l}"
                 r" \mathbf{function}"
-                r" \ \mathrm{f}(x) \\"
+                r" \ f(x) \\"
                 r" \hspace{1em} \mathbf{return} \ x \\"
                 r" \mathbf{end \ function}"
                 r" \end{array}"
@@ -199,7 +199,7 @@ def test_visit_assign_jupyter(code: str, latex: str) -> None:
             (
                 r"\begin{array}{l}"
                 r" \mathbf{function}"
-                r" \ \mathrm{f}(a, b, c) \\"
+                r" \ f(a, b, c) \\"
                 r" \hspace{1em} \mathbf{return} \ 3 \\"
                 r" \mathbf{end \ function}"
                 r" \end{array}"

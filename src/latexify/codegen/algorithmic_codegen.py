@@ -36,7 +36,8 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             use_math_symbols=use_math_symbols, use_set_symbols=use_set_symbols
         )
         self._identifier_converter = identifier_converter.IdentifierConverter(
-            use_math_symbols=use_math_symbols
+            use_math_symbols=use_math_symbols,
+            use_mathrm=False,
         )
         self._indent_level = 0
 
@@ -63,6 +64,8 @@ class AlgorithmicCodegen(ast.NodeVisitor):
     # TODO(ZibingZhang): support nested functions
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
+        name_latex = self._identifier_converter.convert(node.name)[0]
+
         # Arguments
         arg_strs = [
             self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
@@ -71,7 +74,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         latex = self._add_indent("\\begin{algorithmic}\n")
         with self._increment_level():
             latex += self._add_indent(
-                f"\\Function{{{node.name}}}{{${', '.join(arg_strs)}$}}\n"
+                f"\\Function{{{name_latex}}}{{${', '.join(arg_strs)}$}}\n"
             )
 
             with self._increment_level():
@@ -197,6 +200,8 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
     # TODO(ZibingZhang): support nested functions
     def visit_FunctionDef(self, node: ast.FunctionDef) -> str:
         """Visit a FunctionDef node."""
+        name_latex = self._identifier_converter.convert(node.name)[0]
+
         # Arguments
         arg_strs = [
             self._identifier_converter.convert(arg.arg)[0] for arg in node.args.args
@@ -209,7 +214,7 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
         return (
             r"\begin{array}{l} "
             + self._add_indent(r"\mathbf{function}")
-            + rf" \ \mathrm{{{node.name}}}({', '.join(arg_strs)})"
+            + rf" \ {name_latex}({', '.join(arg_strs)})"
             + f"{self._LINE_BREAK}{body}{self._LINE_BREAK}"
             + self._add_indent(r"\mathbf{end \ function}")
             + r" \end{array}"
