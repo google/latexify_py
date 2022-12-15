@@ -8,7 +8,7 @@ from typing import Any
 
 from latexify import codegen
 from latexify import config as cfg
-from latexify import exceptions, parser, transformers
+from latexify import parser, transformers
 
 
 class Style(enum.Enum):
@@ -63,13 +63,15 @@ def get_latex(
             use_math_symbols=merged_config.use_math_symbols,
             use_set_symbols=merged_config.use_set_symbols,
         ).visit(tree)
-    elif style == Style.IPYTHON_ALGORITHMIC:
-        # TODO(ZibingZhang): implement algorithmic codegen for ipython
-        raise exceptions.LatexifyNotSupportedError
     elif style == Style.FUNCTION:
         return codegen.FunctionCodegen(
             use_math_symbols=merged_config.use_math_symbols,
             use_signature=merged_config.use_signature,
+            use_set_symbols=merged_config.use_set_symbols,
+        ).visit(tree)
+    elif style == Style.IPYTHON_ALGORITHMIC:
+        return codegen.IPythonAlgorithmicCodegen(
+            use_math_symbols=merged_config.use_math_symbols,
             use_set_symbols=merged_config.use_set_symbols,
         ).visit(tree)
 
