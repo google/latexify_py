@@ -29,7 +29,7 @@ def test_visit_functiondef_match() -> None:
         r"f(x) ="
         r" \left\{ \begin{array}{ll} "
         r"1, & \mathrm{if} \ x = 0 \\"
-        r" 3 x, & \mathrm{otherwise}"
+        r" 3 \cdot x, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
     assert function_codegen.FunctionCodegen().visit(tree) == expected
