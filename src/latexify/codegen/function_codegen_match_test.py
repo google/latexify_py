@@ -27,7 +27,7 @@ def test_visit_functiondef_match() -> None:
     )
     expected = (
         r"f(x) ="
-        r" \left\{ \begin{array}{ll}"
+        r" \left\{ \begin{array}{ll} "
         r"1, & \mathrm{if} \ x = 0 \\"
         r" 3 x, & \mathrm{otherwise}"
         r" \end{array} \right."
@@ -49,7 +49,7 @@ def test_visit_match() -> None:
         )
     ).body[0]
     expected = (
-        r"\left\{ \begin{array}{ll}"
+        r"\left\{ \begin{array}{ll} "
         r"1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{otherwise}"
         r" \end{array} \right."
@@ -73,7 +73,7 @@ def test_visit_multiple_match_cases() -> None:
         )
     ).body[0]
     expected = (
-        r"\left\{ \begin{array}{ll}"
+        r"\left\{ \begin{array}{ll} "
         r"1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{if} \ x = 1 \\"
         r" 3, & \mathrm{otherwise}"
@@ -123,27 +123,6 @@ def test_visit_multiple_match_cases_no_wildcards() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_visit_only_wildcard_in_matchas() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case [x] as y:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifySyntaxError,
-        match=r"^Nonempty as-patterns are not supported in MatchAs nodes.$",
-    ):
-        function_codegen.FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
 def test_visit_match_case_no_return() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -187,94 +166,6 @@ def test_visit_match_case_mutliple_statements() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_visit_match_case_with_if() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case x if x > 0:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    assert (
-        function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}"
-        + r"1, & \mathrm{if} \ x > 0 \\ "
-        + r"2, & \mathrm{otherwise} \end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_visit_match_case_with_if_and() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case x if x > 0 and x <= 10:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    assert (
-        function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}1, & \mathrm{if} "
-        + r"\ x > 0 \land x \le 10 \\"
-        + r" 2, & \mathrm{otherwise} \end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_visit_matchcase_with_if_or() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case x if x > 0 or x <= 10:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    assert (
-        function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}1,"
-        + r" & \mathrm{if} \ x > 0 \lor x \le 10 \\"
-        + r" 2, & \mathrm{otherwise} \end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
-def test_visit_match_case_with_combined_condition() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case x if 0 < x <= 10:
-                    return 1
-                case _:
-                    return 2
-            """
-        )
-    ).body[0]
-
-    assert (
-        function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}1,"
-        + r" & \mathrm{if} \ 0 < x \le 10 \\ 2,"
-        + r" & \mathrm{otherwise} \end{array} \right."
-    )
-
-
-@test_utils.require_at_least(10)
 def test_visit_match_case_or() -> None:
     tree = ast.parse(
         textwrap.dedent(
@@ -290,6 +181,6 @@ def test_visit_match_case_or() -> None:
 
     assert (
         function_codegen.FunctionCodegen().visit(tree)
-        == r"\left\{ \begin{array}{ll}1, & \mathrm{if} \ x = 0 \lor x = 1 \\"
+        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \lor x = 1 \\"
         + r" 2, & \mathrm{otherwise} \end{array} \right."
     )

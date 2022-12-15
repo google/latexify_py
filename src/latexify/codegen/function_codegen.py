@@ -162,8 +162,8 @@ class FunctionCodegen(ast.NodeVisitor):
             if i < len(node.cases) - 1:
                 body_latex = self.visit(case.body[0])
                 cond_latex = self.visit(case.pattern)
-                if case.guard is not None:
-                    cond_latex = self._expression_codegen.visit(case.guard)
+                # if case.guard is not None:
+                #     cond_latex = self._expression_codegen.visit(case.guard)
 
                 case_latexes.append(body_latex + r", & \mathrm{if} \ " + cond_latex)
             else:
@@ -172,7 +172,7 @@ class FunctionCodegen(ast.NodeVisitor):
                 )
 
         latex = (
-            r"\left\{ \begin{array}{ll}"
+            r"\left\{ \begin{array}{ll} "
             + r" \\ ".join(case_latexes)
             + r" \end{array} \right."
         )
@@ -185,24 +185,13 @@ class FunctionCodegen(ast.NodeVisitor):
         latex = self._expression_codegen.visit(node.value)
         return "subject_name = " + latex
 
-    def visit_MatchAs(self, node: ast.MatchAs) -> str:
-        """
-        Visit a MatchAs node.
-        If MatchAs is a wildcard, return 'otherwise' case, otherwise throw an error.
-        """
-        if node.pattern is None:
-            return ""
-        else:
-            raise exceptions.LatexifySyntaxError(
-                "Nonempty as-patterns are not supported in MatchAs nodes."
-            )
-
     def visit_MatchOr(self, node: ast.MatchOr) -> str:
         """Visit a MatchOr node."""
-        case_latexes = []
-        for i, pattern in enumerate(node.patterns):
-            if i == 0:
-                case_latexes.append(self.visit(pattern))
-            else:
-                case_latexes.append(r" \lor " + self.visit(pattern))
-        return "".join(case_latexes)
+        # case_latexes = []
+        # for i, pattern in enumerate(node.patterns):
+        #     if i == 0:
+        #         case_latexes.append(self.visit(pattern))
+        #     else:
+        #         case_latexes.append(r" \lor " + self.visit(pattern))
+        # return "".join(case_latexes)
+        return r" \lor ".join(self.visit(p) for p in node.patterns)
