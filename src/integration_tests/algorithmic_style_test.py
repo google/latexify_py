@@ -2,29 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+import textwrap
 
-from latexify import frontend
-
-
-def check_algorithm(
-    fn: Callable[..., Any],
-    latex: str,
-    **kwargs,
-) -> None:
-    """Helper to check if the obtained function has the expected LaTeX form.
-
-    Args:
-        fn: Function to check.
-        latex: LaTeX form of `fn`.
-        **kwargs: Arguments passed to `frontend.get_latex`.
-    """
-    # Checks the syntax:
-    #     def fn(...):
-    #         ...
-    #     latexified = get_latex(fn, style=ALGORITHM, **kwargs)
-    latexified = frontend.get_latex(fn, style=frontend.Style.ALGORITHMIC, **kwargs)
-    assert latexified == latex
+from integration_tests import integration_utils
 
 
 def test_factorial() -> None:
@@ -34,18 +14,33 @@ def test_factorial() -> None:
         else:
             return n * fact(n - 1)
 
-    latex = (
-        r"\begin{algorithmic}"
-        r" \Function{fact}{$n$}"
-        r" \If{$n = 0$}"
-        r" \State \Return $1$"
-        r" \Else"
-        r" \State \Return $n \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$"
-        r" \EndIf"
-        r" \EndFunction"
-        r" \end{algorithmic}"
+    latex = textwrap.dedent(
+        r"""
+        \begin{algorithmic}
+            \Function{fact}{$n$}
+                \If{$n = 0$}
+                    \State \Return $1$
+                \Else
+                    \State \Return $n \cdot \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right)$
+                \EndIf
+            \EndFunction
+        \end{algorithmic}
+        """  # noqa: E501
+    ).strip()
+    ipython_latex = (
+        r"\begin{array}{l}"
+        r" \mathbf{function} \ \mathrm{fact}(n) \\"
+        r" \hspace{1em} \mathbf{if} \ n = 0 \\"
+        r" \hspace{2em} \mathbf{return} \ 1 \\"
+        r" \hspace{1em} \mathbf{else} \\"
+        r" \hspace{2em}"
+        r" \mathbf{return} \ n \cdot"
+        r" \mathrm{fact} \mathopen{}\left( n - 1 \mathclose{}\right) \\"
+        r" \hspace{1em} \mathbf{end \ if} \\"
+        r" \mathbf{end \ function}"
+        r" \end{array}"
     )
-    check_algorithm(fact, latex)
+    integration_utils.check_algorithm(fact, latex, ipython_latex)
 
 
 def test_collatz() -> None:
@@ -59,19 +54,39 @@ def test_collatz() -> None:
             iterations = iterations + 1
         return iterations
 
-    latex = (
-        r"\begin{algorithmic}"
-        r" \Function{collatz}{$n$}"
-        r" \State $\mathrm{iterations} \gets 0$"
-        r" \While{$n > 1$}"
-        r" \If{$n \mathbin{\%} 2 = 0$}"
-        r" \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$"
-        r" \Else \State $n \gets 3 n + 1$"
-        r" \EndIf"
-        r" \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$"
-        r" \EndWhile"
-        r" \State \Return $\mathrm{iterations}$"
-        r" \EndFunction"
-        r" \end{algorithmic}"
+    latex = textwrap.dedent(
+        r"""
+        \begin{algorithmic}
+            \Function{collatz}{$n$}
+                \State $\mathrm{iterations} \gets 0$
+                \While{$n > 1$}
+                    \If{$n \mathbin{\%} 2 = 0$}
+                        \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$
+                    \Else
+                        \State $n \gets 3 \cdot n + 1$
+                    \EndIf
+                    \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$
+                \EndWhile
+                \State \Return $\mathrm{iterations}$
+            \EndFunction
+        \end{algorithmic}
+        """
+    ).strip()
+    ipython_latex = (
+        r"\begin{array}{l}"
+        r" \mathbf{function} \ \mathrm{collatz}(n) \\"
+        r" \hspace{1em} \mathrm{iterations} \gets 0 \\"
+        r" \hspace{1em} \mathbf{while} \ n > 1 \\"
+        r" \hspace{2em} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"
+        r" \hspace{3em} n \gets \left\lfloor\frac{n}{2}\right\rfloor \\"
+        r" \hspace{2em} \mathbf{else} \\"
+        r" \hspace{3em} n \gets 3 \cdot n + 1 \\"
+        r" \hspace{2em} \mathbf{end \ if} \\"
+        r" \hspace{2em}"
+        r" \mathrm{iterations} \gets \mathrm{iterations} + 1 \\"
+        r" \hspace{1em} \mathbf{end \ while} \\"
+        r" \hspace{1em} \mathbf{return} \ \mathrm{iterations} \\"
+        r" \mathbf{end \ function}"
+        r" \end{array}"
     )
-    check_algorithm(collatz, latex)
+    integration_utils.check_algorithm(collatz, latex, ipython_latex)
