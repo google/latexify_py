@@ -16,15 +16,19 @@ class IdentifierConverter:
     """
 
     _use_math_symbols: bool
+    _use_mathrm: bool
 
-    def __init__(self, *, use_math_symbols: bool) -> None:
-        """Initializer.
+    def __init__(self, *, use_math_symbols: bool, use_mathrm: bool = True) -> None:
+        r"""Initializer.
 
         Args:
             use_math_symbols: Whether to convert identifiers with math symbol names to
                 appropriate LaTeX command.
+            use_mathrm: Whether to wrap the resulting expression by \mathrm, if
+                applicable.
         """
         self._use_math_symbols = use_math_symbols
+        self._use_mathrm = use_mathrm
 
     def convert(self, name: str) -> tuple[str, bool]:
         """Converts Python identifier to LaTeX expression.
@@ -44,4 +48,7 @@ class IdentifierConverter:
         if len(name) == 1 and name != "_":
             return name, True
 
-        return r"\mathrm{" + name.replace("_", r"\_") + "}", False
+        escaped = name.replace("_", r"\_")
+        wrapped = rf"\mathrm{{{escaped}}}" if self._use_mathrm else escaped
+
+        return wrapped, False
