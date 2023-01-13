@@ -70,9 +70,9 @@ class AlgorithmicCodegen(ast.NodeVisitor):
 
         target_latex = self._expression_codegen.visit(node.target)
         iter_latex = self._expression_codegen.visit(node.iter)
-
         with self._increment_level():
             body_latex = "\n".join(self.visit(stmt) for stmt in node.body)
+
         return (
             self._add_indent(f"\\For{{${target_latex} \\in {iter_latex}$}}\n")
             + f"{body_latex}\n"
@@ -224,9 +224,9 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
 
         target_latex = self._expression_codegen.visit(node.target)
         iter_latex = self._expression_codegen.visit(node.iter)
-
         with self._increment_level():
             body_latex = self._LINE_BREAK.join(self.visit(stmt) for stmt in node.body)
+
         return (
             self._add_indent(r"\mathbf{for}")
             + rf" \ {target_latex} \in {iter_latex} \ \mathbf{{do}}{self._LINE_BREAK}"
