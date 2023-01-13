@@ -76,7 +76,7 @@ class AlgorithmicCodegen(ast.NodeVisitor):
         return (
             self._add_indent(f"\\For{{${target_latex} \\in {iter_latex}$}}\n")
             + f"{body_latex}\n"
-            + self._add_indent(f"\\EndFor")
+            + self._add_indent("\\EndFor")
         )
 
     # TODO(ZibingZhang): support nested functions
