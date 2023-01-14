@@ -45,6 +45,28 @@ def test_visit_assign(code: str, latex: str) -> None:
     "code,latex",
     [
         (
+            "for i in {1}: x = i",
+            r"""
+            \For{$i \in \mathopen{}\left\{ 1 \mathclose{}\right\}$}
+                \State $x \gets i$
+            \EndFor
+            """,
+        ),
+    ],
+)
+def test_visit_for(code: str, latex: str) -> None:
+    node = ast.parse(textwrap.dedent(code)).body[0]
+    assert isinstance(node, ast.For)
+    assert (
+        algorithmic_codegen.AlgorithmicCodegen().visit(node)
+        == textwrap.dedent(latex).strip()
+    )
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        (
             "def f(x): return x",
             r"""
             \begin{algorithmic}
@@ -178,6 +200,29 @@ def test_visit_assign_ipython(code: str, latex: str) -> None:
     node = ast.parse(textwrap.dedent(code)).body[0]
     assert isinstance(node, ast.Assign)
     assert algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        (
+            "for i in {1}: x = i",
+            (
+                r"\mathbf{for} \ i \in \mathopen{}\left\{ 1 \mathclose{}\right\}"
+                r" \ \mathbf{do} \\"
+                r" \hspace{1em} x \gets i \\"
+                r" \mathbf{end \ for}"
+            ),
+        ),
+    ],
+)
+def test_visit_for_ipython(code: str, latex: str) -> None:
+    node = ast.parse(textwrap.dedent(code)).body[0]
+    assert isinstance(node, ast.For)
+    assert (
+        algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node)
+        == textwrap.dedent(latex).strip()
+    )
 
 
 @pytest.mark.parametrize(
