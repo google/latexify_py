@@ -12,7 +12,7 @@ from latexify.codegen import function_codegen
 
 
 @test_utils.require_at_least(10)
-def test_functiondef_match() -> None:
+def test_visit_functiondef_match() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -27,8 +27,8 @@ def test_functiondef_match() -> None:
     )
     expected = (
         r"f(x) ="
-        r" \left\{ \begin{array}{ll}"
-        r" 1, & \mathrm{if} \ x = 0 \\"
+        r" \left\{ \begin{array}{ll} "
+        r"1, & \mathrm{if} \ x = 0 \\"
         r" 3 \cdot x, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
@@ -36,7 +36,7 @@ def test_functiondef_match() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchvalue() -> None:
+def test_visit_match() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -49,8 +49,8 @@ def test_matchvalue() -> None:
         )
     ).body[0]
     expected = (
-        r"\left\{ \begin{array}{ll}"
-        r" 1, & \mathrm{if} \ x = 0 \\"
+        r"\left\{ \begin{array}{ll} "
+        r"1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{otherwise}"
         r" \end{array} \right."
     )
@@ -58,7 +58,7 @@ def test_matchvalue() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_multiple_matchvalue() -> None:
+def test_visit_multiple_match_cases() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -73,8 +73,8 @@ def test_multiple_matchvalue() -> None:
         )
     ).body[0]
     expected = (
-        r"\left\{ \begin{array}{ll}"
-        r" 1, & \mathrm{if} \ x = 0 \\"
+        r"\left\{ \begin{array}{ll} "
+        r"1, & \mathrm{if} \ x = 0 \\"
         r" 2, & \mathrm{if} \ x = 1 \\"
         r" 3, & \mathrm{otherwise}"
         r" \end{array} \right."
@@ -83,7 +83,7 @@ def test_multiple_matchvalue() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_single_matchvalue_no_wildcards() -> None:
+def test_visit_single_match_case_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -102,7 +102,7 @@ def test_single_matchvalue_no_wildcards() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_multiple_matchvalue_no_wildcards() -> None:
+def test_visit_multiple_match_cases_no_wildcards() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
@@ -123,12 +123,55 @@ def test_multiple_matchvalue_no_wildcards() -> None:
 
 
 @test_utils.require_at_least(10)
-def test_matchas_nonempty() -> None:
+def test_visit_match_case_no_return() -> None:
     tree = ast.parse(
         textwrap.dedent(
             """
             match x:
-                case [x] as y:
+                case 0:
+                    x = 5
+                case _:
+                    return 0
+            """
+        )
+    ).body[0]
+
+    with pytest.raises(
+        exceptions.LatexifyNotSupportedError,
+        match=r"^Match cases must contain exactly 1 return statement\.$",
+    ):
+        function_codegen.FunctionCodegen().visit(tree)
+
+
+@test_utils.require_at_least(10)
+def test_visit_match_case_mutliple_statements() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case 0:
+                    x = 5
+                    return 1
+                case _:
+                    return 0
+            """
+        )
+    ).body[0]
+
+    with pytest.raises(
+        exceptions.LatexifyNotSupportedError,
+        match=r"^Match cases must contain exactly 1 return statement\.$",
+    ):
+        function_codegen.FunctionCodegen().visit(tree)
+
+
+@test_utils.require_at_least(10)
+def test_visit_match_case_or() -> None:
+    tree = ast.parse(
+        textwrap.dedent(
+            """
+            match x:
+                case 0 | 1:
                     return 1
                 case _:
                     return 2
@@ -136,51 +179,8 @@ def test_matchas_nonempty() -> None:
         )
     ).body[0]
 
-    with pytest.raises(
-        exceptions.LatexifyNotSupportedError,
-        match=r"^Unsupported AST: MatchAs$",
-    ):
+    assert (
         function_codegen.FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue_no_return() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    x = 5
-                case _:
-                    return 0
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifyNotSupportedError,
-        match=r"^Match cases must contain exactly 1 return statement\.$",
-    ):
-        function_codegen.FunctionCodegen().visit(tree)
-
-
-@test_utils.require_at_least(10)
-def test_matchvalue_mutliple_statements() -> None:
-    tree = ast.parse(
-        textwrap.dedent(
-            """
-            match x:
-                case 0:
-                    x = 5
-                    return 1
-                case _:
-                    return 0
-            """
-        )
-    ).body[0]
-
-    with pytest.raises(
-        exceptions.LatexifyNotSupportedError,
-        match=r"^Match cases must contain exactly 1 return statement\.$",
-    ):
-        function_codegen.FunctionCodegen().visit(tree)
+        == r"\left\{ \begin{array}{ll} 1, & \mathrm{if} \ x = 0 \lor x = 1 \\"
+        + r" 2, & \mathrm{otherwise} \end{array} \right."
+    )
