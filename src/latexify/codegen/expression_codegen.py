@@ -218,6 +218,27 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         return rf"\mathbf{{I}}_{{{ndims}}}"
 
+    def _generate_transpose(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.transpose.
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        Raises:
+            LatexifyError: Unsupported argument type given.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "transpose"
+
+        if len(node.args) != 1:
+            return None
+
+        func_arg = node.args[0]
+        if isinstance(func_arg, ast.Name):
+            return rf"\mathbf{{{func_arg.id}}}^\intercal"
+        else:
+            return None
+
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a Call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
@@ -232,6 +253,8 @@ class ExpressionCodegen(ast.NodeVisitor):
             special_latex = self._generate_zeros(node)
         elif func_name == "identity":
             special_latex = self._generate_identity(node)
+        elif func_name == "transpose":
+            special_latex = self._generate_transpose(node)
         else:
             special_latex = None
 

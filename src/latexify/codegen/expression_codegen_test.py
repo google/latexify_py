@@ -970,3 +970,24 @@ def test_identity(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("transpose(A)", r"\mathbf{A}^\intercal"),
+        ("transpose(b)", r"\mathbf{b}^\intercal"),
+        # Unsupported
+        ("transpose()", r"\mathrm{transpose} \mathopen{}\left( \mathclose{}\right)"),
+        ("transpose(2)", r"\mathrm{transpose} \mathopen{}\left( 2 \mathclose{}\right)"),
+        (
+            "transpose(a, (1, 0))",
+            r"\mathrm{transpose} \mathopen{}\left( a, "
+            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
+        ),
+    ],
+)
+def test_transpose(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex

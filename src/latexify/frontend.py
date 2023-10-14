@@ -24,9 +24,10 @@ def algorithmic(
 
 def algorithmic(
     fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> ipython_wrappers.LatexifiedAlgorithm | Callable[
-    [Callable[..., Any]], ipython_wrappers.LatexifiedAlgorithm
-]:
+) -> (
+    ipython_wrappers.LatexifiedAlgorithm
+    | Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedAlgorithm]
+):
     """Attach LaTeX pretty-printing to the given function.
 
     This function works with or without specifying the target function as the
@@ -67,9 +68,10 @@ def function(
 
 def function(
     fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> ipython_wrappers.LatexifiedFunction | Callable[
-    [Callable[..., Any]], ipython_wrappers.LatexifiedFunction
-]:
+) -> (
+    ipython_wrappers.LatexifiedFunction
+    | Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedFunction]
+):
     """Attach LaTeX pretty-printing to the given function.
 
     This function works with or without specifying the target function as the positional
@@ -110,9 +112,10 @@ def expression(
 
 def expression(
     fn: Callable[..., Any] | None = None, **kwargs: Any
-) -> ipython_wrappers.LatexifiedFunction | Callable[
-    [Callable[..., Any]], ipython_wrappers.LatexifiedFunction
-]:
+) -> (
+    ipython_wrappers.LatexifiedFunction
+    | Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedFunction]
+):
     """Attach LaTeX pretty-printing to the given function.
 
     This function is a shortcut for `latexify.function` with the default parameter
