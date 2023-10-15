@@ -454,8 +454,8 @@ def test_if_then_else(code: str, latex: str) -> None:
     [
         # x op y
         ("x**y", r"x^{y}"),
-        ("x * y", r"x \cdot y"),
-        ("x @ y", r"x \cdot y"),
+        ("x * y", r"x y"),
+        ("x @ y", r"x y"),
         ("x / y", r"\frac{x}{y}"),
         ("x // y", r"\left\lfloor\frac{x}{y}\right\rfloor"),
         ("x % y", r"x \mathbin{\%} y"),
@@ -468,8 +468,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x | y", R"x \mathbin{|} y"),
         # (x op y) op z
         ("(x**y)**z", r"\mathopen{}\left( x^{y} \mathclose{}\right)^{z}"),
-        ("(x * y) * z", r"x \cdot y \cdot z"),
-        ("(x @ y) @ z", r"x \cdot y \cdot z"),
+        ("(x * y) * z", r"x y z"),
+        ("(x @ y) @ z", r"x y z"),
         ("(x / y) / z", r"\frac{\frac{x}{y}}{z}"),
         (
             "(x // y) // z",
@@ -485,8 +485,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("(x | y) | z", r"x \mathbin{|} y \mathbin{|} z"),
         # x op (y op z)
         ("x**(y**z)", r"x^{y^{z}}"),
-        ("x * (y * z)", r"x \cdot y \cdot z"),
-        ("x @ (y @ z)", r"x \cdot y \cdot z"),
+        ("x * (y * z)", r"x y z"),
+        ("x @ (y @ z)", r"x y z"),
         ("x / (y / z)", r"\frac{x}{\frac{y}{z}}"),
         (
             "x // (y // z)",
@@ -504,9 +504,9 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x ^ (y ^ z)", r"x \oplus y \oplus z"),
         ("x | (y | z)", r"x \mathbin{|} y \mathbin{|} z"),
         # x OP y op z
-        ("x**y * z", r"x^{y} \cdot z"),
-        ("x * y + z", r"x \cdot y + z"),
-        ("x @ y + z", r"x \cdot y + z"),
+        ("x**y * z", r"x^{y} z"),
+        ("x * y + z", r"x y + z"),
+        ("x @ y + z", r"x y + z"),
         ("x / y + z", r"\frac{x}{y} + z"),
         ("x // y + z", r"\left\lfloor\frac{x}{y}\right\rfloor + z"),
         ("x % y + z", r"x \mathbin{\%} y + z"),
@@ -517,7 +517,7 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x & y ^ z", r"x \mathbin{\&} y \oplus z"),
         ("x ^ y | z", r"x \oplus y \mathbin{|} z"),
         # x OP (y op z)
-        ("x**(y * z)", r"x^{y \cdot z}"),
+        ("x**(y * z)", r"x^{y z}"),
         ("x * (y + z)", r"x \cdot \mathopen{}\left( y + z \mathclose{}\right)"),
         ("x @ (y + z)", r"x \cdot \mathopen{}\left( y + z \mathclose{}\right)"),
         ("x / (y + z)", r"\frac{x}{y + z}"),
@@ -542,9 +542,9 @@ def test_if_then_else(code: str, latex: str) -> None:
             r"x \oplus \mathopen{}\left( y \mathbin{|} z \mathclose{}\right)",
         ),
         # x op y OP z
-        ("x * y**z", r"x \cdot y^{z}"),
-        ("x + y * z", r"x + y \cdot z"),
-        ("x + y @ z", r"x + y \cdot z"),
+        ("x * y**z", r"x y^{z}"),
+        ("x + y * z", r"x + y z"),
+        ("x + y @ z", r"x + y z"),
         ("x + y / z", r"x + \frac{y}{z}"),
         ("x + y // z", r"x + \left\lfloor\frac{y}{z}\right\rfloor"),
         ("x + y % z", r"x + y \mathbin{\%} z"),
@@ -555,9 +555,9 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x ^ y & z", r"x \oplus y \mathbin{\&} z"),
         ("x | y ^ z", r"x \mathbin{|} y \oplus z"),
         # (x op y) OP z
-        ("(x * y)**z", r"\mathopen{}\left( x \cdot y \mathclose{}\right)^{z}"),
-        ("(x + y) * z", r"\mathopen{}\left( x + y \mathclose{}\right) \cdot z"),
-        ("(x + y) @ z", r"\mathopen{}\left( x + y \mathclose{}\right) \cdot z"),
+        ("(x * y)**z", r"\mathopen{}\left( x y \mathclose{}\right)^{z}"),
+        ("(x + y) * z", r"\mathopen{}\left( x + y \mathclose{}\right) z"),
+        ("(x + y) @ z", r"\mathopen{}\left( x + y \mathclose{}\right) z"),
         ("(x + y) / z", r"\frac{x + y}{z}"),
         ("(x + y) // z", r"\left\lfloor\frac{x + y}{z}\right\rfloor"),
         ("(x + y) % z", r"\mathopen{}\left( x + y \mathclose{}\right) \mathbin{\%} z"),
@@ -600,8 +600,8 @@ def test_if_then_else(code: str, latex: str) -> None:
         # With UnaryOp
         ("x**-y", r"x^{-y}"),
         ("(-x)**y", r"\mathopen{}\left( -x \mathclose{}\right)^{y}"),
-        ("x * -y", r"x \cdot -y"),  # TODO(odashi): google/latexify_py#89
-        ("-x * y", r"-x \cdot y"),
+        ("x * -y", r"x \cdot -y"),
+        ("-x * y", r"-x y"),
         ("x / -y", r"\frac{x}{-y}"),
         ("-x / y", r"\frac{-x}{y}"),
         ("x + -y", r"x + -y"),
@@ -610,7 +610,7 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x**(y == z)", r"x^{y = z}"),
         ("(x == y)**z", r"\mathopen{}\left( x = y \mathclose{}\right)^{z}"),
         ("x * (y == z)", r"x \cdot \mathopen{}\left( y = z \mathclose{}\right)"),
-        ("(x == y) * z", r"\mathopen{}\left( x = y \mathclose{}\right) \cdot z"),
+        ("(x == y) * z", r"\mathopen{}\left( x = y \mathclose{}\right) z"),
         ("x / (y == z)", r"\frac{x}{y = z}"),
         ("(x == y) / z", r"\frac{x = y}{z}"),
         ("x + (y == z)", r"x + \mathopen{}\left( y = z \mathclose{}\right)"),
@@ -619,7 +619,7 @@ def test_if_then_else(code: str, latex: str) -> None:
         ("x**(y and z)", r"x^{y \land z}"),
         ("(x and y)**z", r"\mathopen{}\left( x \land y \mathclose{}\right)^{z}"),
         ("x * (y and z)", r"x \cdot \mathopen{}\left( y \land z \mathclose{}\right)"),
-        ("(x and y) * z", r"\mathopen{}\left( x \land y \mathclose{}\right) \cdot z"),
+        ("(x and y) * z", r"\mathopen{}\left( x \land y \mathclose{}\right) z"),
         ("x / (y and z)", r"\frac{x}{y \land z}"),
         ("(x and y) / z", r"\frac{x \land y}{z}"),
         ("x + (y and z)", r"x + \mathopen{}\left( y \land z \mathclose{}\right)"),
@@ -991,3 +991,96 @@ def test_transpose(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+# Check list for #89.
+# https://github.com/google/latexify_py/issues/89#issuecomment-1344967636
+@pytest.mark.parametrize(
+    "left,right,latex",
+    [
+        ("2", "3", r"2 \cdot 3"),
+        ("2", "y", "2 y"),
+        ("2", "beta", r"2 \beta"),
+        ("2", "bar", r"2 \mathrm{bar}"),
+        ("2", "g(y)", r"2 g \mathopen{}\left( y \mathclose{}\right)"),
+        ("2", "(u + v)", r"2 \mathopen{}\left( u + v \mathclose{}\right)"),
+        ("x", "3", r"x \cdot 3"),
+        ("x", "y", "x y"),
+        ("x", "beta", r"x \beta"),
+        ("x", "bar", r"x \cdot \mathrm{bar}"),
+        ("x", "g(y)", r"x \cdot g \mathopen{}\left( y \mathclose{}\right)"),
+        ("x", "(u + v)", r"x \cdot \mathopen{}\left( u + v \mathclose{}\right)"),
+        ("alpha", "3", r"\alpha \cdot 3"),
+        ("alpha", "y", r"\alpha y"),
+        ("alpha", "beta", r"\alpha \beta"),
+        ("alpha", "bar", r"\alpha \cdot \mathrm{bar}"),
+        ("alpha", "g(y)", r"\alpha \cdot g \mathopen{}\left( y \mathclose{}\right)"),
+        (
+            "alpha",
+            "(u + v)",
+            r"\alpha \cdot \mathopen{}\left( u + v \mathclose{}\right)",
+        ),
+        ("foo", "3", r"\mathrm{foo} \cdot 3"),
+        ("foo", "y", r"\mathrm{foo} \cdot y"),
+        ("foo", "beta", r"\mathrm{foo} \cdot \beta"),
+        ("foo", "bar", r"\mathrm{foo} \cdot \mathrm{bar}"),
+        (
+            "foo",
+            "g(y)",
+            r"\mathrm{foo} \cdot g \mathopen{}\left( y \mathclose{}\right)",
+        ),
+        (
+            "foo",
+            "(u + v)",
+            r"\mathrm{foo} \cdot \mathopen{}\left( u + v \mathclose{}\right)",
+        ),
+        ("f(x)", "3", r"f \mathopen{}\left( x \mathclose{}\right) \cdot 3"),
+        ("f(x)", "y", r"f \mathopen{}\left( x \mathclose{}\right) \cdot y"),
+        ("f(x)", "beta", r"f \mathopen{}\left( x \mathclose{}\right) \cdot \beta"),
+        (
+            "f(x)",
+            "bar",
+            r"f \mathopen{}\left( x \mathclose{}\right) \cdot \mathrm{bar}",
+        ),
+        (
+            "f(x)",
+            "g(y)",
+            r"f \mathopen{}\left( x \mathclose{}\right)"
+            r" \cdot g \mathopen{}\left( y \mathclose{}\right)",
+        ),
+        (
+            "f(x)",
+            "(u + v)",
+            r"f \mathopen{}\left( x \mathclose{}\right)"
+            r" \cdot \mathopen{}\left( u + v \mathclose{}\right)",
+        ),
+        ("(s + t)", "3", r"\mathopen{}\left( s + t \mathclose{}\right) \cdot 3"),
+        ("(s + t)", "y", r"\mathopen{}\left( s + t \mathclose{}\right) y"),
+        ("(s + t)", "beta", r"\mathopen{}\left( s + t \mathclose{}\right) \beta"),
+        (
+            "(s + t)",
+            "bar",
+            r"\mathopen{}\left( s + t \mathclose{}\right) \mathrm{bar}",
+        ),
+        (
+            "(s + t)",
+            "g(y)",
+            r"\mathopen{}\left( s + t \mathclose{}\right)"
+            r" g \mathopen{}\left( y \mathclose{}\right)",
+        ),
+        (
+            "(s + t)",
+            "(u + v)",
+            r"\mathopen{}\left( s + t \mathclose{}\right)"
+            r" \mathopen{}\left( u + v \mathclose{}\right)",
+        ),
+    ],
+)
+def test_remove_multiply(left: str, right: str, latex: str) -> None:
+    for op in ["*", "@"]:
+        tree = ast_utils.parse_expr(f"{left} {op} {right}")
+        assert isinstance(tree, ast.BinOp)
+        assert (
+            expression_codegen.ExpressionCodegen(use_math_symbols=True).visit(tree)
+            == latex
+        )

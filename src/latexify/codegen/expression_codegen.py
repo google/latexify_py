@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import re
 
 from latexify import analyzers, ast_utils, exceptions
 from latexify.codegen import codegen_utils, expression_rules, identifier_converter
@@ -406,12 +407,94 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
+    _l_bracket_pattern = re.compile(r"^\\mathopen.*")
+    _r_bracket_pattern = re.compile(r".*\\mathclose[^ ]+$")
+    _r_word_pattern = re.compile(r"\\mathrm\{[^ ]+\}$")
+
+    def _should_remove_multiply_op(
+        self, l_latex: str, r_latex: str, l_expr: ast.expr, r_expr: ast.expr
+    ):
+        """Determine whether the multiply operator should be removed or not.
+
+        See also:
+        https://github.com/google/latexify_py/issues/89#issuecomment-1344967636
+
+        This is an ad-hoc implementation.
+        This function doesn't fully implements the above requirements, but only
+        essential ones necessary to release v0.3.
+        """
+
+        # NOTE(odashi): For compatibility with Python 3.7, we compare the generated
+        # caracter type directly to determine the "numeric" type.
+
+        if isinstance(l_expr, ast.Call):
+            l_type = "f"
+        elif self._r_bracket_pattern.match(l_latex):
+            l_type = "b"
+        elif self._r_word_pattern.match(l_latex):
+            l_type = "w"
+        elif l_latex[-1].isnumeric():
+            l_type = "n"
+        else:
+            le = l_expr
+            while True:
+                if isinstance(le, ast.UnaryOp):
+                    le = le.operand
+                elif isinstance(le, ast.BinOp):
+                    le = le.right
+                elif isinstance(le, ast.Compare):
+                    le = le.comparators[-1]
+                elif isinstance(le, ast.BoolOp):
+                    le = le.values[-1]
+                else:
+                    break
+            l_type = "a" if isinstance(le, ast.Name) and len(le.id) == 1 else "m"
+
+        if isinstance(r_expr, ast.Call):
+            r_type = "f"
+        elif self._l_bracket_pattern.match(r_latex):
+            r_type = "b"
+        elif r_latex.startswith("\\mathrm"):
+            r_type = "w"
+        elif r_latex[0].isnumeric():
+            r_type = "n"
+        else:
+            re = r_expr
+            while True:
+                if isinstance(re, ast.UnaryOp):
+                    if isinstance(re.op, ast.USub):
+                        # NOTE(odashi): Unary "-" always require \cdot.
+                        return False
+                    re = re.operand
+                elif isinstance(re, ast.BinOp):
+                    re = re.left
+                elif isinstance(re, ast.Compare):
+                    re = re.left
+                elif isinstance(re, ast.BoolOp):
+                    re = re.values[0]
+                else:
+                    break
+            r_type = "a" if isinstance(re, ast.Name) and len(re.id) == 1 else "m"
+
+        if r_type == "n":
+            return False
+        if l_type in "bn":
+            return True
+        if l_type in "am" and r_type in "am":
+            return True
+        return False
+
     def visit_BinOp(self, node: ast.BinOp) -> str:
         """Visit a BinOp node."""
         prec = expression_rules.get_precedence(node)
         rule = self._bin_op_rules[type(node.op)]
         lhs = self._wrap_binop_operand(node.left, prec, rule.operand_left)
         rhs = self._wrap_binop_operand(node.right, prec, rule.operand_right)
+
+        if type(node.op) in [ast.Mult, ast.MatMult]:
+            if self._should_remove_multiply_op(lhs, rhs, node.left, node.right):
+                return f"{rule.latex_left}{lhs} {rhs}{rule.latex_right}"
+
         return f"{rule.latex_left}{lhs}{rule.latex_middle}{rhs}{rule.latex_right}"
 
     def visit_UnaryOp(self, node: ast.UnaryOp) -> str:

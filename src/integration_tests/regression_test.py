@@ -11,10 +11,7 @@ def test_quadratic_solution() -> None:
     def solve(a, b, c):
         return (-b + math.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
-    latex = (
-        r"\mathrm{solve}(a, b, c) ="
-        r" \frac{-b + \sqrt{ b^{2} - 4 \cdot a \cdot c }}{2 \cdot a}"
-    )
+    latex = r"\mathrm{solve}(a, b, c) =" r" \frac{-b + \sqrt{ b^{2} - 4 a c }}{2 a}"
     integration_utils.check_function(solve, latex)
 
 
@@ -47,7 +44,7 @@ def test_x_times_beta() -> None:
         xtimesbeta, latex_without_symbols, use_math_symbols=False
     )
 
-    latex_with_symbols = r"\mathrm{xtimesbeta}(x, \beta) = x \cdot \beta"
+    latex_with_symbols = r"\mathrm{xtimesbeta}(x, \beta) = x \beta"
     integration_utils.check_function(
         xtimesbeta, latex_with_symbols, use_math_symbols=True
     )
@@ -145,7 +142,7 @@ def test_nested_function() -> None:
     def nested(x):
         return 3 * x
 
-    integration_utils.check_function(nested, r"\mathrm{nested}(x) = 3 \cdot x")
+    integration_utils.check_function(nested, r"\mathrm{nested}(x) = 3 x")
 
 
 def test_double_nested_function() -> None:
@@ -155,7 +152,7 @@ def test_double_nested_function() -> None:
 
         return inner
 
-    integration_utils.check_function(nested(3), r"\mathrm{inner}(y) = x \cdot y")
+    integration_utils.check_function(nested(3), r"\mathrm{inner}(y) = x y")
 
 
 def test_reduce_assignments() -> None:
@@ -165,11 +162,11 @@ def test_reduce_assignments() -> None:
 
     integration_utils.check_function(
         f,
-        r"\begin{array}{l} a = x + x \\ f(x) = 3 \cdot a \end{array}",
+        r"\begin{array}{l} a = x + x \\ f(x) = 3 a \end{array}",
     )
     integration_utils.check_function(
         f,
-        r"f(x) = 3 \cdot \mathopen{}\left( x + x \mathclose{}\right)",
+        r"f(x) = 3 \mathopen{}\left( x + x \mathclose{}\right)",
         reduce_assignments=True,
     )
 
@@ -184,7 +181,7 @@ def test_reduce_assignments_double() -> None:
         r"\begin{array}{l}"
         r" a = x^{2} \\"
         r" b = a + a \\"
-        r" f(x) = 3 \cdot b"
+        r" f(x) = 3 b"
         r" \end{array}"
     )
 
@@ -192,7 +189,7 @@ def test_reduce_assignments_double() -> None:
     integration_utils.check_function(f, latex_without_option, reduce_assignments=False)
     integration_utils.check_function(
         f,
-        r"f(x) = 3 \cdot \mathopen{}\left( x^{2} + x^{2} \mathclose{}\right)",
+        r"f(x) = 3 \mathopen{}\left( x^{2} + x^{2} \mathclose{}\right)",
         reduce_assignments=True,
     )
 
@@ -228,7 +225,7 @@ def test_sub_bracket() -> None:
         r"\mathrm{solve}(a, b) ="
         r" \frac{a + b - b}{a - b} - \mathopen{}\left("
         r" a + b \mathclose{}\right) - \mathopen{}\left("
-        r" a - b \mathclose{}\right) - a \cdot b"
+        r" a - b \mathclose{}\right) - a b"
     )
     integration_utils.check_function(solve, latex)
 

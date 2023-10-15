@@ -63,7 +63,7 @@ def test_collatz() -> None:
                     \If{$n \mathbin{\%} 2 = 0$}
                         \State $n \gets \left\lfloor\frac{n}{2}\right\rfloor$
                     \Else
-                        \State $n \gets 3 \cdot n + 1$
+                        \State $n \gets 3 n + 1$
                     \EndIf
                     \State $\mathrm{iterations} \gets \mathrm{iterations} + 1$
                 \EndWhile
@@ -80,7 +80,7 @@ def test_collatz() -> None:
         r" \hspace{2em} \mathbf{if} \ n \mathbin{\%} 2 = 0 \\"
         r" \hspace{3em} n \gets \left\lfloor\frac{n}{2}\right\rfloor \\"
         r" \hspace{2em} \mathbf{else} \\"
-        r" \hspace{3em} n \gets 3 \cdot n + 1 \\"
+        r" \hspace{3em} n \gets 3 n + 1 \\"
         r" \hspace{2em} \mathbf{end \ if} \\"
         r" \hspace{2em}"
         r" \mathrm{iterations} \gets \mathrm{iterations} + 1 \\"
