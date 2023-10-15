@@ -11,8 +11,8 @@ def test_get_latex_identifiers() -> None:
 
     identifiers = {"myfn": "f", "myvar": "x"}
 
-    latex_without_flag = r"\mathrm{myfn}(\mathrm{myvar}) = 3 \cdot \mathrm{myvar}"
-    latex_with_flag = r"f(x) = 3 \cdot x"
+    latex_without_flag = r"\mathrm{myfn}(\mathrm{myvar}) = 3 \mathrm{myvar}"
+    latex_with_flag = r"f(x) = 3 x"
 
     assert generate_latex.get_latex(myfn) == latex_without_flag
     assert generate_latex.get_latex(myfn, identifiers=identifiers) == latex_with_flag
@@ -46,8 +46,8 @@ def test_get_latex_reduce_assignments() -> None:
         y = 3 * x
         return y
 
-    latex_without_flag = r"\begin{array}{l} y = 3 \cdot x \\ f(x) = y \end{array}"
-    latex_with_flag = r"f(x) = 3 \cdot x"
+    latex_without_flag = r"\begin{array}{l} y = 3 x \\ f(x) = y \end{array}"
+    latex_with_flag = r"f(x) = 3 x"
 
     assert generate_latex.get_latex(f) == latex_without_flag
     assert generate_latex.get_latex(f, reduce_assignments=False) == latex_without_flag
