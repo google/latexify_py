@@ -240,6 +240,125 @@ class ExpressionCodegen(ast.NodeVisitor):
         else:
             return None
 
+    def _generate_determinant(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.linalg.det.
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        Raises:
+            LatexifyError: Unsupported argument type given.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "det"
+
+        if len(node.args) != 1:
+            return None
+
+        func_arg = node.args[0]
+        if isinstance(func_arg, ast.Name):
+            return rf"\det \left( \mathbf{{{func_arg.id}}} \right)"
+        elif isinstance(func_arg, ast.List):
+            return rf"\det \left( {self._generate_matrix(node)} \right)"
+        
+        return None
+
+    def _generate_matrix_rank(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.linalg.matrix_rank.
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        Raises:
+            LatexifyError: Unsupported argument type given.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "matrix_rank"
+
+        if len(node.args) != 1:
+            return None
+
+        func_arg = node.args[0]
+        if isinstance(func_arg, ast.Name):
+            return rf"\mathrm{{rank}} \left( \mathbf{{{func_arg.id}}} \right)"
+        elif isinstance(func_arg, ast.List):
+            return rf"\mathrm{{rank}} \left( {self._generate_matrix(node)} \right)"
+        
+        return None
+
+    def _generate_matrix_power(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.linalg.matrix_power.
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        Raises:
+            LatexifyError: Unsupported argument type given.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "matrix_power"
+
+        if len(node.args) != 2:
+            return None
+
+        func_arg = node.args[0]
+        power_arg = node.args[1]
+        if isinstance(power_arg, ast.Num):
+            if isinstance(func_arg, ast.Name):
+                return rf"\mathbf{{{func_arg.id}}}^{{{power_arg.n}}}"
+            elif isinstance(func_arg, ast.List):
+                return self._generate_matrix(node) + rf"^{{{power_arg.n}}}"
+        return None
+
+    def _generate_qr_and_svd(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.linalg.qr and numpy.linalg.svd.
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        Raises:
+            LatexifyError: Unsupported argument type given.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "QR" or name == "SVD"
+
+        if len(node.args) != 1:
+            return None
+
+        func_arg = node.args[0]
+        if isinstance(func_arg, ast.Name):
+            return rf"\mathrm{{{name.upper()}}} \left( \mathbf{{{func_arg.id}}} \right)"
+        elif isinstance(func_arg, ast.List):
+            return rf"\mathrm{{{name.upper()}}} \left( {self._generate_matrix(node)} \right)"
+
+        return None
+    
+    def _generate_inverses(self, node: ast.Call) -> str | None:
+        """Generates LaTeX for numpy.linalg.inv.
+        Args:
+            node: ast.Call node containing the appropriate method invocation.
+        Returns:
+            Generated LaTeX, or None if the node has unsupported syntax.
+        Raises:
+            LatexifyError: Unsupported argument type given.
+        """
+        name = ast_utils.extract_function_name_or_none(node)
+        assert name == "inv" or name == "pinv"
+
+        if len(node.args) != 1:
+            return None
+
+        func_arg = node.args[0]
+        if isinstance(func_arg, ast.Name):
+            if (name == "inv"):
+                return rf"\mathbf{{{func_arg.id}}}^{{-1}}"
+            return rf"\mathbf{{{func_arg.id}}}^{{+}}"
+        elif isinstance(func_arg, ast.List):
+            if (name == "inv"):
+                return rf"{self._generate_matrix(node)}^{{-1}}"
+            return rf"{self._generate_matrix(node)}^{{+}}"
+        return None
+
     def visit_Call(self, node: ast.Call) -> str:
         """Visit a Call node."""
         func_name = ast_utils.extract_function_name_or_none(node)
@@ -256,6 +375,16 @@ class ExpressionCodegen(ast.NodeVisitor):
             special_latex = self._generate_identity(node)
         elif func_name == "transpose":
             special_latex = self._generate_transpose(node)
+        elif func_name == "det":
+            special_latex = self._generate_determinant(node)
+        elif func_name == "matrix_rank":
+            special_latex = self._generate_matrix_rank(node)
+        elif func_name == "matrix_power":
+            special_latex = self._generate_matrix_power(node)
+        elif func_name in ("QR", "SVD"):
+            special_latex = self._generate_qr_and_svd(node)
+        elif func_name in ("inv", "pinv"):
+            special_latex = self._generate_inverses(node)
         else:
             special_latex = None
 
