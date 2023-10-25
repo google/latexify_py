@@ -215,7 +215,7 @@ class FunctionRule:
 
 # name => left_syntax, right_syntax, is_wrapped
 BUILTIN_FUNCS: dict[str, FunctionRule] = {
-    "abs": FunctionRule(r"\mathropen{}\left|", r"\mathclose{}\right|", is_wrapped=True),
+    "abs": FunctionRule(r"\mathopen{}\left|", r"\mathclose{}\right|", is_wrapped=True),
     "acos": FunctionRule(r"\arccos", is_unary=True),
     "acosh": FunctionRule(r"\mathrm{arcosh}", is_unary=True),
     "arccos": FunctionRule(r"\arccos", is_unary=True),
