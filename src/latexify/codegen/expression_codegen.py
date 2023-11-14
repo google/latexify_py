@@ -6,7 +6,11 @@ import ast
 import re
 
 from latexify import analyzers, ast_utils, exceptions
-from latexify.codegen import codegen_utils, expression_rules, identifier_converter
+from latexify.codegen import (
+    codegen_utils,
+    expression_rules,
+    identifier_converter,
+)
 
 
 class ExpressionCodegen(ast.NodeVisitor):
@@ -23,8 +27,8 @@ class ExpressionCodegen(ast.NodeVisitor):
         """Initializer.
 
         Args:
-            use_math_symbols: Whether to convert identifiers with a math symbol surface
-                (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
+            use_math_symbols: Whether to convert identifiers with a math symbol
+                surface (e.g., "alpha") to the LaTeX symbol (e.g., "\\alpha").
             use_set_symbols: Whether to use set symbols or not.
         """
         self._identifier_converter = identifier_converter.IdentifierConverter(
@@ -260,7 +264,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             return rf"\det \left( \mathbf{{{func_arg.id}}} \right)"
         elif isinstance(func_arg, ast.List):
             return rf"\det \left( {self._generate_matrix(node)} \right)"
-        
+
         return None
 
     def _generate_matrix_rank(self, node: ast.Call) -> str | None:
@@ -283,7 +287,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             return rf"\mathrm{{rank}} \left( \mathbf{{{func_arg.id}}} \right)"
         elif isinstance(func_arg, ast.List):
             return rf"\mathrm{{rank}} \left( {self._generate_matrix(node)} \right)"
-        
+
         return None
 
     def _generate_matrix_power(self, node: ast.Call) -> str | None:
@@ -307,7 +311,9 @@ class ExpressionCodegen(ast.NodeVisitor):
             if isinstance(func_arg, ast.Name):
                 return rf"\mathbf{{{func_arg.id}}}^{{{power_arg.n}}}"
             elif isinstance(func_arg, ast.List):
-                return self._generate_matrix(node) + rf"^{{{power_arg.n}}}"
+                matrix = self._generate_matrix(node)
+                if matrix is not None:
+                    return rf"{matrix}^{{{power_arg.n}}}"
         return None
 
     def _generate_qr_and_svd(self, node: ast.Call) -> str | None:
@@ -332,7 +338,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             return rf"\mathrm{{{name.upper()}}} \left( {self._generate_matrix(node)} \right)"
 
         return None
-    
+
     def _generate_inverses(self, node: ast.Call) -> str | None:
         """Generates LaTeX for numpy.linalg.inv.
         Args:
@@ -350,11 +356,11 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         func_arg = node.args[0]
         if isinstance(func_arg, ast.Name):
-            if (name == "inv"):
+            if name == "inv":
                 return rf"\mathbf{{{func_arg.id}}}^{{-1}}"
             return rf"\mathbf{{{func_arg.id}}}^{{+}}"
         elif isinstance(func_arg, ast.List):
-            if (name == "inv"):
+            if name == "inv":
                 return rf"{self._generate_matrix(node)}^{{-1}}"
             return rf"{self._generate_matrix(node)}^{{+}}"
         return None
