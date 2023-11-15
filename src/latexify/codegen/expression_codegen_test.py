@@ -1004,7 +1004,8 @@ def test_transpose(code: str, latex: str) -> None:
         ),
         (
             "det([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\det \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix} \right)",
+            r"\det \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \right)",
         ),
         # Unsupported
         ("det()", r"\mathrm{det} \mathopen{}\left( \mathclose{}\right)"),
@@ -1029,11 +1030,13 @@ def test_determinant(code: str, latex: str) -> None:
         ("matrix_rank(b)", r"\mathrm{rank} \left( \mathbf{b} \right)"),
         (
             "matrix_rank([[1, 2], [3, 4]])",
-            r"\mathrm{rank} \left( \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \right)",
+            r"\mathrm{rank} \left( \begin{bmatrix} 1 & 2 \\"
+            r" 3 & 4 \end{bmatrix} \right)",
         ),
         (
             "matrix_rank([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\mathrm{rank} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix} \right)",
+            r"\mathrm{rank} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \right)",
         ),
         # Unsupported
         (
@@ -1104,7 +1107,8 @@ def test_matrix_power(code: str, latex: str) -> None:
         ),
         (
             "QR([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\mathrm{QR} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix} \right)",
+            r"\mathrm{QR} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \right)",
         ),
         # Unsupported
         ("QR()", r"\mathrm{QR} \mathopen{}\left( \mathclose{}\right)"),
@@ -1123,7 +1127,8 @@ def test_matrix_power(code: str, latex: str) -> None:
         ),
         (
             "SVD([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\mathrm{SVD} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix} \right)",
+            r"\mathrm{SVD} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \right)",
         ),
         # Unsupported
         ("SVD()", r"\mathrm{SVD} \mathopen{}\left( \mathclose{}\right)"),

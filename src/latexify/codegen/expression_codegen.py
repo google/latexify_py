@@ -6,11 +6,7 @@ import ast
 import re
 
 from latexify import analyzers, ast_utils, exceptions
-from latexify.codegen import (
-    codegen_utils,
-    expression_rules,
-    identifier_converter,
-)
+from latexify.codegen import codegen_utils, expression_rules, identifier_converter
 
 
 class ExpressionCodegen(ast.NodeVisitor):
@@ -333,10 +329,12 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         func_arg = node.args[0]
         if isinstance(func_arg, ast.Name):
-            return rf"\mathrm{{{name.upper()}}} \left( \mathbf{{{func_arg.id}}} \right)"
-        elif isinstance(func_arg, ast.List):
-            return rf"\mathrm{{{name.upper()}}} \left( {self._generate_matrix(node)} \right)"
+            func_arg_str = rf"\mathbf{{{func_arg.id}}}"
+            return rf"\mathrm{{{name.upper()}}} \left( {func_arg_str} \right)"
 
+        elif isinstance(func_arg, ast.List):
+            matrix_str = self._generate_matrix(node)
+            return rf"\mathrm{{{name.upper()}}} \left( {matrix_str} \right)"
         return None
 
     def _generate_inverses(self, node: ast.Call) -> str | None:
