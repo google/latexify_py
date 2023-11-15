@@ -252,7 +252,7 @@ BUILTIN_FUNCS: dict[str, FunctionRule] = {
     "fsum": FunctionRule(r"\sum", is_unary=True),
     "gamma": FunctionRule(r"\Gamma"),
     "log": FunctionRule(r"\log", is_unary=True),
-    "log10": FunctionRule(r"\log_10", is_unary=True),
+    "log10": FunctionRule(r"\log_{10}", is_unary=True),
     "log2": FunctionRule(r"\log_2", is_unary=True),
     "prod": FunctionRule(r"\prod", is_unary=True),
     "sec": FunctionRule(r"\sec", is_unary=True),
