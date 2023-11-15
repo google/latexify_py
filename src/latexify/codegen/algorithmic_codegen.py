@@ -150,6 +150,18 @@ class AlgorithmicCodegen(ast.NodeVisitor):
             + self._add_indent(r"\EndWhile")
         )
 
+    def visit_Pass(self, node: ast.Pass) -> str:
+        """Visit a Pass node."""
+        return self._add_indent(r"\State $\mathbf{pass}$")
+
+    def visit_Break(self, node: ast.Break) -> str:
+        """Visit a Break node."""
+        return self._add_indent(r"\State $\mathbf{break}$")
+
+    def visit_Continue(self, node: ast.Continue) -> str:
+        """Visit a Continue node."""
+        return self._add_indent(r"\State $\mathbf{continue}$")
+
     @contextlib.contextmanager
     def _increment_level(self) -> Generator[None, None, None]:
         """Context manager controlling indent level."""
@@ -302,6 +314,18 @@ class IPythonAlgorithmicCodegen(ast.NodeVisitor):
             + f"{cond_latex}{self._LINE_BREAK}{body_latex}{self._LINE_BREAK}"
             + self._add_indent(r"\mathbf{end \ while}")
         )
+
+    def visit_Pass(self, node: ast.Pass) -> str:
+        """Visit a Pass node."""
+        return self._add_indent(r"\mathbf{pass}")
+
+    def visit_Break(self, node: ast.Break) -> str:
+        """Visit a Break node."""
+        return self._add_indent(r"\mathbf{break}")
+
+    def visit_Continue(self, node: ast.Continue) -> str:
+        """Visit a Continue node."""
+        return self._add_indent(r"\mathbf{continue}")
 
     @contextlib.contextmanager
     def _increment_level(self) -> Generator[None, None, None]:

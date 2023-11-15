@@ -189,6 +189,33 @@ def test_visit_while_with_else() -> None:
         algorithmic_codegen.AlgorithmicCodegen().visit(node)
 
 
+def test_visit_pass() -> None:
+    node = ast.parse("pass").body[0]
+    assert isinstance(node, ast.Pass)
+    assert (
+        algorithmic_codegen.AlgorithmicCodegen().visit(node)
+        == r"\State $\mathbf{pass}$"
+    )
+
+
+def test_visit_break() -> None:
+    node = ast.parse("break").body[0]
+    assert isinstance(node, ast.Break)
+    assert (
+        algorithmic_codegen.AlgorithmicCodegen().visit(node)
+        == r"\State $\mathbf{break}$"
+    )
+
+
+def test_visit_continue() -> None:
+    node = ast.parse("continue").body[0]
+    assert isinstance(node, ast.Continue)
+    assert (
+        algorithmic_codegen.AlgorithmicCodegen().visit(node)
+        == r"\State $\mathbf{continue}$"
+    )
+
+
 @pytest.mark.parametrize(
     "code,latex",
     [
@@ -342,3 +369,28 @@ def test_visit_while_with_else_ipython() -> None:
         match="^While statement with the else clause is not supported$",
     ):
         algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node)
+
+
+def test_visit_pass_ipython() -> None:
+    node = ast.parse("pass").body[0]
+    assert isinstance(node, ast.Pass)
+    assert (
+        algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == r"\mathbf{pass}"
+    )
+
+
+def test_visit_break_ipython() -> None:
+    node = ast.parse("break").body[0]
+    assert isinstance(node, ast.Break)
+    assert (
+        algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node) == r"\mathbf{break}"
+    )
+
+
+def test_visit_continue_ipython() -> None:
+    node = ast.parse("continue").body[0]
+    assert isinstance(node, ast.Continue)
+    assert (
+        algorithmic_codegen.IPythonAlgorithmicCodegen().visit(node)
+        == r"\mathbf{continue}"
+    )
