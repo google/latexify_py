@@ -47,7 +47,10 @@ def get_latex(
     # Obtains the source AST.
     tree = parser.parse_function(fn)
 
-    # Applies AST transformations.
+    # Mandatory AST Transformation.
+    tree = transformers.AugAssignReplacer().visit(tree)
+
+    # Conditional AST transformation.
     if merged_config.prefixes is not None:
         tree = transformers.PrefixTrimmer(merged_config.prefixes).visit(tree)
     if merged_config.identifiers is not None:
