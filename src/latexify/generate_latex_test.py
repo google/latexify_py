@@ -54,6 +54,20 @@ def test_get_latex_reduce_assignments() -> None:
     assert generate_latex.get_latex(f, reduce_assignments=True) == latex_with_flag
 
 
+def test_get_latex_reduce_assignments_with_aug_assign() -> None:
+    def f(x):
+        y = 3
+        y *= x
+        return y
+
+    latex_without_flag = r"\begin{array}{l} y = 3 \\ y = y x \\ f(x) = y \end{array}"
+    latex_with_flag = r"f(x) = 3 x"
+
+    assert generate_latex.get_latex(f) == latex_without_flag
+    assert generate_latex.get_latex(f, reduce_assignments=False) == latex_without_flag
+    assert generate_latex.get_latex(f, reduce_assignments=True) == latex_with_flag
+
+
 def test_get_latex_use_math_symbols() -> None:
     def f(alpha):
         return alpha
