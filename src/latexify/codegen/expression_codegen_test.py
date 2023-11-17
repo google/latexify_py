@@ -996,16 +996,17 @@ def test_transpose(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("det(A)", r"\det \left( \mathbf{A} \right)"),
-        ("det(b)", r"\det \left( \mathbf{b} \right)"),
+        ("det(A)", r"\det \mathopen{}\left( \mathbf{A} \mathclose{}\right)"),
+        ("det(b)", r"\det \mathopen{}\left( \mathbf{b} \mathclose{}\right)"),
         (
             "det([[1, 2], [3, 4]])",
-            r"\det \left( \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \right)",
+            r"\det \mathopen{}\left( \begin{bmatrix} 1 & 2 \\"
+            r" 3 & 4 \end{bmatrix} \mathclose{}\right)",
         ),
         (
             "det([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\det \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
-            r" 7 & 8 & 9 \end{bmatrix} \right)",
+            r"\det \mathopen{}\left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \mathclose{}\right)",
         ),
         # Unsupported
         ("det()", r"\mathrm{det} \mathopen{}\left( \mathclose{}\right)"),
@@ -1026,17 +1027,23 @@ def test_determinant(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        ("matrix_rank(A)", r"\mathrm{rank} \left( \mathbf{A} \right)"),
-        ("matrix_rank(b)", r"\mathrm{rank} \left( \mathbf{b} \right)"),
+        (
+            "matrix_rank(A)",
+            r"\mathrm{rank} \mathopen{}\left( \mathbf{A} \mathclose{}\right)",
+        ),
+        (
+            "matrix_rank(b)",
+            r"\mathrm{rank} \mathopen{}\left( \mathbf{b} \mathclose{}\right)",
+        ),
         (
             "matrix_rank([[1, 2], [3, 4]])",
-            r"\mathrm{rank} \left( \begin{bmatrix} 1 & 2 \\"
-            r" 3 & 4 \end{bmatrix} \right)",
+            r"\mathrm{rank} \mathopen{}\left( \begin{bmatrix} 1 & 2 \\"
+            r" 3 & 4 \end{bmatrix} \mathclose{}\right)",
         ),
         (
             "matrix_rank([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\mathrm{rank} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
-            r" 7 & 8 & 9 \end{bmatrix} \right)",
+            r"\mathrm{rank} \mathopen{}\left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \mathclose{}\right)",
         ),
         # Unsupported
         (
@@ -1098,59 +1105,6 @@ def test_matrix_power(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "code,latex",
     [
-        # Test QR
-        ("QR(A)", r"\mathrm{QR} \left( \mathbf{A} \right)"),
-        ("QR(b)", r"\mathrm{QR} \left( \mathbf{b} \right)"),
-        (
-            "QR([[1, 2], [3, 4]])",
-            r"\mathrm{QR} \left( \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \right)",
-        ),
-        (
-            "QR([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\mathrm{QR} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
-            r" 7 & 8 & 9 \end{bmatrix} \right)",
-        ),
-        # Unsupported
-        ("QR()", r"\mathrm{QR} \mathopen{}\left( \mathclose{}\right)"),
-        ("QR(2)", r"\mathrm{QR} \mathopen{}\left( 2 \mathclose{}\right)"),
-        (
-            "QR(a, (1, 0))",
-            r"\mathrm{QR} \mathopen{}\left( a, "
-            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
-        ),
-        # Test SVD
-        ("SVD(A)", r"\mathrm{SVD} \left( \mathbf{A} \right)"),
-        ("SVD(b)", r"\mathrm{SVD} \left( \mathbf{b} \right)"),
-        (
-            "SVD([[1, 2], [3, 4]])",
-            r"\mathrm{SVD} \left( \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix} \right)",
-        ),
-        (
-            "SVD([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
-            r"\mathrm{SVD} \left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
-            r" 7 & 8 & 9 \end{bmatrix} \right)",
-        ),
-        # Unsupported
-        ("SVD()", r"\mathrm{SVD} \mathopen{}\left( \mathclose{}\right)"),
-        ("SVD(2)", r"\mathrm{SVD} \mathopen{}\left( 2 \mathclose{}\right)"),
-        (
-            "SVD(a, (1, 0))",
-            r"\mathrm{SVD} \mathopen{}\left( a, "
-            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
-        ),
-    ],
-)
-def test_qr_and_svd(code: str, latex: str) -> None:
-    tree = ast_utils.parse_expr(code)
-    assert isinstance(tree, ast.Call)
-    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
-
-
-# tests for inv and pinv
-@pytest.mark.parametrize(
-    "code,latex",
-    [
-        # Test inv
         ("inv(A)", r"\mathbf{A}^{-1}"),
         ("inv(b)", r"\mathbf{b}^{-1}"),
         ("inv([[1, 2], [3, 4]])", r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}^{-1}"),
@@ -1166,7 +1120,17 @@ def test_qr_and_svd(code: str, latex: str) -> None:
             r"\mathrm{inv} \mathopen{}\left( a, "
             r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
         ),
-        # Test pinv
+    ],
+)
+def test_inv(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
         ("pinv(A)", r"\mathbf{A}^{+}"),
         ("pinv(b)", r"\mathbf{b}^{+}"),
         ("pinv([[1, 2], [3, 4]])", r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}^{+}"),
@@ -1184,7 +1148,7 @@ def test_qr_and_svd(code: str, latex: str) -> None:
         ),
     ],
 )
-def test_inv_and_pinv(code: str, latex: str) -> None:
+def test_pinv(code: str, latex: str) -> None:
     tree = ast_utils.parse_expr(code)
     assert isinstance(tree, ast.Call)
     assert expression_codegen.ExpressionCodegen().visit(tree) == latex
