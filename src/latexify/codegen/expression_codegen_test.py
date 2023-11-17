@@ -221,6 +221,8 @@ def test_visit_call(code: str, latex: str) -> None:
 @pytest.mark.parametrize(
     "src_suffix,dest_suffix",
     [
+        # No arguments
+        ("()", r" \mathopen{}\left( \mathclose{}\right)"),
         # No comprehension
         ("(x)", r" x"),
         (

@@ -105,7 +105,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         Returns:
             Generated LaTeX, or None if the node has unsupported syntax.
         """
-        if not isinstance(node.args[0], ast.GeneratorExp):
+        if not node.args or not isinstance(node.args[0], ast.GeneratorExp):
             return None
 
         name = ast_utils.extract_function_name_or_none(node)
