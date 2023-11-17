@@ -995,6 +995,167 @@ def test_transpose(code: str, latex: str) -> None:
     assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("det(A)", r"\det \mathopen{}\left( \mathbf{A} \mathclose{}\right)"),
+        ("det(b)", r"\det \mathopen{}\left( \mathbf{b} \mathclose{}\right)"),
+        (
+            "det([[1, 2], [3, 4]])",
+            r"\det \mathopen{}\left( \begin{bmatrix} 1 & 2 \\"
+            r" 3 & 4 \end{bmatrix} \mathclose{}\right)",
+        ),
+        (
+            "det([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+            r"\det \mathopen{}\left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \mathclose{}\right)",
+        ),
+        # Unsupported
+        ("det()", r"\mathrm{det} \mathopen{}\left( \mathclose{}\right)"),
+        ("det(2)", r"\mathrm{det} \mathopen{}\left( 2 \mathclose{}\right)"),
+        (
+            "det(a, (1, 0))",
+            r"\mathrm{det} \mathopen{}\left( a, "
+            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
+        ),
+    ],
+)
+def test_determinant(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        (
+            "matrix_rank(A)",
+            r"\mathrm{rank} \mathopen{}\left( \mathbf{A} \mathclose{}\right)",
+        ),
+        (
+            "matrix_rank(b)",
+            r"\mathrm{rank} \mathopen{}\left( \mathbf{b} \mathclose{}\right)",
+        ),
+        (
+            "matrix_rank([[1, 2], [3, 4]])",
+            r"\mathrm{rank} \mathopen{}\left( \begin{bmatrix} 1 & 2 \\"
+            r" 3 & 4 \end{bmatrix} \mathclose{}\right)",
+        ),
+        (
+            "matrix_rank([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+            r"\mathrm{rank} \mathopen{}\left( \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\"
+            r" 7 & 8 & 9 \end{bmatrix} \mathclose{}\right)",
+        ),
+        # Unsupported
+        (
+            "matrix_rank()",
+            r"\mathrm{matrix\_rank} \mathopen{}\left( \mathclose{}\right)",
+        ),
+        (
+            "matrix_rank(2)",
+            r"\mathrm{matrix\_rank} \mathopen{}\left( 2 \mathclose{}\right)",
+        ),
+        (
+            "matrix_rank(a, (1, 0))",
+            r"\mathrm{matrix\_rank} \mathopen{}\left( a, "
+            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
+        ),
+    ],
+)
+def test_matrix_rank(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("matrix_power(A, 2)", r"\mathbf{A}^{2}"),
+        ("matrix_power(b, 2)", r"\mathbf{b}^{2}"),
+        (
+            "matrix_power([[1, 2], [3, 4]], 2)",
+            r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}^{2}",
+        ),
+        (
+            "matrix_power([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 42)",
+            r"\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}^{42}",
+        ),
+        # Unsupported
+        (
+            "matrix_power()",
+            r"\mathrm{matrix\_power} \mathopen{}\left( \mathclose{}\right)",
+        ),
+        (
+            "matrix_power(2)",
+            r"\mathrm{matrix\_power} \mathopen{}\left( 2 \mathclose{}\right)",
+        ),
+        (
+            "matrix_power(a, (1, 0))",
+            r"\mathrm{matrix\_power} \mathopen{}\left( a, "
+            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
+        ),
+    ],
+)
+def test_matrix_power(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("inv(A)", r"\mathbf{A}^{-1}"),
+        ("inv(b)", r"\mathbf{b}^{-1}"),
+        ("inv([[1, 2], [3, 4]])", r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}^{-1}"),
+        (
+            "inv([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+            r"\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}^{-1}",
+        ),
+        # Unsupported
+        ("inv()", r"\mathrm{inv} \mathopen{}\left( \mathclose{}\right)"),
+        ("inv(2)", r"\mathrm{inv} \mathopen{}\left( 2 \mathclose{}\right)"),
+        (
+            "inv(a, (1, 0))",
+            r"\mathrm{inv} \mathopen{}\left( a, "
+            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
+        ),
+    ],
+)
+def test_inv(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
+@pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("pinv(A)", r"\mathbf{A}^{+}"),
+        ("pinv(b)", r"\mathbf{b}^{+}"),
+        ("pinv([[1, 2], [3, 4]])", r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}^{+}"),
+        (
+            "pinv([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+            r"\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}^{+}",
+        ),
+        # Unsupported
+        ("pinv()", r"\mathrm{pinv} \mathopen{}\left( \mathclose{}\right)"),
+        ("pinv(2)", r"\mathrm{pinv} \mathopen{}\left( 2 \mathclose{}\right)"),
+        (
+            "pinv(a, (1, 0))",
+            r"\mathrm{pinv} \mathopen{}\left( a, "
+            r"\mathopen{}\left( 1, 0 \mathclose{}\right) \mathclose{}\right)",
+        ),
+    ],
+)
+def test_pinv(code: str, latex: str) -> None:
+    tree = ast_utils.parse_expr(code)
+    assert isinstance(tree, ast.Call)
+    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
+
+
 # Check list for #89.
 # https://github.com/google/latexify_py/issues/89#issuecomment-1344967636
 @pytest.mark.parametrize(
