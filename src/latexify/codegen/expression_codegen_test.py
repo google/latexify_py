@@ -219,6 +219,25 @@ def test_visit_call(code: str, latex: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "code,latex",
+    [
+        ("log(x)**2", r"\mathopen{}\left( \log x \mathclose{}\right)^{2}"),
+        ("log(x**2)", r"\log \mathopen{}\left( x^{2} \mathclose{}\right)"),
+        (
+            "log(x**2)**3",
+            r"\mathopen{}\left("
+            r" \log \mathopen{}\left( x^{2} \mathclose{}\right)"
+            r" \mathclose{}\right)^{3}",
+        ),
+    ],
+)
+def test_visit_call_with_pow(code: str, latex: str) -> None:
+    node = ast_utils.parse_expr(code)
+    assert isinstance(node, (ast.Call, ast.BinOp))
+    assert expression_codegen.ExpressionCodegen().visit(node) == latex
+
+
+@pytest.mark.parametrize(
     "src_suffix,dest_suffix",
     [
         # No arguments
