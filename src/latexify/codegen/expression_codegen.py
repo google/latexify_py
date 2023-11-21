@@ -408,16 +408,22 @@ class ExpressionCodegen(ast.NodeVisitor):
 
         if rule.is_unary and len(node.args) == 1:
             # Unary function. Applies the same wrapping policy with the unary operators.
+            precedence = expression_rules.get_precedence(node)
+            arg = node.args[0]
             # NOTE(odashi):
             # Factorial "x!" is treated as a special case: it requires both inner/outer
             # parentheses for correct interpretation.
-            precedence = expression_rules.get_precedence(node)
-            arg = node.args[0]
-            force_wrap = isinstance(arg, ast.Call) and (
+            force_wrap_factorial = isinstance(arg, ast.Call) and (
                 func_name == "factorial"
                 or ast_utils.extract_function_name_or_none(arg) == "factorial"
             )
-            arg_latex = self._wrap_operand(arg, precedence, force_wrap)
+            # Note(odashi):
+            # Wrapping is also required if the argument is pow.
+            # https://github.com/google/latexify_py/issues/189
+            force_wrap_pow = isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Pow)
+            arg_latex = self._wrap_operand(
+                arg, precedence, force_wrap_factorial or force_wrap_pow
+            )
             elements = [rule.left, arg_latex, rule.right]
         else:
             arg_latex = ", ".join(self.visit(arg) for arg in node.args)
@@ -490,7 +496,7 @@ class ExpressionCodegen(ast.NodeVisitor):
         latex = self.visit(child)
         child_prec = expression_rules.get_precedence(child)
 
-        if child_prec < parent_prec or force_wrap and child_prec == parent_prec:
+        if force_wrap or child_prec < parent_prec:
             return rf"\mathopen{{}}\left( {latex} \mathclose{{}}\right)"
 
         return latex
