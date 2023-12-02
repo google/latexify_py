@@ -96,6 +96,21 @@ def is_constant(node: ast.AST) -> bool:
         return isinstance(node, ast.Constant)
 
 
+def is_str(node: ast.AST) -> bool:
+    """Checks if the node is a str constant.
+
+    Args:
+        node: The node to examine.
+
+    Returns:
+        True if the node is a str constant, False otherwise.
+    """
+    if sys.version_info.minor < 8 and isinstance(node, ast.Str):
+        return True
+
+    return isinstance(node, ast.Constant) and isinstance(node.value, str)
+
+
 def extract_int_or_none(node: ast.expr) -> int | None:
     """Extracts int constant from the given Constant node.
 

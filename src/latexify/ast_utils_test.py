@@ -114,6 +114,38 @@ def test_is_constant(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_constant(value) is expected
 
 
+@test_utils.require_at_most(7)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Bytes(s=b"foo"), False),
+        (ast.Constant("bar"), True),
+        (ast.Ellipsis(), False),
+        (ast.NameConstant(value=None), False),
+        (ast.Num(n=123), False),
+        (ast.Str(s="baz"), True),
+        (ast.Expr(value=ast.Num(456)), False),
+        (ast.Global(names=["qux"]), False),
+    ],
+)
+def test_is_str_legacy(value: ast.AST, expected: bool) -> None:
+    assert ast_utils.is_str(value) is expected
+
+
+@test_utils.require_at_least(8)
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (ast.Constant(value=123), False),
+        (ast.Constant(value="foo"), True),
+        (ast.Expr(value=ast.Constant(value="foo")), False),
+        (ast.Global(names=["foo"]), False),
+    ],
+)
+def test_is_str(value: ast.AST, expected: bool) -> None:
+    assert ast_utils.is_str(value) is expected
+
+
 def test_extract_int_or_none() -> None:
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(-123)) == -123
     assert ast_utils.extract_int_or_none(ast_utils.make_constant(0)) == 0
