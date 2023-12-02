@@ -10,6 +10,7 @@ def test_remove_docstrings() -> None:
     def f():
         """Test docstring."""
         x = 42
+        f()  # This Expr should not be removed.
         """This string constant should also be removed."""
         return x
 
@@ -23,6 +24,7 @@ def test_remove_docstrings() -> None:
                 targets=[ast.Name(id="x", ctx=ast.Store())],
                 value=ast_utils.make_constant(42),
             ),
+            ast.Expr(value=ast.Call(func=ast.Name(id="f", ctx=ast.Load()))),
             ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
         ],
     )
