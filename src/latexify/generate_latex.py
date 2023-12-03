@@ -56,6 +56,7 @@ def get_latex(
     if merged_config.identifiers is not None:
         tree = transformers.IdentifierReplacer(merged_config.identifiers).visit(tree)
     if merged_config.reduce_assignments:
+        tree = transformers.DocstringRemover().visit(tree)
         tree = transformers.AssignmentReducer().visit(tree)
     if merged_config.expand_functions is not None:
         tree = transformers.FunctionExpander(merged_config.expand_functions).visit(tree)
