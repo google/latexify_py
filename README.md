@@ -1,11 +1,11 @@
 # latexify
+
 [![Python](https://img.shields.io/pypi/pyversions/latexify-py.svg)](https://pypi.org/project/latexify-py/)
 [![PyPI Latest Release](https://img.shields.io/pypi/v/latexify-py.svg)](https://pypi.org/project/latexify-py/)
 [![License](https://img.shields.io/pypi/l/latexify-py.svg)](https://github.com/google/latexify_py/blob/main/LICENSE)
 [![Downloads](https://pepy.tech/badge/latexify-py/month)](https://pepy.tech/project/latexify-py)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-
 
 `latexify` is a Python package to compile a fragment of Python source code to a
 corresponding $\LaTeX$ expression:
@@ -16,7 +16,6 @@ corresponding $\LaTeX$ expression:
 
 * Libraries to compile Python source code or AST to $\LaTeX$.
 * IPython classes to pretty-print compiled functions.
-
 
 ## FAQs
 
@@ -33,12 +32,13 @@ corresponding $\LaTeX$ expression:
    `latexify` is based on traditional parsing techniques.
    If the "AI" meant some techniques around machine learning, the answer is no.
 
-
 ## Getting started
 
-We prepared a
-[Google Colaboratory notebook](https://colab.research.google.com/drive/1MuiawKpVIZ12MWwyYuzZHmbKThdM5wNJ?usp=sharing)
-that provides several examples to use this package.
+See the [example notebook](examples/latexify_examples.ipynb), which provides several
+use-cases of this library.
+
+You can also try the above notebook on
+[Google Colaboratory](https://colab.research.google.com/github/google/latexify_py/blob/main/examples/latexify_examples.ipynb).
 
 See also the official [documentation](docs/index.md) for more details.
 
@@ -47,18 +47,16 @@ See also the official [documentation](docs/index.md) for more details.
 To contribute to this project, please refer
 [CONTRIBUTING.md](https://github.com/google/latexify_py/blob/develop/CONTRIBUTING.md).
 
-
 ## Disclaimer
 
-This software is currently hosted on https://github.com/google, but not officially
+This software is currently hosted on <https://github.com/google>, but not officially
 supported by Google.
 
 If you have any issues and/or questions about this software, please visit the
 [issue tracker](https://github.com/google/latexify_py/issues)
 or contact the [main maintainer](https://github.com/odashi).
 
-
-## License 
+## License
 
 This software adopts the
 [Apache License 2.0](https://github.com/google/latexify_py/blob/develop/LICENSE).
