@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import ast
-import re
+import keyword
 import sys
-from typing import ClassVar, cast
+from typing import cast
 
 
 class IdentifierReplacer(ast.NodeTransformer):
@@ -24,8 +24,6 @@ class IdentifierReplacer(ast.NodeTransformer):
             return z
     """
 
-    _IDENTIFIER_PATTERN: ClassVar[re.Pattern] = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-
     def __init__(self, mapping: dict[str, str]):
         """Initializer.
 
@@ -38,9 +36,9 @@ class IdentifierReplacer(ast.NodeTransformer):
         self._mapping = mapping
 
         for k, v in self._mapping.items():
-            if not self._IDENTIFIER_PATTERN.match(k):
+            if not str.isidentifier(k) or keyword.iskeyword(k):
                 raise ValueError(f"'{k}' is not an identifier name.")
-            if not self._IDENTIFIER_PATTERN.match(v):
+            if not str.isidentifier(v) or keyword.iskeyword(v):
                 raise ValueError(f"'{v}' is not an identifier name.")
 
     def _replace_args(self, args: list[ast.arg]) -> list[ast.arg]:
