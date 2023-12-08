@@ -15,6 +15,8 @@ def test_invalid_mapping() -> None:
         IdentifierReplacer({"123": "foo"})
     with pytest.raises(ValueError, match=r"'456' is not an identifier name."):
         IdentifierReplacer({"foo": "456"})
+    with pytest.raises(ValueError, match=r"'def' is not an identifier name."):
+        IdentifierReplacer({"foo": "def"})
 
 
 def test_name_replaced() -> None:
