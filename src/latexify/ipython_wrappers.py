@@ -38,8 +38,7 @@ class LatexifiedRepr(metaclass=abc.ABCMeta):
         return self._fn(*args)
 
     @abc.abstractmethod
-    def __str__(self) -> str:
-        ...
+    def __str__(self) -> str: ...
 
     @abc.abstractmethod
     def _repr_html_(self) -> str | tuple[str, dict[str, Any]] | None:
