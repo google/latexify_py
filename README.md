@@ -35,7 +35,7 @@ corresponding $\LaTeX$ expression:
 ## Getting started
 
 See the
-[example notebook](https://github.com/google/latexify_py/blob/main/example.jpg),
+[example notebook](https://github.com/google/latexify_py/blob/main/examples/latexify_examples.ipynb),
 which provides several
 use-cases of this library.
 
