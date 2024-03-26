@@ -10,7 +10,7 @@
 `latexify` is a Python package to compile a fragment of Python source code to a
 corresponding $\LaTeX$ expression:
 
-![Example of latexify usage](https://github.com/google/latexify_py/blob/main/example.jpg)
+![Example of latexify usage](https://raw.githubusercontent.com/google/latexify_py/main/example.jpg)
 
 `latexify` provides the following functionalities:
 
