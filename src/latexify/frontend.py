@@ -11,15 +11,13 @@ from latexify import ipython_wrappers
 @overload
 def algorithmic(
     fn: Callable[..., Any], **kwargs: Any
-) -> ipython_wrappers.LatexifiedAlgorithm:
-    ...
+) -> ipython_wrappers.LatexifiedAlgorithm: ...
 
 
 @overload
 def algorithmic(
     **kwargs: Any,
-) -> Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedAlgorithm]:
-    ...
+) -> Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedAlgorithm]: ...
 
 
 def algorithmic(
@@ -55,15 +53,13 @@ def algorithmic(
 @overload
 def function(
     fn: Callable[..., Any], **kwargs: Any
-) -> ipython_wrappers.LatexifiedFunction:
-    ...
+) -> ipython_wrappers.LatexifiedFunction: ...
 
 
 @overload
 def function(
     **kwargs: Any,
-) -> Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedFunction]:
-    ...
+) -> Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedFunction]: ...
 
 
 def function(
@@ -99,15 +95,13 @@ def function(
 @overload
 def expression(
     fn: Callable[..., Any], **kwargs: Any
-) -> ipython_wrappers.LatexifiedFunction:
-    ...
+) -> ipython_wrappers.LatexifiedFunction: ...
 
 
 @overload
 def expression(
     **kwargs: Any,
-) -> Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedFunction]:
-    ...
+) -> Callable[[Callable[..., Any]], ipython_wrappers.LatexifiedFunction]: ...
 
 
 def expression(

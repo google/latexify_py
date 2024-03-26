@@ -10,7 +10,7 @@
 `latexify` is a Python package to compile a fragment of Python source code to a
 corresponding $\LaTeX$ expression:
 
-![Example of latexify usage](example.jpg)
+![Example of latexify usage](https://github.com/google/latexify_py/blob/main/example.jpg)
 
 `latexify` provides the following functionalities:
 
@@ -34,13 +34,17 @@ corresponding $\LaTeX$ expression:
 
 ## Getting started
 
-See the [example notebook](examples/latexify_examples.ipynb), which provides several
+See the
+[example notebook](https://github.com/google/latexify_py/blob/main/examples/latexify_examples.ipynb),
+which provides several
 use-cases of this library.
 
 You can also try the above notebook on
 [Google Colaboratory](https://colab.research.google.com/github/google/latexify_py/blob/main/examples/latexify_examples.ipynb).
 
-See also the official [documentation](docs/index.md) for more details.
+See also the official
+[documentation](https://github.com/google/latexify_py/blob/main/docs/index.md)
+for more details.
 
 ## How to Contribute
 
