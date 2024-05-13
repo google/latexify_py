@@ -18,7 +18,11 @@ class ExpressionCodegen(ast.NodeVisitor):
     _compare_ops: dict[type[ast.cmpop], str]
 
     def __init__(
-        self, *, use_math_symbols: bool = False, use_set_symbols: bool = False
+        self,
+        *,
+        use_math_symbols: bool = False,
+        use_set_symbols: bool = False,
+        escape_underscores: bool = True,
     ) -> None:
         """Initializer.
 
@@ -28,7 +32,7 @@ class ExpressionCodegen(ast.NodeVisitor):
             use_set_symbols: Whether to use set symbols or not.
         """
         self._identifier_converter = identifier_converter.IdentifierConverter(
-            use_math_symbols=use_math_symbols
+            use_math_symbols=use_math_symbols, escape_underscores=escape_underscores
         )
 
         self._bin_op_rules = (

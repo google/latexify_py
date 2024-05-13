@@ -66,17 +66,20 @@ def get_latex(
         return codegen.AlgorithmicCodegen(
             use_math_symbols=merged_config.use_math_symbols,
             use_set_symbols=merged_config.use_set_symbols,
+            escape_underscores=merged_config.escape_underscores,
         ).visit(tree)
     elif style == Style.FUNCTION:
         return codegen.FunctionCodegen(
             use_math_symbols=merged_config.use_math_symbols,
             use_signature=merged_config.use_signature,
             use_set_symbols=merged_config.use_set_symbols,
+            escape_underscores=merged_config.escape_underscores,
         ).visit(tree)
     elif style == Style.IPYTHON_ALGORITHMIC:
         return codegen.IPythonAlgorithmicCodegen(
             use_math_symbols=merged_config.use_math_symbols,
             use_set_symbols=merged_config.use_set_symbols,
+            escape_underscores=merged_config.escape_underscores,
         ).visit(tree)
 
     raise ValueError(f"Unrecognized style: {style}")
