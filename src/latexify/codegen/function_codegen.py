@@ -25,6 +25,7 @@ class FunctionCodegen(ast.NodeVisitor):
         use_math_symbols: bool = False,
         use_signature: bool = True,
         use_set_symbols: bool = False,
+        escape_underscores: bool = True,
     ) -> None:
         """Initializer.
 
@@ -36,10 +37,12 @@ class FunctionCodegen(ast.NodeVisitor):
             use_set_symbols: Whether to use set symbols or not.
         """
         self._expression_codegen = expression_codegen.ExpressionCodegen(
-            use_math_symbols=use_math_symbols, use_set_symbols=use_set_symbols
+            use_math_symbols=use_math_symbols,
+            use_set_symbols=use_set_symbols,
+            escape_underscores=escape_underscores,
         )
         self._identifier_converter = identifier_converter.IdentifierConverter(
-            use_math_symbols=use_math_symbols
+            use_math_symbols=use_math_symbols, escape_underscores=escape_underscores
         )
         self._use_signature = use_signature
 
