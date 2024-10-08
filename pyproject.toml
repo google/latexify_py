@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 name = "latexify-py"
 description = "Generates LaTeX math description from Python functions."
 readme = "README.md"
-requires-python = ">=3.7, <3.12"
+requires-python = ">=3.7, <3.13"
 license = {text = "Apache Software License 2.0"}
 authors = [
     {name = "Yusuke Oda", email = "odashi@inspiredco.ai"}
@@ -29,6 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Code Generators",
     "Topic :: Text Processing :: Markup :: LaTeX",
