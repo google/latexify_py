@@ -66,14 +66,14 @@ class AssignmentReducer(ast.NodeTransformer):
 
         # Pop stack
         self._assignments = parent_assignments
-
+        type_params = getattr(node, "type_params", [])
         return ast.FunctionDef(
             name=node.name,
             args=node.args,
             body=[return_transformed],
             decorator_list=node.decorator_list,
             returns=node.returns,
-            type_params=node.type_params,
+            type_params=type_params,
         )
 
     def visit_Name(self, node: ast.Name) -> Any:

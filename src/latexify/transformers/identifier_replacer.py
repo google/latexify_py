@@ -66,14 +66,14 @@ class IdentifierReplacer(ast.NodeTransformer):
                 kwarg=visited.args.kwarg,
                 defaults=visited.args.defaults,
             )
-
+        type_params = getattr(visited, "type_params", [])
         return ast.FunctionDef(
             name=self._mapping.get(visited.name, visited.name),
             args=args,
             body=visited.body,
             decorator_list=visited.decorator_list,
             returns=visited.returns,
-            type_params=visited.type_params,
+            type_params=type_params,
         )
 
     def visit_Name(self, node: ast.Name) -> ast.Name:
