@@ -57,16 +57,10 @@ def make_constant(value: Any) -> ast.expr:
         ValueError: Unsupported value type.
     """
     if sys.version_info.minor < 8:
-        if value is None or value is False or value is True:
-            return ast.NameConstant(value=value)
-        if value is ...:
-            return ast.Ellipsis()
-        if isinstance(value, (int, float, complex)):
-            return ast.Num(n=value)
-        if isinstance(value, str):
-            return ast.Str(s=value)
-        if isinstance(value, bytes):
-            return ast.Bytes(s=value)
+        if value in {None, False, True, ...} or isinstance(
+            value, (int, float, complex, str, bytes)
+        ):
+            return ast.Constant(value=value)
     else:
         if (
             value is None

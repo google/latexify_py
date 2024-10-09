@@ -38,15 +38,15 @@ def test_make_attribute() -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (None, ast.NameConstant(value=None)),
-        (False, ast.NameConstant(value=False)),
-        (True, ast.NameConstant(value=True)),
-        (..., ast.Ellipsis()),
-        (123, ast.Num(n=123)),
-        (4.5, ast.Num(n=4.5)),
-        (6 + 7j, ast.Num(n=6 + 7j)),
-        ("foo", ast.Str(s="foo")),
-        (b"bar", ast.Bytes(s=b"bar")),
+        (None, ast.Constant(value=None)),
+        (False, ast.Constant(value=False)),
+        (True, ast.Constant(value=True)),
+        (..., ast.Constant(value=Ellipsis)),
+        (123, ast.Constant(value=123)),
+        (4.5, ast.Constant(value=4.5)),
+        (6 + 7j, ast.Constant(value=6 + 7j)),
+        ("foo", ast.Constant(value="foo")),
+        (b"bar", ast.Constant(value=b"bar")),
     ],
 )
 def test_make_constant_legacy(value: Any, expected: ast.Constant) -> None:
@@ -87,13 +87,13 @@ def test_make_constant_invalid() -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Bytes(s=b"foo"), True),
-        (ast.Constant("bar"), True),
-        (ast.Ellipsis(), True),
-        (ast.NameConstant(value=None), True),
-        (ast.Num(n=123), True),
-        (ast.Str(s="baz"), True),
-        (ast.Expr(value=ast.Num(456)), False),
+        (ast.Constant(value=b"foo"), True),
+        (ast.Constant(value="bar"), True),
+        (ast.Constant(value=...), True),
+        (ast.Constant(value=None), True),
+        (ast.Constant(value=123), True),
+        (ast.Constant(value="baz"), True),
+        (ast.Expr(value=ast.Constant(value=456)), False),
         (ast.Global(names=["qux"]), False),
     ],
 )
@@ -118,13 +118,13 @@ def test_is_constant(value: ast.AST, expected: bool) -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Bytes(s=b"foo"), False),
-        (ast.Constant("bar"), True),
-        (ast.Ellipsis(), False),
-        (ast.NameConstant(value=None), False),
-        (ast.Num(n=123), False),
-        (ast.Str(s="baz"), True),
-        (ast.Expr(value=ast.Num(456)), False),
+        (ast.Constant(value=b"foo"), False),
+        (ast.Constant(value="bar"), True),
+        (ast.Constant(value=...), False),
+        (ast.Constant(value=None), False),
+        (ast.Constant(value=123), False),
+        (ast.Constant(value="baz"), True),
+        (ast.Expr(value=ast.Constant(value=456)), False),
         (ast.Global(names=["qux"]), False),
     ],
 )
@@ -194,6 +194,7 @@ def test_extract_int_invalid() -> None:
             ast.Call(
                 func=ast.Name(id="hypot", ctx=ast.Load()),
                 args=[],
+                keywords=[],
             ),
             "hypot",
         ),
@@ -205,13 +206,17 @@ def test_extract_int_invalid() -> None:
                     ctx=ast.Load(),
                 ),
                 args=[],
+                keywords=[],
             ),
             "hypot",
         ),
         (
             ast.Call(
-                func=ast.Call(func=ast.Name(id="foo", ctx=ast.Load()), args=[]),
+                func=ast.Call(
+                    func=ast.Name(id="foo", ctx=ast.Load()), args=[], keywords=[]
+                ),
                 args=[],
+                keywords=[],
             ),
             None,
         ),

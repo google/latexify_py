@@ -55,13 +55,15 @@ class IdentifierReplacer(ast.NodeTransformer):
                 kwonlyargs=self._replace_args(visited.args.kwonlyargs),
                 kw_defaults=visited.args.kw_defaults,
                 defaults=visited.args.defaults,
-            )
+            )  # type: ignore
         else:
             args = ast.arguments(
                 posonlyargs=self._replace_args(visited.args.posonlyargs),  # from 3.8
                 args=self._replace_args(visited.args.args),
+                vararg=visited.args.vararg,
                 kwonlyargs=self._replace_args(visited.args.kwonlyargs),
                 kw_defaults=visited.args.kw_defaults,
+                kwarg=visited.args.kwarg,
                 defaults=visited.args.defaults,
             )
 
@@ -70,6 +72,8 @@ class IdentifierReplacer(ast.NodeTransformer):
             args=args,
             body=visited.body,
             decorator_list=visited.decorator_list,
+            returns=visited.returns,
+            type_params=visited.type_params,
         )
 
     def visit_Name(self, node: ast.Name) -> ast.Name:

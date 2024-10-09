@@ -26,11 +26,14 @@ def _make_ast(body: list[ast.stmt]) -> ast.Module:
                     kwonlyargs=[],
                     kw_defaults=[],
                     defaults=[],
+                    posonlyargs=[],
                 ),
                 body=body,
                 decorator_list=[],
+                type_params=[],
             )
         ],
+        type_ignores=[],
     )
 
 

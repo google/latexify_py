@@ -72,6 +72,8 @@ class AssignmentReducer(ast.NodeTransformer):
             args=node.args,
             body=[return_transformed],
             decorator_list=node.decorator_list,
+            returns=node.returns,
+            type_params=node.type_params,
         )
 
     def visit_Name(self, node: ast.Name) -> Any:

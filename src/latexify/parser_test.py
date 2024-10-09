@@ -18,11 +18,26 @@ def test_parse_function_with_posonlyargs() -> None:
             ast.FunctionDef(
                 name="f",
                 args=ast.arguments(
+                    posonlyargs=[],
                     args=[ast.arg(arg="x")],
+                    vararg=None,
+                    kwonlyargs=[],
+                    kw_defaults=[],
+                    kwarg=None,
+                    defaults=[],
                 ),
                 body=[ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
+                decorator_list=[],
+                returns=None,
+                type_comment=None,
+                type_params=[],
+                lineno=1,
+                col_offset=0,
+                end_lineno=2,
+                end_col_offset=0,
             )
         ],
+        type_ignores=[],
     )
 
     obtained = parser.parse_function(f)

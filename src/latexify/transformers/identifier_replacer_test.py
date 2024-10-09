@@ -44,6 +44,7 @@ def test_functiondef() -> None:
     source = ast.FunctionDef(
         name="f",
         args=ast.arguments(
+            posonlyargs=[],
             args=[ast.arg(arg="y")],
             kwonlyargs=[ast.arg(arg="z")],
             kw_defaults=[ast.Name(id="c", ctx=ast.Load())],
@@ -54,21 +55,28 @@ def test_functiondef() -> None:
         ),
         body=[ast.Pass()],
         decorator_list=[ast.Name(id="d", ctx=ast.Load())],
+        returns=None,
+        type_comment=None,
+        type_params=[],
     )
 
     expected = ast.FunctionDef(
         name="F",
         args=ast.arguments(
+            posonlyargs=[],
             args=[ast.arg(arg="Y")],
             kwonlyargs=[ast.arg(arg="Z")],
             kw_defaults=[ast.Name(id="C", ctx=ast.Load())],
             defaults=[
-                ast.Name(id="A", ctx=ast.Load()),
-                ast.Name(id="B", ctx=ast.Load()),
+                ast.Name(id="a", ctx=ast.Load()),
+                ast.Name(id="b", ctx=ast.Load()),
             ],
         ),
         body=[ast.Pass()],
-        decorator_list=[ast.Name(id="D", ctx=ast.Load())],
+        decorator_list=[ast.Name(id="d", ctx=ast.Load())],
+        returns=None,
+        type_comment=None,
+        type_params=[],
     )
 
     mapping = {x: x.upper() for x in "abcdfyz"}
@@ -96,6 +104,9 @@ def test_functiondef_with_posonlyargs() -> None:
         ),
         body=[ast.Pass()],
         decorator_list=[ast.Name(id="d", ctx=ast.Load())],
+        returns=None,
+        type_comment=None,
+        type_params=[],
     )
 
     expected = ast.FunctionDef(
@@ -112,6 +123,9 @@ def test_functiondef_with_posonlyargs() -> None:
         ),
         body=[ast.Pass()],
         decorator_list=[ast.Name(id="D", ctx=ast.Load())],
+        returns=None,
+        type_comment=None,
+        type_params=[],
     )
 
     mapping = {x: x.upper() for x in "abcdfxyz"}

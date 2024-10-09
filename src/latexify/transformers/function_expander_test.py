@@ -27,6 +27,7 @@ def test_exp() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("exp"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.BinOp(
         left=ast_utils.make_name("e"),
@@ -41,10 +42,12 @@ def test_exp_unchanged() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("exp"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.Call(
         func=ast_utils.make_name("exp"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     transformed = FunctionExpander(set()).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
@@ -54,6 +57,7 @@ def test_exp_with_attribute() -> None:
     tree = ast.Call(
         func=ast_utils.make_attribute(ast_utils.make_name("math"), "exp"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.BinOp(
         left=ast_utils.make_name("e"),
@@ -68,10 +72,12 @@ def test_exp_unchanged_with_attribute() -> None:
     tree = ast.Call(
         func=ast_utils.make_attribute(ast_utils.make_name("math"), "exp"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.Call(
         func=ast_utils.make_attribute(ast_utils.make_name("math"), "exp"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     transformed = FunctionExpander(set()).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
@@ -84,8 +90,10 @@ def test_exp_nested1() -> None:
             ast.Call(
                 func=ast_utils.make_name("exp"),
                 args=[ast_utils.make_name("x")],
+                keywords=[],
             )
         ],
+        keywords=[],
     )
     expected = ast.BinOp(
         left=ast_utils.make_name("e"),
@@ -107,8 +115,10 @@ def test_exp_nested2() -> None:
             ast.Call(
                 func=ast_utils.make_name("exp"),
                 args=[ast_utils.make_name("x")],
+                keywords=[],
             )
         ],
+        keywords=[],
     )
     expected = ast.Call(
         func=ast_utils.make_name("f"),
@@ -119,6 +129,7 @@ def test_exp_nested2() -> None:
                 right=ast_utils.make_name("x"),
             )
         ],
+        keywords=[],
     )
     transformed = FunctionExpander({"exp"}).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
@@ -128,6 +139,7 @@ def test_atan2() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("atan2"),
         args=[ast_utils.make_name("y"), ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.Call(
         func=ast_utils.make_name("atan"),
@@ -138,6 +150,7 @@ def test_atan2() -> None:
                 right=ast_utils.make_name("x"),
             )
         ],
+        keywords=[],
     )
     transformed = FunctionExpander({"atan2"}).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
@@ -147,6 +160,7 @@ def test_exp2() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("exp2"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.BinOp(
         left=ast_utils.make_constant(2),
@@ -161,11 +175,13 @@ def test_expm1() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("expm1"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.BinOp(
         left=ast.Call(
             func=ast_utils.make_name("exp"),
             args=[ast_utils.make_name("x")],
+            keywords=[],
         ),
         op=ast.Sub(),
         right=ast_utils.make_constant(1),
@@ -178,6 +194,7 @@ def test_hypot() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("hypot"),
         args=[ast_utils.make_name("x"), ast_utils.make_name("y")],
+        keywords=[],
     )
     expected = ast.Call(
         func=ast_utils.make_name("sqrt"),
@@ -196,13 +213,14 @@ def test_hypot() -> None:
                 ),
             )
         ],
+        keywords=[],
     )
     transformed = FunctionExpander({"hypot"}).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
 
 
 def test_hypot_no_args() -> None:
-    tree = ast.Call(func=ast_utils.make_name("hypot"), args=[])
+    tree = ast.Call(func=ast_utils.make_name("hypot"), args=[], keywords=[])
     expected = ast_utils.make_constant(0)
     transformed = FunctionExpander({"hypot"}).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
@@ -212,6 +230,7 @@ def test_log1p() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("log1p"),
         args=[ast_utils.make_name("x")],
+        keywords=[],
     )
     expected = ast.Call(
         func=ast_utils.make_name("log"),
@@ -222,6 +241,7 @@ def test_log1p() -> None:
                 right=ast_utils.make_name("x"),
             )
         ],
+        keywords=[],
     )
     transformed = FunctionExpander({"log1p"}).visit(tree)
     test_utils.assert_ast_equal(transformed, expected)
@@ -231,6 +251,7 @@ def test_pow() -> None:
     tree = ast.Call(
         func=ast_utils.make_name("pow"),
         args=[ast_utils.make_name("x"), ast_utils.make_name("y")],
+        keywords=[],
     )
     expected = ast.BinOp(
         left=ast_utils.make_name("x"),
