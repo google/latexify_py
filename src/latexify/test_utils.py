@@ -97,8 +97,8 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
                 assert type(vo) is type(ve)
                 assert vo == ve
 
-    except (AssertionError, AttributeError) as e:
-        raise e  # raise to debug easier.
+    except (AssertionError, AttributeError):
+        raise  # raise to debug easier.
 
     return True
 
