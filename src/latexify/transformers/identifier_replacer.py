@@ -49,23 +49,15 @@ class IdentifierReplacer(ast.NodeTransformer):
         """Visit a FunctionDef node."""
         visited = cast(ast.FunctionDef, super().generic_visit(node))
 
-        if sys.version_info.minor < 8:
-            args = ast.arguments(
-                args=self._replace_args(visited.args.args),
-                kwonlyargs=self._replace_args(visited.args.kwonlyargs),
-                kw_defaults=visited.args.kw_defaults,
-                defaults=visited.args.defaults,
-            )  # type: ignore
-        else:
-            args = ast.arguments(
-                posonlyargs=self._replace_args(visited.args.posonlyargs),  # from 3.8
-                args=self._replace_args(visited.args.args),
-                vararg=visited.args.vararg,
-                kwonlyargs=self._replace_args(visited.args.kwonlyargs),
-                kw_defaults=visited.args.kw_defaults,
-                kwarg=visited.args.kwarg,
-                defaults=visited.args.defaults,
-            )
+        args = ast.arguments(
+            posonlyargs=self._replace_args(visited.args.posonlyargs),
+            args=self._replace_args(visited.args.args),
+            vararg=visited.args.vararg,
+            kwonlyargs=self._replace_args(visited.args.kwonlyargs),
+            kw_defaults=visited.args.kw_defaults,
+            kwarg=visited.args.kwarg,
+            defaults=visited.args.defaults,
+        )
         type_params = getattr(visited, "type_params", [])
         return ast.FunctionDef(
             name=self._mapping.get(visited.name, visited.name),

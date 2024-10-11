@@ -56,18 +56,12 @@ def make_constant(value: Any) -> ast.expr:
     Raises:
         ValueError: Unsupported value type.
     """
-    if sys.version_info.minor < 8:
-        if value in {None, False, True, ...} or isinstance(
-            value, (int, float, complex, str, bytes)
-        ):
-            return ast.Constant(value=value)
-    else:
-        if (
-            value is None
-            or value is ...
-            or isinstance(value, (bool, int, float, complex, str, bytes))
-        ):
-            return ast.Constant(value=value)
+    if (
+        value is None
+        or value is ...
+        or isinstance(value, (bool, int, float, complex, str, bytes))
+    ):
+        return ast.Constant(value=value)
 
     raise ValueError(f"Unsupported type to generate Constant: {type(value).__name__}")
 
@@ -81,13 +75,7 @@ def is_constant(node: ast.AST) -> bool:
     Returns:
         True if the node is a constant, False otherwise.
     """
-    if sys.version_info.minor < 8:
-        return isinstance(
-            node,
-            (ast.Bytes, ast.Constant, ast.Ellipsis, ast.NameConstant, ast.Num, ast.Str),
-        )
-    else:
-        return isinstance(node, ast.Constant)
+    return isinstance(node, ast.Constant)
 
 
 def is_str(node: ast.AST) -> bool:
@@ -114,20 +102,12 @@ def extract_int_or_none(node: ast.expr) -> int | None:
     Returns:
         Extracted int value, or None if extraction failed.
     """
-    if sys.version_info.minor < 8:
-        if (
-            isinstance(node, ast.Num)
-            and isinstance(node.n, int)
-            and not isinstance(node.n, bool)
-        ):
-            return node.n
-    else:
-        if (
-            isinstance(node, ast.Constant)
-            and isinstance(node.value, int)
-            and not isinstance(node.n, bool)
-        ):
-            return node.value
+    if (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, int)
+        and not isinstance(node.value, bool)
+    ):
+        return node.value
 
     return None
 
