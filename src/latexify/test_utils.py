@@ -113,7 +113,10 @@ def assert_ast_equal(observed: ast.AST, expected: ast.AST) -> None:
     Raises:
         AssertionError: observed and expected represent different ASTs.
     """
-    indent = 4 if sys.version_info.minor >= 9 else None
     assert ast_equal(
         observed, expected
-    ), f"AST does not match. observed = {observed}\nexpected = {expected}"
+    ), f"""\
+        AST does not match.
+        observed={ast.dump(observed, indent=4)}
+        expected={ast.dump(expected, indent=4)}
+    """
