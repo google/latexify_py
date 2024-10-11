@@ -817,7 +817,6 @@ def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> No
     assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "code,latex",
     [

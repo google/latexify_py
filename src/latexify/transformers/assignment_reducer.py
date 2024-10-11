@@ -6,6 +6,7 @@ import ast
 from typing import Any
 
 from latexify import exceptions
+from latexify.ast_utils import ast_function_def
 
 
 class AssignmentReducer(ast.NodeTransformer):
@@ -67,7 +68,7 @@ class AssignmentReducer(ast.NodeTransformer):
         # Pop stack
         self._assignments = parent_assignments
         type_params = getattr(node, "type_params", [])
-        return ast.FunctionDef(
+        return ast_function_def(
             name=node.name,
             args=node.args,
             body=[return_transformed],

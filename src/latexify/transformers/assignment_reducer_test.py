@@ -19,7 +19,7 @@ def _make_ast(body: list[ast.stmt]) -> ast.Module:
     """
     return ast.Module(
         body=[
-            ast.FunctionDef(
+            ast_utils.ast_function_def(
                 name="f",
                 args=ast.arguments(
                     args=[ast.arg(arg="x")],

@@ -147,3 +147,9 @@ def extract_function_name_or_none(node: ast.Call) -> str | None:
         return node.func.attr
 
     return None
+
+
+def ast_function_def(*args, **kwargs) -> ast.FunctionDef:
+    if sys.version_info.minor < 12:
+        kwargs.pop("type_params", None)
+    return ast.FunctionDef(*args, **kwargs)

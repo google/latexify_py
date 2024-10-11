@@ -7,6 +7,7 @@ import ast
 import pytest
 
 from latexify import exceptions, parser, test_utils
+from latexify.ast_utils import ast_function_def
 
 
 def test_parse_function_with_posonlyargs() -> None:
@@ -15,7 +16,7 @@ def test_parse_function_with_posonlyargs() -> None:
 
     expected = ast.Module(
         body=[
-            ast.FunctionDef(
+            ast_function_def(
                 name="f",
                 args=ast.arguments(
                     posonlyargs=[],

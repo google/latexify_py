@@ -17,7 +17,7 @@ def test_remove_docstrings() -> None:
     tree = parser.parse_function(f).body[0]
     assert isinstance(tree, ast.FunctionDef)
 
-    expected = ast.FunctionDef(
+    expected = ast_utils.ast_function_def(
         name="f",
         body=[
             ast.Assign(

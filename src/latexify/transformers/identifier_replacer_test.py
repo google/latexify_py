@@ -7,6 +7,7 @@ import ast
 import pytest
 
 from latexify import test_utils
+from latexify.ast_utils import ast_function_def
 from latexify.transformers.identifier_replacer import IdentifierReplacer
 
 
@@ -41,7 +42,7 @@ def test_functiondef() -> None:
     #     @d
     #     def f(y=b, *, z=c):
     #         pass
-    source = ast.FunctionDef(
+    source = ast_function_def(
         name="f",
         args=ast.arguments(
             posonlyargs=[],
@@ -60,7 +61,7 @@ def test_functiondef() -> None:
         type_params=[],
     )
 
-    expected = ast.FunctionDef(
+    expected = ast_function_def(
         name="F",
         args=ast.arguments(
             posonlyargs=[],
@@ -84,13 +85,12 @@ def test_functiondef() -> None:
     test_utils.assert_ast_equal(transformed, expected)
 
 
-@test_utils.require_at_least(8)
 def test_functiondef_with_posonlyargs() -> None:
     # Subtree of:
     #     @d
     #     def f(x=a, /, y=b, *, z=c):
     #         pass
-    source = ast.FunctionDef(
+    source = ast_function_def(
         name="f",
         args=ast.arguments(
             posonlyargs=[ast.arg(arg="x")],
@@ -109,7 +109,7 @@ def test_functiondef_with_posonlyargs() -> None:
         type_params=[],
     )
 
-    expected = ast.FunctionDef(
+    expected = ast_function_def(
         name="F",
         args=ast.arguments(
             posonlyargs=[ast.arg(arg="X")],

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import ast
 import keyword
-import sys
 from typing import cast
+
+from latexify.ast_utils import ast_function_def
 
 
 class IdentifierReplacer(ast.NodeTransformer):
@@ -59,7 +60,7 @@ class IdentifierReplacer(ast.NodeTransformer):
             defaults=visited.args.defaults,
         )
         type_params = getattr(visited, "type_params", [])
-        return ast.FunctionDef(
+        return ast_function_def(
             name=self._mapping.get(visited.name, visited.name),
             args=args,
             body=visited.body,

@@ -56,7 +56,6 @@ def test_make_constant_legacy(value: Any, expected: ast.Constant) -> None:
     )
 
 
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -101,7 +100,6 @@ def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_constant(value) is expected
 
 
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -132,7 +130,6 @@ def test_is_str_legacy(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_str(value) is expected
 
 
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "value,expected",
     [
