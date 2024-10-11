@@ -34,7 +34,6 @@ def test_make_attribute() -> None:
     )
 
 
-@test_utils.require_at_most(7)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -82,7 +81,6 @@ def test_make_constant_invalid() -> None:
         ast_utils.make_constant(object())
 
 
-@test_utils.require_at_most(7)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -112,7 +110,6 @@ def test_is_constant(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_constant(value) is expected
 
 
-@test_utils.require_at_most(7)
 @pytest.mark.parametrize(
     "value,expected",
     [

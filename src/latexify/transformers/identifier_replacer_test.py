@@ -36,55 +36,6 @@ def test_name_not_replaced() -> None:
     test_utils.assert_ast_equal(transformed, expected)
 
 
-@test_utils.require_at_most(7)
-def test_functiondef() -> None:
-    # Subtree of:
-    #     @d
-    #     def f(y=b, *, z=c):
-    #         pass
-    source = ast_function_def(
-        name="f",
-        args=ast.arguments(
-            posonlyargs=[],
-            args=[ast.arg(arg="y")],
-            kwonlyargs=[ast.arg(arg="z")],
-            kw_defaults=[ast.Name(id="c", ctx=ast.Load())],
-            defaults=[
-                ast.Name(id="a", ctx=ast.Load()),
-                ast.Name(id="b", ctx=ast.Load()),
-            ],
-        ),
-        body=[ast.Pass()],
-        decorator_list=[ast.Name(id="d", ctx=ast.Load())],
-        returns=None,
-        type_comment=None,
-        type_params=[],
-    )
-
-    expected = ast_function_def(
-        name="F",
-        args=ast.arguments(
-            posonlyargs=[],
-            args=[ast.arg(arg="Y")],
-            kwonlyargs=[ast.arg(arg="Z")],
-            kw_defaults=[ast.Name(id="C", ctx=ast.Load())],
-            defaults=[
-                ast.Name(id="a", ctx=ast.Load()),
-                ast.Name(id="b", ctx=ast.Load()),
-            ],
-        ),
-        body=[ast.Pass()],
-        decorator_list=[ast.Name(id="d", ctx=ast.Load())],
-        returns=None,
-        type_comment=None,
-        type_params=[],
-    )
-
-    mapping = {x: x.upper() for x in "abcdfyz"}
-    transformed = IdentifierReplacer(mapping).visit(source)
-    test_utils.assert_ast_equal(transformed, expected)
-
-
 def test_functiondef_with_posonlyargs() -> None:
     # Subtree of:
     #     @d

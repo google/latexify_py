@@ -6,7 +6,7 @@ import ast
 
 import pytest
 
-from latexify import ast_utils, exceptions, test_utils
+from latexify import ast_utils, exceptions
 from latexify.codegen import expression_codegen
 
 
@@ -792,7 +792,6 @@ def test_visit_boolop(code: str, latex: str) -> None:
     assert expression_codegen.ExpressionCodegen().visit(tree) == latex
 
 
-@test_utils.require_at_most(7)
 @pytest.mark.parametrize(
     "code,cls,latex",
     [
