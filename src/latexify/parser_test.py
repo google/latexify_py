@@ -7,7 +7,7 @@ import ast
 import pytest
 
 from latexify import exceptions, parser, test_utils
-from latexify.ast_utils import ast_function_def
+from latexify import ast_utils
 
 
 def test_parse_function_with_posonlyargs() -> None:
