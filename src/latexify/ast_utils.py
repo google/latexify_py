@@ -149,7 +149,19 @@ def extract_function_name_or_none(node: ast.Call) -> str | None:
     return None
 
 
-def ast_function_def(*args, **kwargs) -> ast.FunctionDef:
+def create_function_def(*args, **kwargs) -> ast.FunctionDef:
+    """Creates a FunctionDef node.
+
+    This function generates an `ast.FunctionDef` node, optionally removing
+    the `type_params` keyword argument for Python versions below 3.12.
+
+    Args:
+        *args: Positional arguments for `ast.FunctionDef`.
+        **kwargs: Keyword arguments for `ast.FunctionDef`.
+
+    Returns:
+        ast.FunctionDef: The generated FunctionDef node.
+    """
     if sys.version_info.minor < 12:
         kwargs.pop("type_params", None)
     return ast.FunctionDef(*args, **kwargs)

@@ -6,8 +6,7 @@ import ast
 
 import pytest
 
-from latexify import test_utils
-from latexify.ast_utils import ast_function_def
+from latexify import ast_utils, test_utils
 from latexify.transformers.identifier_replacer import IdentifierReplacer
 
 
@@ -41,7 +40,7 @@ def test_functiondef_with_posonlyargs() -> None:
     #     @d
     #     def f(x=a, /, y=b, *, z=c):
     #         pass
-    source = ast_function_def(
+    source = ast_utils.create_function_def(
         name="f",
         args=ast.arguments(
             posonlyargs=[ast.arg(arg="x")],
@@ -60,7 +59,7 @@ def test_functiondef_with_posonlyargs() -> None:
         type_params=[],
     )
 
-    expected = ast_function_def(
+    expected = ast_utils.create_function_def(
         name="F",
         args=ast.arguments(
             posonlyargs=[ast.arg(arg="X")],

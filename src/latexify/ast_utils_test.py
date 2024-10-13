@@ -6,6 +6,7 @@ import ast
 from typing import Any
 
 import pytest
+import sys
 
 from latexify import ast_utils, test_utils
 
@@ -31,27 +32,6 @@ def test_make_attribute() -> None:
     test_utils.assert_ast_equal(
         ast_utils.make_attribute(ast_utils.make_name("foo"), "bar"),
         ast.Attribute(ast.Name(id="foo", ctx=ast.Load()), attr="bar", ctx=ast.Load()),
-    )
-
-
-@pytest.mark.parametrize(
-    "value,expected",
-    [
-        (None, ast.Constant(value=None)),
-        (False, ast.Constant(value=False)),
-        (True, ast.Constant(value=True)),
-        (..., ast.Constant(value=Ellipsis)),
-        (123, ast.Constant(value=123)),
-        (4.5, ast.Constant(value=4.5)),
-        (6 + 7j, ast.Constant(value=6 + 7j)),
-        ("foo", ast.Constant(value="foo")),
-        (b"bar", ast.Constant(value=b"bar")),
-    ],
-)
-def test_make_constant_legacy(value: Any, expected: ast.Constant) -> None:
-    test_utils.assert_ast_equal(
-        observed=ast_utils.make_constant(value),
-        expected=expected,
     )
 
 
@@ -218,3 +198,40 @@ def test_extract_int_invalid() -> None:
 )
 def test_extract_function_name_or_none(value: ast.Call, expected: str | None) -> None:
     assert ast_utils.extract_function_name_or_none(value) == expected
+
+
+def test_create_function_def() -> None:
+    expected_args = ast.arguments(
+        posonlyargs=[],
+        args=[ast.arg(arg="x")],
+        vararg=None,
+        kwonlyargs=[],
+        kw_defaults=[],
+        kwarg=None,
+        defaults=[],
+    )
+
+    kwargs = {
+        "name": "test_func",
+        "args": expected_args,
+        "body": [ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
+        "decorator_list": [],
+        "returns": None,
+        "type_comment": None,
+        "lineno": 1,
+        "col_offset": 0,
+        "end_lineno": 2,
+        "end_col_offset": 0,
+    }
+    if sys.version_info.minor >= 12:
+        kwargs["type_params"] = []
+
+    func_def = ast_utils.create_function_def(**kwargs)
+    assert isinstance(func_def, ast.FunctionDef)
+    assert func_def.name == "test_func"
+
+    assert func_def.args.posonlyargs == expected_args.posonlyargs
+    assert func_def.args.args == expected_args.args
+    assert func_def.args.kwonlyargs == expected_args.kwonlyargs
+    assert func_def.args.kw_defaults == expected_args.kw_defaults
+    assert func_def.args.defaults == expected_args.defaults

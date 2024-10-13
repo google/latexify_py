@@ -6,7 +6,7 @@ import ast
 import keyword
 from typing import cast
 
-from latexify.ast_utils import ast_function_def
+from latexify import ast_utils
 
 
 class IdentifierReplacer(ast.NodeTransformer):
@@ -60,7 +60,7 @@ class IdentifierReplacer(ast.NodeTransformer):
             defaults=visited.args.defaults,
         )
         type_params = getattr(visited, "type_params", [])
-        return ast_function_def(
+        return ast_utils.create_function_def(
             name=self._mapping.get(visited.name, visited.name),
             args=args,
             body=visited.body,

@@ -16,7 +16,7 @@ def test_parse_function_with_posonlyargs() -> None:
 
     expected = ast.Module(
         body=[
-            ast_function_def(
+            ast_utils.create_function_def(
                 name="f",
                 args=ast.arguments(
                     posonlyargs=[],
