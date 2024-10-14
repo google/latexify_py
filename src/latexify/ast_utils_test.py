@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import ast
+import sys
 from typing import Any
 
 import pytest
-import sys
 
 from latexify import ast_utils, test_utils
 

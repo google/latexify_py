@@ -5,8 +5,7 @@ from __future__ import annotations
 import ast
 from typing import Any
 
-from latexify import exceptions
-from latexify import ast_utils
+from latexify import ast_utils, exceptions
 
 
 class AssignmentReducer(ast.NodeTransformer):
