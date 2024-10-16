@@ -149,19 +149,63 @@ def extract_function_name_or_none(node: ast.Call) -> str | None:
     return None
 
 
-def create_function_def(*args, **kwargs) -> ast.FunctionDef:
+def create_function_def(
+    name,
+    args,
+    body,
+    decorator_list,
+    returns=None,
+    type_comment=None,
+    type_params=None,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+) -> ast.FunctionDef:
     """Creates a FunctionDef node.
 
     This function generates an `ast.FunctionDef` node, optionally removing
     the `type_params` keyword argument for Python versions below 3.12.
 
     Args:
-        *args: Positional arguments for `ast.FunctionDef`.
-        **kwargs: Keyword arguments for `ast.FunctionDef`.
+        name: Name of the function.
+        args: Arguments of the function.
+        body: Body of the function.
+        decorator_list: List of decorators.
+        returns: Return type of the function.
+        type_comment: Type comment of the function.
+        type_params: Type parameters of the function.
+        lineno: Line number of the function definition.
+        col_offset: Column offset of the function definition.
+        end_lineno: End line number of the function definition.
+        end_col_offset: End column offset of the function definition.
 
     Returns:
         ast.FunctionDef: The generated FunctionDef node.
     """
     if sys.version_info.minor < 12:
-        kwargs.pop("type_params", None)
-    return ast.FunctionDef(*args, **kwargs)
+        return ast.FunctionDef(
+            name=name,
+            args=args,
+            body=body,
+            decorator_list=decorator_list,
+            returns=returns,
+            type_comment=type_comment,
+            lineno=lineno,
+            col_offset=col_offset,
+            end_lineno=end_lineno,
+            end_col_offset=end_col_offset,
+        )  # type: ignore
+    return ast.FunctionDef(
+        name=name,
+        args=args,
+        body=body,
+        decorator_list=decorator_list,
+        returns=returns,
+        type_comment=type_comment,
+        type_params=type_params,
+        lineno=lineno,
+        col_offset=col_offset,
+        end_lineno=end_lineno,
+        end_col_offset=end_col_offset,
+    )  # type: ignore
