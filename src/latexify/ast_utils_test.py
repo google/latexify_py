@@ -76,23 +76,6 @@ def test_is_constant(value: ast.AST, expected: bool) -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Constant(value=b"foo"), False),
-        (ast.Constant(value="bar"), True),
-        (ast.Constant(value=...), False),
-        (ast.Constant(value=None), False),
-        (ast.Constant(value=123), False),
-        (ast.Constant(value="baz"), True),
-        (ast.Expr(value=ast.Constant(value=456)), False),
-        (ast.Global(names=["qux"]), False),
-    ],
-)
-def test_is_str_legacy(value: ast.AST, expected: bool) -> None:
-    assert ast_utils.is_str(value) is expected
-
-
-@pytest.mark.parametrize(
-    "value,expected",
-    [
         (ast.Constant(value=123), False),
         (ast.Constant(value="foo"), True),
         (ast.Expr(value=ast.Constant(value="foo")), False),
