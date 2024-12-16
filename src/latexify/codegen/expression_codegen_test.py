@@ -793,30 +793,6 @@ def test_visit_boolop(code: str, latex: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "code,cls,latex",
-    [
-        ("0", ast.Num, "0"),
-        ("1", ast.Num, "1"),
-        ("0.0", ast.Num, "0.0"),
-        ("1.5", ast.Num, "1.5"),
-        ("0.0j", ast.Num, "0j"),
-        ("1.0j", ast.Num, "1j"),
-        ("1.5j", ast.Num, "1.5j"),
-        ('"abc"', ast.Str, r'\textrm{"abc"}'),
-        ('b"abc"', ast.Bytes, r"\textrm{b'abc'}"),
-        ("None", ast.NameConstant, r"\mathrm{None}"),
-        ("False", ast.NameConstant, r"\mathrm{False}"),
-        ("True", ast.NameConstant, r"\mathrm{True}"),
-        ("...", ast.Ellipsis, r"\cdots"),
-    ],
-)
-def test_visit_constant_lagacy(code: str, cls: type[ast.expr], latex: str) -> None:
-    tree = ast_utils.parse_expr(code)
-    assert isinstance(tree, cls)
-    assert expression_codegen.ExpressionCodegen().visit(tree) == latex
-
-
-@pytest.mark.parametrize(
     "code,latex",
     [
         ("0", "0"),
