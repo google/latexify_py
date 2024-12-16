@@ -64,23 +64,6 @@ def test_make_constant_invalid() -> None:
 @pytest.mark.parametrize(
     "value,expected",
     [
-        (ast.Constant(value=b"foo"), True),
-        (ast.Constant(value="bar"), True),
-        (ast.Constant(value=...), True),
-        (ast.Constant(value=None), True),
-        (ast.Constant(value=123), True),
-        (ast.Constant(value="baz"), True),
-        (ast.Expr(value=ast.Constant(value=456)), False),
-        (ast.Global(names=["qux"]), False),
-    ],
-)
-def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
-    assert ast_utils.is_constant(value) is expected
-
-
-@pytest.mark.parametrize(
-    "value,expected",
-    [
         (ast.Constant(value="foo"), True),
         (ast.Expr(value=ast.Constant(value=123)), False),
         (ast.Global(names=["bar"]), False),
