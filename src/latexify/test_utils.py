@@ -71,11 +71,15 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
     Returns:
         True if observed and expected represent the same AST, False otherwise.
     """
+    ignore_keys = {"lineno", "col_offset", "end_lineno", "end_col_offset", "kind"}
+    if sys.version_info.minor <= 12:
+        ignore_keys.add("type_params")
+
     try:
         assert type(observed) is type(expected)
 
         for k, ve in vars(expected).items():
-            if k in {"col_offset", "end_col_offset", "end_lineno", "kind", "lineno"}:
+            if k in ignore_keys:
                 continue
 
             vo = getattr(observed, k)  # May cause AttributeError.
@@ -94,7 +98,7 @@ def ast_equal(observed: ast.AST, expected: ast.AST) -> bool:
                 assert vo == ve
 
     except (AssertionError, AttributeError):
-        return False
+        raise  # raise to debug easier.
 
     return True
 
@@ -109,19 +113,10 @@ def assert_ast_equal(observed: ast.AST, expected: ast.AST) -> None:
     Raises:
         AssertionError: observed and expected represent different ASTs.
     """
-    if sys.version_info.minor >= 9:
-        assert ast_equal(
-            observed, expected
-        ), f"""\
-AST does not match.
-observed={ast.dump(observed, indent=4)}
-expected={ast.dump(expected, indent=4)}
-"""
-    else:
-        assert ast_equal(
-            observed, expected
-        ), f"""\
-AST does not match.
-observed={ast.dump(observed)}
-expected={ast.dump(expected)}
-"""
+    assert ast_equal(
+        observed, expected
+    ), f"""\
+        AST does not match.
+        observed={ast.dump(observed, indent=4)}
+        expected={ast.dump(expected, indent=4)}
+    """

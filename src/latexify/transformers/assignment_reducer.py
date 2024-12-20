@@ -5,7 +5,7 @@ from __future__ import annotations
 import ast
 from typing import Any
 
-from latexify import exceptions
+from latexify import ast_utils, exceptions
 
 
 class AssignmentReducer(ast.NodeTransformer):
@@ -66,12 +66,14 @@ class AssignmentReducer(ast.NodeTransformer):
 
         # Pop stack
         self._assignments = parent_assignments
-
-        return ast.FunctionDef(
+        type_params = getattr(node, "type_params", [])
+        return ast_utils.create_function_def(
             name=node.name,
             args=node.args,
             body=[return_transformed],
             decorator_list=node.decorator_list,
+            returns=node.returns,
+            type_params=type_params,
         )
 
     def visit_Name(self, node: ast.Name) -> Any:

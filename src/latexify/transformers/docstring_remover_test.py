@@ -17,16 +17,31 @@ def test_remove_docstrings() -> None:
     tree = parser.parse_function(f).body[0]
     assert isinstance(tree, ast.FunctionDef)
 
-    expected = ast.FunctionDef(
+    expected = ast_utils.create_function_def(
         name="f",
         body=[
             ast.Assign(
                 targets=[ast.Name(id="x", ctx=ast.Store())],
                 value=ast_utils.make_constant(42),
             ),
-            ast.Expr(value=ast.Call(func=ast.Name(id="f", ctx=ast.Load()))),
+            ast.Expr(
+                value=ast.Call(
+                    func=ast.Name(id="f", ctx=ast.Load()), args=[], keywords=[]
+                )
+            ),
             ast.Return(value=ast.Name(id="x", ctx=ast.Load())),
         ],
+        args=ast.arguments(
+            posonlyargs=[],
+            args=[],
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
+        ),
+        decorator_list=[],
+        type_params=[],
     )
     transformed = DocstringRemover().visit(tree)
     test_utils.assert_ast_equal(transformed, expected)

@@ -6,7 +6,7 @@ import ast
 
 import pytest
 
-from latexify import exceptions, parser, test_utils
+from latexify import ast_utils, exceptions, parser, test_utils
 
 
 def test_parse_function_with_posonlyargs() -> None:
@@ -15,14 +15,29 @@ def test_parse_function_with_posonlyargs() -> None:
 
     expected = ast.Module(
         body=[
-            ast.FunctionDef(
+            ast_utils.create_function_def(
                 name="f",
                 args=ast.arguments(
+                    posonlyargs=[],
                     args=[ast.arg(arg="x")],
+                    vararg=None,
+                    kwonlyargs=[],
+                    kw_defaults=[],
+                    kwarg=None,
+                    defaults=[],
                 ),
                 body=[ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
+                decorator_list=[],
+                returns=None,
+                type_comment=None,
+                type_params=[],
+                lineno=1,
+                col_offset=0,
+                end_lineno=2,
+                end_col_offset=0,
             )
         ],
+        type_ignores=[],
     )
 
     obtained = parser.parse_function(f)

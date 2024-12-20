@@ -60,6 +60,7 @@ def _atan2_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
                 right=function_expander.visit(node.args[1]),
             )
         ],
+        keywords=[],
     )
 
 
@@ -88,6 +89,7 @@ def _expm1_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
             ast.Call(
                 func=ast.Name(id="exp", ctx=ast.Load()),
                 args=[node.args[0]],
+                keywords=[],
             )
         ),
         op=ast.Sub(),
@@ -114,6 +116,7 @@ def _hypot_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
     return ast.Call(
         func=ast.Name(id="sqrt", ctx=ast.Load()),
         args=[args_reduced],
+        keywords=[],
     )
 
 
@@ -128,6 +131,7 @@ def _log1p_expander(function_expander: FunctionExpander, node: ast.Call) -> ast.
                 right=function_expander.visit(node.args[0]),
             )
         ],
+        keywords=[],
     )
 
 

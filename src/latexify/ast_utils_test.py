@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import sys
 from typing import Any
 
 import pytest
@@ -34,29 +35,6 @@ def test_make_attribute() -> None:
     )
 
 
-@test_utils.require_at_most(7)
-@pytest.mark.parametrize(
-    "value,expected",
-    [
-        (None, ast.NameConstant(value=None)),
-        (False, ast.NameConstant(value=False)),
-        (True, ast.NameConstant(value=True)),
-        (..., ast.Ellipsis()),
-        (123, ast.Num(n=123)),
-        (4.5, ast.Num(n=4.5)),
-        (6 + 7j, ast.Num(n=6 + 7j)),
-        ("foo", ast.Str(s="foo")),
-        (b"bar", ast.Bytes(s=b"bar")),
-    ],
-)
-def test_make_constant_legacy(value: Any, expected: ast.Constant) -> None:
-    test_utils.assert_ast_equal(
-        observed=ast_utils.make_constant(value),
-        expected=expected,
-    )
-
-
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -83,25 +61,6 @@ def test_make_constant_invalid() -> None:
         ast_utils.make_constant(object())
 
 
-@test_utils.require_at_most(7)
-@pytest.mark.parametrize(
-    "value,expected",
-    [
-        (ast.Bytes(s=b"foo"), True),
-        (ast.Constant("bar"), True),
-        (ast.Ellipsis(), True),
-        (ast.NameConstant(value=None), True),
-        (ast.Num(n=123), True),
-        (ast.Str(s="baz"), True),
-        (ast.Expr(value=ast.Num(456)), False),
-        (ast.Global(names=["qux"]), False),
-    ],
-)
-def test_is_constant_legacy(value: ast.AST, expected: bool) -> None:
-    assert ast_utils.is_constant(value) is expected
-
-
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -114,25 +73,6 @@ def test_is_constant(value: ast.AST, expected: bool) -> None:
     assert ast_utils.is_constant(value) is expected
 
 
-@test_utils.require_at_most(7)
-@pytest.mark.parametrize(
-    "value,expected",
-    [
-        (ast.Bytes(s=b"foo"), False),
-        (ast.Constant("bar"), True),
-        (ast.Ellipsis(), False),
-        (ast.NameConstant(value=None), False),
-        (ast.Num(n=123), False),
-        (ast.Str(s="baz"), True),
-        (ast.Expr(value=ast.Num(456)), False),
-        (ast.Global(names=["qux"]), False),
-    ],
-)
-def test_is_str_legacy(value: ast.AST, expected: bool) -> None:
-    assert ast_utils.is_str(value) is expected
-
-
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "value,expected",
     [
@@ -194,6 +134,7 @@ def test_extract_int_invalid() -> None:
             ast.Call(
                 func=ast.Name(id="hypot", ctx=ast.Load()),
                 args=[],
+                keywords=[],
             ),
             "hypot",
         ),
@@ -205,13 +146,17 @@ def test_extract_int_invalid() -> None:
                     ctx=ast.Load(),
                 ),
                 args=[],
+                keywords=[],
             ),
             "hypot",
         ),
         (
             ast.Call(
-                func=ast.Call(func=ast.Name(id="foo", ctx=ast.Load()), args=[]),
+                func=ast.Call(
+                    func=ast.Name(id="foo", ctx=ast.Load()), args=[], keywords=[]
+                ),
                 args=[],
+                keywords=[],
             ),
             None,
         ),
@@ -219,3 +164,40 @@ def test_extract_int_invalid() -> None:
 )
 def test_extract_function_name_or_none(value: ast.Call, expected: str | None) -> None:
     assert ast_utils.extract_function_name_or_none(value) == expected
+
+
+def test_create_function_def() -> None:
+    expected_args = ast.arguments(
+        posonlyargs=[],
+        args=[ast.arg(arg="x")],
+        vararg=None,
+        kwonlyargs=[],
+        kw_defaults=[],
+        kwarg=None,
+        defaults=[],
+    )
+
+    kwargs = {
+        "name": "test_func",
+        "args": expected_args,
+        "body": [ast.Return(value=ast.Name(id="x", ctx=ast.Load()))],
+        "decorator_list": [],
+        "returns": None,
+        "type_comment": None,
+        "lineno": 1,
+        "col_offset": 0,
+        "end_lineno": 2,
+        "end_col_offset": 0,
+    }
+    if sys.version_info.minor >= 12:
+        kwargs["type_params"] = []
+
+    func_def = ast_utils.create_function_def(**kwargs)
+    assert isinstance(func_def, ast.FunctionDef)
+    assert func_def.name == "test_func"
+
+    assert func_def.args.posonlyargs == expected_args.posonlyargs
+    assert func_def.args.args == expected_args.args
+    assert func_def.args.kwonlyargs == expected_args.kwonlyargs
+    assert func_def.args.kw_defaults == expected_args.kw_defaults
+    assert func_def.args.defaults == expected_args.defaults

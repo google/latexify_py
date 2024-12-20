@@ -9,7 +9,6 @@ import pytest
 from latexify import analyzers, ast_utils, exceptions, test_utils
 
 
-@test_utils.require_at_least(8)
 @pytest.mark.parametrize(
     "code,start,stop,step,start_int,stop_int,step_int",
     [

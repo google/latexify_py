@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import ast
 import keyword
-import sys
 from typing import cast
+
+from latexify import ast_utils
 
 
 class IdentifierReplacer(ast.NodeTransformer):
@@ -49,27 +50,23 @@ class IdentifierReplacer(ast.NodeTransformer):
         """Visit a FunctionDef node."""
         visited = cast(ast.FunctionDef, super().generic_visit(node))
 
-        if sys.version_info.minor < 8:
-            args = ast.arguments(
-                args=self._replace_args(visited.args.args),
-                kwonlyargs=self._replace_args(visited.args.kwonlyargs),
-                kw_defaults=visited.args.kw_defaults,
-                defaults=visited.args.defaults,
-            )
-        else:
-            args = ast.arguments(
-                posonlyargs=self._replace_args(visited.args.posonlyargs),  # from 3.8
-                args=self._replace_args(visited.args.args),
-                kwonlyargs=self._replace_args(visited.args.kwonlyargs),
-                kw_defaults=visited.args.kw_defaults,
-                defaults=visited.args.defaults,
-            )
-
-        return ast.FunctionDef(
+        args = ast.arguments(
+            posonlyargs=self._replace_args(visited.args.posonlyargs),
+            args=self._replace_args(visited.args.args),
+            vararg=visited.args.vararg,
+            kwonlyargs=self._replace_args(visited.args.kwonlyargs),
+            kw_defaults=visited.args.kw_defaults,
+            kwarg=visited.args.kwarg,
+            defaults=visited.args.defaults,
+        )
+        type_params = getattr(visited, "type_params", [])
+        return ast_utils.create_function_def(
             name=self._mapping.get(visited.name, visited.name),
             args=args,
             body=visited.body,
             decorator_list=visited.decorator_list,
+            returns=visited.returns,
+            type_params=type_params,
         )
 
     def visit_Name(self, node: ast.Name) -> ast.Name:
