@@ -31,15 +31,18 @@ class IdentifierReplacer(ast.NodeTransformer):
         Args:
             mapping: User defined mapping of names. Keys are the original names of the
                 identifiers, and corresponding values are the replacements.
-                Both keys and values have to represent valid Python identifiers:
-                ^[A-Za-z_][A-Za-z0-9_]*$
+                Keys have to represent valid Python identifiers (not keywords).
+                Values have to be valid Python identifiers but may be keywords
+                (e.g., "lambda" for use with math symbols).
         """
         self._mapping = mapping
 
         for k, v in self._mapping.items():
+            # Keys must be valid non-keyword identifiers (they reference source code).
             if not str.isidentifier(k) or keyword.iskeyword(k):
                 raise ValueError(f"'{k}' is not an identifier name.")
-            if not str.isidentifier(v) or keyword.iskeyword(v):
+            # Values may be keywords (e.g., "lambda" resolves to a math symbol).
+            if not str.isidentifier(v):
                 raise ValueError(f"'{v}' is not an identifier name.")
 
     def _replace_args(self, args: list[ast.arg]) -> list[ast.arg]:
