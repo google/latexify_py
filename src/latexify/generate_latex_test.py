@@ -82,6 +82,24 @@ def test_get_latex_reduce_assignments_with_aug_assign() -> None:
     assert generate_latex.get_latex(f, reduce_assignments=True) == latex_with_flag
 
 
+def test_get_latex_identifiers_with_keyword_value() -> None:
+    def f(lambda_):
+        return lambda_
+
+    latex = generate_latex.get_latex(
+        f, identifiers={"lambda_": "lambda"}, use_math_symbols=True
+    )
+    assert latex == r"f(\lambda) = \lambda"
+
+
+def test_get_latex_identifiers_with_non_symbol_keyword_value() -> None:
+    def f(x):
+        return x
+
+    latex = generate_latex.get_latex(f, identifiers={"x": "return"})
+    assert latex == r"f(\mathrm{return}) = \mathrm{return}"
+
+
 def test_get_latex_use_math_symbols() -> None:
     def f(alpha):
         return alpha

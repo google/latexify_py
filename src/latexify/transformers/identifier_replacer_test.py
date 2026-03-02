@@ -16,7 +16,19 @@ def test_invalid_mapping() -> None:
     with pytest.raises(ValueError, match=r"'456' is not an identifier name."):
         IdentifierReplacer({"foo": "456"})
     with pytest.raises(ValueError, match=r"'def' is not an identifier name."):
-        IdentifierReplacer({"foo": "def"})
+        IdentifierReplacer({"def": "foo"})
+
+
+def test_keyword_value_accepted() -> None:
+    assert IdentifierReplacer({"x": "lambda"}) is not None
+    assert IdentifierReplacer({"x": "return"}) is not None
+
+
+def test_name_replaced_with_keyword_value() -> None:
+    source = ast.Name(id="x", ctx=ast.Load())
+    expected = ast.Name(id="lambda", ctx=ast.Load())
+    transformed = IdentifierReplacer({"x": "lambda"}).visit(source)
+    test_utils.assert_ast_equal(transformed, expected)
 
 
 def test_name_replaced() -> None:
